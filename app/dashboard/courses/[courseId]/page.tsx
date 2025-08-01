@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getChapters, getCourses } from '@/components/api/course';
 import { CourseChapters } from './course-chapters';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import CourseClientWrapper from './_components/course-client-wrapper';
 
 // Add metadata for the page

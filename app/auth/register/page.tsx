@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { signUp } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -58,38 +57,38 @@ export default function RegisterPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    try {
-      const { data, error } = await signUp(values.email, values.password, {
-        name: values.name,
-        role: values.role,
-      });
+    // setIsLoading(true);
+    // try {
+    //   const { data, error } = await signUp(values.email, values.password, {
+    //     name: values.name,
+    //     role: values.role,
+    //   });
       
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Registration failed",
-          description: error.message,
-        });
-        return;
-      }
+    //   if (error) {
+    //     toast({
+    //       variant: "destructive",
+    //       title: "Registration failed",
+    //       description: error.message,
+    //     });
+    //     return;
+    //   }
       
-      if (data) {
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to confirm your account.",
-        });
-        router.push('/auth/login');
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "An error occurred",
-        description: "Please try again later.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    //   if (data) {
+    //     toast({
+    //       title: "Registration successful",
+    //       description: "Please check your email to confirm your account.",
+    //     });
+    //     router.push('/auth/login');
+    //   }
+    // } catch (error) {
+    //   toast({
+    //     variant: "destructive",
+    //     title: "An error occurred",
+    //     description: "Please try again later.",
+    //   });
+    // } finally {
+    //   setIsLoading(false);
+    // }
   }
 
   return (

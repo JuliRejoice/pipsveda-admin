@@ -13,3 +13,13 @@ export const SignIn = async (data: { email: string; password: string; name: stri
     );
     return res;
 }
+
+export const signOut = async () => {
+  try {
+    const response = await axios.post(`${BaseUrl}/user/signout`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Sign out error:', error);
+    throw error;
+  }
+}

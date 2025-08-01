@@ -17,8 +17,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from 'next-themes';
-import { signOut } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { signOut } from '../api/login';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,22 +42,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
+    const data = await signOut();
+    if (!data.success) {
       toast({
         variant: "destructive",
         title: "Sign out failed",
-        description: error.message,
+        description: "Please try again later.",
       });
       return;
     }
-    
+
     toast({
       title: "Signed out successfully",
     });
     window.location.href = '/';
   };
 
+     
   // Close sidebar when route changes on mobile
   useEffect(() => {
     setSidebarOpen(false);

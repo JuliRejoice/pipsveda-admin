@@ -121,7 +121,10 @@ export default function Referrals() {
                   </div>
                   <div className="text-center min-w-[100px]">
                     <div className="flex items-center space-x-2">
-                      <Progress value={referrer.conversion} className="w-16" />
+                      <Progress 
+                        value={Number(referrer.conversion) || 0}
+                        className="w-16" 
+                      />
                       <span className="text-sm font-medium">{referrer.conversion}%</span>
                     </div>
                     <p className="text-xs text-gray-500">Conversion</p>
