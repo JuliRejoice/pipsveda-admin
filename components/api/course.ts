@@ -140,7 +140,7 @@ export const getChapters = async (id: string) => {
             headers['x-auth-token'] = token;
         }
 
-        const res = await axios.get(`${BaseUrl}/chapter/getAllChapter?id=${id}`, { headers });
+        const res = await axios.get(`${BaseUrl}/chapter/getAllChapter?courseId=${id}`, { headers });
         console.log(res.data);
         return res.data;
     } catch (error) {
