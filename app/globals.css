@@ -52,6 +52,8 @@
     --chart-3: 263 84% 34%; /* dark violet */
     --chart-4: 0 100% 60%;  /* red */
     --chart-5: 27 80% 75%;  /* soft orange */
+
+    --radius: 0.5rem;
   }
 
   .dark {
