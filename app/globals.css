@@ -31,16 +31,16 @@
     --primary: 268 93% 58%; /* #7B2FF7 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 333 94% 56%; /* #F72585 */
+    --secondary: 27 100% 57%; /* #FF7E29 (orange) */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 263 20% 65%; 
     --muted-foreground: 263 20% 45%;
 
-    --accent: 333 94% 96%; /* light pink background */
+    --accent: 27 100% 95%; /* light orange background */
     --accent-foreground: 263 84% 34%;
 
-    --destructive: 0 100% 60%; /* red candle #FF3B30 */
+    --destructive: 0 100% 60%; 
     --destructive-foreground: 0 0% 100%;
 
     --border: 263 20% 85%;
@@ -48,60 +48,57 @@
     --ring: 268 93% 58%;
 
     --chart-1: 268 93% 58%; /* purple */
-    --chart-2: 333 94% 56%; /* pink */
+    --chart-2: 27 100% 57%; /* orange */
     --chart-3: 263 84% 34%; /* dark violet */
-    --chart-4: 0 100% 60%; /* red */
-    --chart-5: 340 80% 75%; /* soft gradient pink */
-
-    --radius: 0.5rem;
+    --chart-4: 0 100% 60%;  /* red */
+    --chart-5: 27 80% 75%;  /* soft orange */
   }
 
   .dark {
-  --background: 240 6% 10%;       /* #18181B - near black with hint of purple */
-  --foreground: 0 0% 100%;        /* white */
+    --background: 240 6% 10%;
+    --foreground: 0 0% 100%;
 
-  --card: 240 6% 15%;             /* #1E1E24 - slightly lighter than bg */
-  --card-foreground: 0 0% 100%;
+    --card: 240 6% 15%;
+    --card-foreground: 0 0% 100%;
 
-  --popover: 240 6% 15%;
-  --popover-foreground: 0 0% 100%;
+    --popover: 240 6% 15%;
+    --popover-foreground: 0 0% 100%;
 
-  --primary: 268 93% 58%;         /* purple #7B2FF7 */
-  --primary-foreground: 0 0% 100%;
+    --primary: 268 93% 58%; /* purple */
+    --primary-foreground: 0 0% 100%;
 
-  --secondary: 333 94% 56%;       /* pink #F72585 */
-  --secondary-foreground: 0 0% 100%;
+    --secondary: 27 100% 57%; /* orange */
+    --secondary-foreground: 0 0% 100%;
 
-  --muted: 240 5% 25%;            /* muted dark gray */
-  --muted-foreground: 0 0% 70%;   /* lighter gray text */
+    --muted: 240 5% 25%;
+    --muted-foreground: 0 0% 70%;
 
-  --accent: 268 30% 25%;          /* dark violet highlight */
-  --accent-foreground: 0 0% 100%;
+    --accent: 27 60% 25%; /* darker orange highlight */
+    --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 80% 50%;       /* #FF3B30 */
-  --destructive-foreground: 0 0% 100%;
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-  --border: 240 6% 20%;           /* subtle borders */
-  --input: 240 6% 20%;
-  --ring: 268 93% 58%;            /* purple ring highlight */
+    --border: 240 6% 20%;
+    --input: 240 6% 20%;
+    --ring: 268 93% 58%;
 
-  --chart-1: 268 93% 58%;
-  --chart-2: 333 94% 56%;
-  --chart-3: 263 84% 34%;
-  --chart-4: 0 100% 60%;
-  --chart-5: 340 80% 75%;
-}
-
+    --chart-1: 268 93% 58%;
+    --chart-2: 27 100% 57%;
+    --chart-3: 263 84% 34%;
+    --chart-4: 0 100% 60%;
+    --chart-5: 27 80% 75%;
+  }
 }
 
 /* Gradient background */
 .gradient-bg {
-  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #F72585 100%);
+  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #FF7E29 100%);
 }
 
 /* Gradient button */
 .gradient-button {
-  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #F72585 100%);
+  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #FF7E29 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -117,7 +114,7 @@
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #F72585 100%);
+  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #FF7E29 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
@@ -125,7 +122,7 @@
 
 /* Section background */
 .gradient-section {
-  background: linear-gradient(135deg, rgba(122, 47, 247, 0.08) 0%, rgba(247, 37, 133, 0.08) 100%);
+  background: linear-gradient(135deg, rgba(122, 47, 247, 0.08) 0%, rgba(255, 126, 41, 0.08) 100%);
 }
 
 /* Glassmorphism */

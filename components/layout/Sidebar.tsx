@@ -128,7 +128,7 @@ export default function Sidebar() {
       {/* Header with Logo */}
       <div className="flex items-center justify-between px-4 border-b relative">
         <div className={cn("flex items-center space-x-2 transition-all duration-400 ease-in-out", isCollapsed ? "w-full justify-center" : "")}>
-          <div className={cn("relative transition-all duration-400 ease-in-out", isCollapsed ? "h-10 w-10" : "h-[75px] w-[75px]")}>
+          <div className={cn("relative transition-all duration-400 ease-in-out", isCollapsed ? "h-[72px] w-16" : "h-[75px] w-[75px]")}>
             {/* <Image 
               src="/images/logo.svg" 
               alt="Valor Trading Academy Logo"
@@ -137,7 +137,7 @@ export default function Sidebar() {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority
             /> */}
-            <Pipslogo width="w-500px" heigth="h-400px" />
+            {isCollapsed ? <Pipslogo width="60px" height="70px" /> :<Pipslogo width="w-500px" height="h-400px" /> }
           </div>
           {!isCollapsed && (
             <h2 className="text-xl font-bold text-foreground">Pips Veda</h2>
@@ -157,8 +157,8 @@ export default function Sidebar() {
                 <Button
                   variant={isActive ? "default" : "ghost"}
                   className={cn(
-                    "w-full justify-start group",
-                    isCollapsed ? "px-2" : "px-4"
+                    `w-full justify-start group ${(isActive && !isCollapsed) ? "px-0 " : "px-4"}`,
+                   
                   )}
                 >
                   <Icon className={cn("h-4 w-4", !isCollapsed && "mr-3")} />

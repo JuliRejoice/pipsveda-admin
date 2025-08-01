@@ -50,9 +50,10 @@ export default function LoginForm() {
 
     try {
       const response = await SignIn(loginData);
-      localStorage.setItem('token',response.data.payload.token)
-      // handleLoginSuccess(response.data.payload.token);
-      router.push('/dashboard');
+      if(response.data){
+        localStorage.setItem('token',response.data.payload.token)
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Login failed. Please try again.');
     } finally {

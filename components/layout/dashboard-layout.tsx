@@ -42,15 +42,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   const handleSignOut = async () => {
-    const data = await signOut();
-    if (!data.success) {
-      toast({
-        variant: "destructive",
-        title: "Sign out failed",
-        description: "Please try again later.",
-      });
-      return;
-    }
+    await signOut();
+   
 
     toast({
       title: "Signed out successfully",

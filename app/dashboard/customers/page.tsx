@@ -29,7 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Phone } from 'lucide-react';
 import { getCustomers, updateCustomer, deleteCustomer, setCustomerStatus, createCustomer } from '@/components/api/customer';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -405,8 +405,8 @@ export default function Customers() {
                     <TableHead>Gender</TableHead>
                     <TableHead>Birthday</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Joined Date</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-right">Joined Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -428,8 +428,8 @@ export default function Customers() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">{customer.email}</div>
-                          <div className="text-xs text-muted-foreground">{customer.phone || 'N/A'}</div>
+                          <div className="text-sm">{customer.email}</div> 
+                          {customer.phone && <div className="text-xs text-muted-foreground flex items-center gap-1">{customer.phone}</div>}
                         </TableCell>
                         <TableCell>
                           <span className="capitalize">{customer.gender?.toLowerCase() || 'N/A'}</span>
@@ -446,12 +446,12 @@ export default function Customers() {
                             {customer.roleId.name}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-center">
                           <Badge variant={customer.isActive ? 'default' : 'secondary'}>
                             {customer.isActive ? 'Active' : 'Inactive'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-right">
                           {new Date(customer.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',

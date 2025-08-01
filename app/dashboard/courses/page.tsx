@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud } from 'lucide-react';
+import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud, Image } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle as DialogTitleUI, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -16,7 +16,6 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { createCourse, getCourses, updateCourse, deleteCourse } from '@/components/api/course';
 import React from 'react';
-import { Popover as ShadcnPopover, PopoverContent as ShadcnPopoverContent, PopoverTrigger as ShadcnPopoverTrigger } from '@/components/ui/popover';
 import {
     Dialog as ConfirmDialog,
     DialogContent as ConfirmDialogContent,
@@ -235,57 +234,20 @@ export default function Courses() {
     };
 
     const CourseCard = ({ course }: { course: any }) => {
-        const videoThumb = course.courseVideo ? getYoutubeThumbnail(course.courseVideo) : null;
-        const [showVideo, setShowVideo] = useState(false);
         const [popoverOpen, setPopoverOpen] = useState(false);
-
-        const toggleVideo = (e: React.MouseEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setShowVideo(!showVideo);
-        };
-
-        const getYoutubeEmbedUrl = (url: string) => {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-            const match = url.match(regExp);
-            const videoId = (match && match[2].length === 11) ? match[2] : null;
-            return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0` : '';
-        };
 
         return (
             <Card className="hover:shadow-md transition-shadow overflow-hidden">
                 <div className="relative aspect-video bg-background">
-                    {showVideo && course.courseVideo ? (
-                        <div className="relative w-full h-full">
-                            <iframe
-                                src={getYoutubeEmbedUrl(course.courseVideo)}
-                                className="w-full h-full"
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                title={course.CourseName}
-                            />
-                        </div>
-                    ) : videoThumb ? (
-                        <button
-                            onClick={toggleVideo}
-                            className="w-full h-full relative group"
-                            aria-label="Play course video"
-                        >
-                            <img
-                                src={videoThumb}
-                                alt={course.CourseName}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="w-16 h-16 rounded-full bg-white bg-opacity-80 flex items-center justify-center">
-                                    <Play className="h-8 w-8 text-primary ml-1" fill="currentColor" />
-                                </div>
-                            </div>
-                        </button>
+                    {course.courseVideo ? (
+                        <img
+                            src={course.courseVideo}
+                            alt={course.CourseName}
+                            className="w-full h-full object-cover"
+                        />
                     ) : (
                         <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                            <Video className="h-12 w-12 text-gray-400" />
+                            <Image className="h-12 w-12 text-gray-400" />
                         </div>
                     )}
                 </div>
@@ -295,8 +257,9 @@ export default function Courses() {
                             <h3 className="font-medium text-lg line-clamp-2">
                                 <Link href={`/dashboard/courses/${course._id}`} className="hover:underline cursor-pointer">
                                     {course.CourseName}
-                                </Link></h3>
-                            <div className="text-sm text-muted-foreground">
+                                </Link>
+                            </h3>
+                            <div className="text-sm text-muted-foreground line-clamp-2 h-10 overflow-hidden text-ellipsis">
                                 {course.description}
                             </div>
                         </div>
@@ -345,12 +308,11 @@ export default function Courses() {
                         {course.courseStart ? format(new Date(course.courseStart), 'MMM d, yyyy') : 'No start date'}
                         {course.courseEnd ? ` - ${format(new Date(course.courseEnd), 'MMM d, yyyy')}` : ''}
                     </div>
-                    {course.instructor && (
+                 
                         <div className="flex items-center text-sm text-muted-foreground">
                             <span className="font-bold">Instructor:</span>
-                            <span className="ml-1">{course.instructor}</span>
+                            <span className="ml-1">{course.instructor || "John Doe"}</span>
                         </div>
-                    )}
 
                     <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center text-muted-foreground">

@@ -77,7 +77,7 @@ export default function NewsletterPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Newsletter Subscribers</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Newsletter Subscribers</h1>
           <p className="text-muted-foreground">
             Manage and view all newsletter subscribers
           </p>

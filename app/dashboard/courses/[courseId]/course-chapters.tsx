@@ -258,7 +258,7 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
                                                     </Popover>
                                                 </div>
                                                 <div className="flex items-start space-x-4">
-                                                    <div className="p-2 bg-primary/10 rounded-lg min-w-[56px] min-h-[56px] flex items-center justify-center">
+                                                    <div className="p-2 bg-primary/10 rounded-lg min-w-[25%] min-h-[56px] flex items-center justify-center">
                                                         {videoId ? (
                                                             <a href={url} target="_blank" rel="noopener noreferrer">
                                                                 <img
@@ -283,7 +283,9 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
                                                                 })}
                                                             </span>
                                                         </div>
-                                                        <p className="text-sm text-gray-700 mb-2">{chapter.description}</p>
+                                                        <p className="text-sm text-gray-700 mb-2 line-clamp-2 overflow-hidden text-ellipsis">
+                                                            {chapter.description}
+                                                        </p>
                                                         {url && (
                                                             <a
                                                                 href={url}
