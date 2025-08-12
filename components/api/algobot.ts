@@ -31,18 +31,14 @@ interface AlgoBot {
   image?: File | string;
 }
 
-export const createAlgoBot = async (botData:AlgoBot) => {
+export const createAlgoBot = async (botData: any) => {
   const formData = new FormData();
   const token = getAuthToken();
-  
-  Object.entries(botData).forEach(([key, value]) => {
-    if (value !== undefined) {
-      formData.append(key, value);
-    }
-  });
+
+
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/algoBot/createBot`, formData, {
+    const response = await axios.post(`${API_BASE_URL}/algoBot/createBot`, botData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'x-auth-token': token,
@@ -56,18 +52,14 @@ export const createAlgoBot = async (botData:AlgoBot) => {
 };
 
 
-export const updateAlgoBot = async (id: string, botData: AlgoBot) => {
+export const updateAlgoBot = async (id: string, botData: any) => {
   const formData = new FormData();
   const token = getAuthToken();
 
-  Object.entries(botData).forEach(([key, value]) => {
-    if (value !== undefined) {
-      formData.append(key, value);
-    }
-  });
+
 
   try {
-    const response = await axios.put(`${API_BASE_URL}/algoBot/updateBot?id=${id}`, formData, {
+    const response = await axios.put(`${API_BASE_URL}/algoBot/updateBot?id=${id}`, botData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'x-auth-token': token,
