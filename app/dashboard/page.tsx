@@ -18,32 +18,98 @@ import RevenueChart from '@/components/dashboard/RevenueChart';
 import UserSignupChart from '@/components/dashboard/UserSignupChart';
 import RevenueBreakdown from '@/components/dashboard/RevenueBreakdown';
 import { DollarSign, Users, BookOpen, Bot, TrendingUp, TrendingDown } from 'lucide-react';
-import { getTotalRevenueData } from '@/components/api/dashboard';
+import { getDashboardReportData, getRevenueBreakdownData, getTotalRevenueData } from '@/components/api/dashboard';
 
+const getDateRange = (period: string) => {
+  const now = new Date();
+  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+  switch (period) {
+    case 'weekly': {
+      const day = now.getDay(); // 0 (Sun) to 6 (Sat)
+      const mondayOffset = day === 0 ? -6 : 1 - day; // if Sunday, go back 6 days
+      const startDate = new Date(now);
+      startDate.setDate(now.getDate() + mondayOffset);
+      return {
+        startDate: formatDate(startDate),
+        endDate: formatDate(now),
+      };
+    }
+    case 'monthly': {
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      return {
+        startDate: formatDate(startDate),
+        endDate: formatDate(now),
+      };
+    }
+    case 'yearly': {
+      const startDate = new Date(now.getFullYear(), 0, 1); // Jan 1st
+      return {
+        startDate: formatDate(startDate),
+        endDate: formatDate(now),
+      };
+    }
+    default:
+      return {
+        startDate: formatDate(now),
+        endDate: formatDate(now),
+      };
+  }
+};
 
 export default function Dashboard() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
   const [totalRevenueData, setTotalRevenueData] = useState<any>([]);
-useLayoutEffect(() => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    router.replace('/');
-  } else {
-    setChecked(true); // Only render dashboard after this
-  }
+  const [dashboardReportData, setDashboardReportData] = useState<any>([]);
+  const [revenueBreakdownData, setRevenueBreakdownData] = useState<any>({});
+  const [activeTab, setActiveTab] = useState('weekly');
+  const [isLoading, setIsLoading] = useState(true);
 
-  getTotalRevenueData().then((data)=>{
-    setTotalRevenueData(data.payload)
-  })
-}, []);
-const stats = [
-  { title: 'Total Revenue', value: totalRevenueData?.totalRevenue, change: `${totalRevenueData?.revenueChange?.percent}% from last month`, icon: DollarSign },
-  { title: 'Active Users', value: '2,350', change: '+12% from last month', icon: Users },
-  { title: 'Course Sales', value: '156', change: '+8% from last month', icon: BookOpen },
-  { title: 'AlgoBot Sales', value: '89', change: '+25% from last month', icon: Bot },
-];
+  const fetchRevenueBreakdown = async (period: string) => {
+    setIsLoading(true);
+    const { startDate, endDate } = getDateRange(period);
+    const data = await getRevenueBreakdownData(startDate, endDate);
+    setRevenueBreakdownData((prev : any) => ({
+      ...prev,
+      [period]: data?.payload || []
+    }));
+    setIsLoading(false);
+  };
 
+  useLayoutEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.replace('/');
+    } else {
+      setChecked(true);
+    }
+
+    getTotalRevenueData().then((data) => {
+      setTotalRevenueData(data.payload);
+    });
+
+    getDashboardReportData().then((data) => {
+      setDashboardReportData(data.payload);
+    });
+
+    // Initial fetch for the default tab
+    fetchRevenueBreakdown('weekly');
+  }, []);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (!revenueBreakdownData[value]) {
+      fetchRevenueBreakdown(value);
+    }
+  };
+
+  const stats = [
+    { title: 'Total Revenue', value: totalRevenueData?.totalRevenue, change: `${totalRevenueData?.revenueChange?.percent}`, icon: DollarSign },
+    { title: 'Active Users', value: dashboardReportData?.activeUsers?.count, change: `${dashboardReportData?.activeUsers?.percent}`, icon: Users },
+    { title: 'Course Sales', value: dashboardReportData?.courseSales?.count, change: `${dashboardReportData?.courseSales?.percent}`, icon: BookOpen },
+    { title: 'AlgoBot Sales', value: dashboardReportData?.algoBotSales?.count, change: `${dashboardReportData?.algoBotSales?.percent}`, icon: Bot },
+  ];
 
   if (!checked) {
     // Skip rendering until token is verified
@@ -64,8 +130,8 @@ const stats = [
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
                 <p className="text-xs text-muted-foreground flex items-center">
-                  {totalRevenueData?.revenueChange?.percent > 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-                  {stat.change}
+                  {Number(stat.change) > 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                  {stat.change}% from last month
                 </p>
               </CardContent>
             </Card>
@@ -93,7 +159,12 @@ const stats = [
         </Card>
       </div>
 
-      <Tabs defaultValue="weekly" className="space-y-4">
+      <Tabs 
+        defaultValue="weekly" 
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="space-y-4"
+      >
         <TabsList>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
@@ -101,15 +172,27 @@ const stats = [
         </TabsList>
 
         <TabsContent value="weekly" className="space-y-4">
-          <RevenueBreakdown period="weekly" />
+          <RevenueBreakdown 
+            period="weekly" 
+            data={revenueBreakdownData.weekly || []} 
+            isLoading={isLoading && activeTab === 'weekly'}
+          />
         </TabsContent>
 
         <TabsContent value="monthly" className="space-y-4">
-          <RevenueBreakdown period="monthly" />
+          <RevenueBreakdown 
+            period="monthly" 
+            data={revenueBreakdownData.monthly || []} 
+            isLoading={isLoading && activeTab === 'monthly'}
+          />
         </TabsContent>
 
         <TabsContent value="yearly" className="space-y-4">
-          <RevenueBreakdown period="yearly" />
+          <RevenueBreakdown 
+            period="yearly" 
+            data={revenueBreakdownData.yearly || []} 
+            isLoading={isLoading && activeTab === 'yearly'}
+          />
         </TabsContent>
       </Tabs>
     </div>
