@@ -23,3 +23,45 @@ export const getTotalRevenueData = async () => {
         return null;
     }
 };
+
+export const getUserSignupReport = async () => {
+    try {
+        const response = await axios.get(`https://259s7s89-6002.inc1.devtunnels.ms/api/v1/user/userSignupReport`, {
+            headers: {
+                'x-auth-token': getAuthToken(),
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        return null;
+    }
+}
+
+export const getDashboardReportData = async ()=>{
+    try {
+        const response = await axios.get(`https://259s7s89-6002.inc1.devtunnels.ms/api/v1/user/dashboardReport`, {
+            headers: {
+                'x-auth-token': getAuthToken(),
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching dashboard report data:', error);
+        return null;
+    }
+}
+
+export const getRevenueBreakdownData = async (startDate:string,endDate:string)=>{
+    try {
+        const response = await axios.get(`https://259s7s89-6002.inc1.devtunnels.ms/api/v1/user/revenueBreakdown?startDate=${startDate}&endDate=${endDate}`, {
+            headers: {
+                'x-auth-token': getAuthToken(),
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching revenue breakdown data:', error);
+        return null;
+    }
+}

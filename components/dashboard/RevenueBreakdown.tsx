@@ -2,32 +2,59 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-
-const weeklyData = [
-  { name: 'Courses', value: 12450, color: '#8884d8' },
-  { name: 'AlgoBots', value: 8930, color: '#82ca9d' },
-  { name: 'Telegram', value: 3250, color: '#ffc658' },
-];
-
-const monthlyData = [
-  { name: 'Courses', value: 45230, color: '#8884d8' },
-  { name: 'AlgoBots', value: 32100, color: '#82ca9d' },
-  { name: 'Telegram', value: 12800, color: '#ffc658' },
-];
-
-const yearlyData = [
-  { name: 'Courses', value: 542300, color: '#8884d8' },
-  { name: 'AlgoBots', value: 385200, color: '#82ca9d' },
-  { name: 'Telegram', value: 153600, color: '#ffc658' },
-];
+import { Loader2 } from 'lucide-react';
 
 interface RevenueBreakdownProps {
   period: 'weekly' | 'monthly' | 'yearly';
+  data: {
+    courses?: {
+      courseId: string;
+      totalPrice: number;
+      records: Array<any>;
+    };
+    algoBots?: {
+      botId: string;
+      totalPrice: number;
+      records: Array<any>;
+    };
+  };
+  isLoading?: boolean;
 }
 
-export default function RevenueBreakdown({ period }: RevenueBreakdownProps) {
-  const data = period === 'weekly' ? weeklyData : period === 'monthly' ? monthlyData : yearlyData;
-  
+const COLORS = {
+  courses: '#8884d8',
+  algoBots: '#82ca9d',
+  telegram: '#ffc658'
+};
+
+export default function RevenueBreakdown({ period, data, isLoading = false }:RevenueBreakdownProps) {
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Breakdown - {period.charAt(0).toUpperCase() + period.slice(1)}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 🧠 Transform data
+  const transformedData = [
+    {
+      name: 'Courses',
+      value: data?.courses?.totalPrice || 0,
+      color: COLORS.courses,
+    },
+    {
+      name: 'Algo Bots',
+      value: data?.algoBots?.totalPrice || 0,
+      color: COLORS.algoBots,
+    }
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -36,10 +63,10 @@ export default function RevenueBreakdown({ period }: RevenueBreakdownProps) {
       <CardContent>
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-4">
-            {data.map((item) => (
+            {transformedData.map((item) => (
               <div key={item.name} className="flex items-center justify-between p-4 bg-background rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <div 
+                  <div
                     className="w-4 h-4 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
@@ -49,12 +76,12 @@ export default function RevenueBreakdown({ period }: RevenueBreakdownProps) {
               </div>
             ))}
           </div>
-          
+
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data}
+                  data={transformedData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -62,11 +89,11 @@ export default function RevenueBreakdown({ period }: RevenueBreakdownProps) {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {data.map((entry, index) => (
+                  {transformedData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(value: number) => `$${value?.toLocaleString() || 0}`} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
