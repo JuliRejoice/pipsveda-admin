@@ -13,54 +13,144 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Lock, Mail } from 'lucide-react';
+import { Loader2, Lock, Mail, AlertCircle } from 'lucide-react';
 import { SignIn } from '@/components/api/login';
 
+interface FormErrors {
+  email?: string;
+  password?: string;
+  form?: string;
+}
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [error, setError] = useState('');
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false
+  });
   const router = useRouter();
 
-  // ✅ Auth check on mount
+  // Auth check on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       if (token) {
-        router.push('/dashboard'); // replace to avoid back button issue
+        router.push('/dashboard');
       } else {
-        setCheckingAuth(false); // allow login form to render
+        setCheckingAuth(false);
       }
     }
   }, [router]);
 
+  // Validation function
+  const validateField = (name: string, value: string) => {
+    const newErrors = { ...errors };
+    
+    switch (name) {
+      case 'email':
+        if (!value) {
+          newErrors.email = 'Email is required';
+        } else if (/\s/.test(value)) {
+          newErrors.email = 'Email cannot contain spaces';
+        } else if (value !== value.toLowerCase()) {
+          newErrors.email = 'Email must be in lowercase';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors.email = 'Please enter a valid email address';
+        } else {
+          delete newErrors.email;
+        }
+        break;
+      case 'password':
+        if (!value) {
+          newErrors.password = 'Password is required';
+        } else if (value.length < 6) {
+          newErrors.password = 'Password must be at least 6 characters';
+        } else {
+          delete newErrors.password;
+        }
+        break;
+      default:
+        break;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Validate field if it's been touched
+    if (touched[name as keyof typeof touched]) {
+      validateField(name, value);
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
+    validateField(name, value);
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newTouched = { email: true, password: true };
+    setTouched(newTouched);
+    
+    // Validate all fields
+    Object.entries(formData).forEach(([key, value]) => {
+      if (!validateField(key, value)) {
+        isValid = false;
+      }
+    });
+    
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
-    setError('');
+    setErrors(prev => ({ ...prev, form: '' }));
 
     const loginData = {
-      email,
-      password,
+      email: formData.email,
+      password: formData.password,
       name: 'Admin',
     };
 
     try {
       const response = await SignIn(loginData);
-      if(response.data){
-        localStorage.setItem('token',response.data.payload.token)
+      if (response.data) {
+        localStorage.setItem('token', response.data.payload.token);
         router.push('/dashboard');
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Login failed. Please try again.');
+      setErrors(prev => ({
+        ...prev,
+        form: err?.response?.data?.message || 'Login failed. Please check your credentials and try again.'
+      }));
     } finally {
       setIsLoading(false);
     }
   };
-
 
   if (checkingAuth) {
     return (
@@ -80,21 +170,35 @@ export default function LoginForm() {
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`pl-10 ${touched.email && errors.email ? 'border-red-500' : ''}`}
+                disabled={isLoading}
                 required
               />
+              {touched.email && errors.email && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                </div>
+              )}
             </div>
+            {touched.email && errors.email && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="h-3.5 w-3.5" />
+                {errors.email}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -103,23 +207,44 @@ export default function LoginForm() {
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`pl-10 ${touched.password && errors.password ? 'border-red-500' : ''}`}
+                disabled={isLoading}
                 required
               />
+              {touched.password && errors.password && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                </div>
+              )}
             </div>
+            {touched.password && errors.password && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="h-3.5 w-3.5" />
+                {errors.password}
+              </p>
+            )}
           </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+          {errors.form && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                {errors.form}
+              </AlertDescription>
             </Alert>
           )}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button 
+            type="submit" 
+            className="w-full mt-6" 
+            disabled={isLoading || Object.keys(errors).length > 0}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -130,10 +255,6 @@ export default function LoginForm() {
             )}
           </Button>
         </form>
-
-        {/* <div className="mt-4 text-center text-sm text-gray-600">
-          Demo credentials: <br /> <b>admin@example.com</b> / <b>password</b>
-        </div> */}
       </CardContent>
     </Card>
   );
