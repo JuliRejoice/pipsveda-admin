@@ -120,9 +120,9 @@ export default function Courses() {
             if (!formData.get('location')?.toString().trim()) {
                 errors.location = 'Location is required';
             }
-            if (!formData.get('address')?.toString().trim()) {
-                errors.address = 'Address is required';
-            }
+            // if (!formData.get('address')?.toString().trim()) {
+            //     errors.address = 'Address is required';
+            // }
         }
 
         return errors;
@@ -258,7 +258,7 @@ export default function Courses() {
                 });
             }
         } catch (err) {
-            toast.error('API error', {
+            toast.error('Failed to delete course', {
                 description: err instanceof Error ? err.message : 'An error occurred.',
             });
         }
@@ -431,7 +431,7 @@ export default function Courses() {
                 apiFormData.append('zoomLink', formData.get('zoomLink') || '');
             } else if (courseType === 'physical') {
                 apiFormData.append('location', formData.get('location') || '');
-                apiFormData.append('address', formData.get('address') || '');
+                // apiFormData.append('address', formData.get('address') || '');
             }
             
             // Add the thumbnail image if it exists
@@ -472,16 +472,28 @@ export default function Courses() {
                         description: data?.message || 'An error occurred.',
                     });
                 }
-            } catch (err) {
-                toast.error('API error', {
-                    description: err instanceof Error ? err.message : 'An error occurred.',
-                });
+            } catch (err: any) {
+                if (err.response?.status === 413) {
+                    toast.error('File too large', {
+                        description: 'The file you are trying to upload exceeds the maximum allowed size. Please try with a smaller file.',
+                    });
+                } else {
+                    toast.error('Failed to update course', {
+                        description: err instanceof Error ? err.message : 'An error occurred.',
+                    });
+                }
             } finally {
                 setIsSubmitting(false);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error submitting course:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to save course');
+            if (error.response?.status === 413) {
+                toast.error('File too large', {
+                    description: 'The file you are trying to upload exceeds the maximum allowed size. Please try with a smaller file.',
+                });
+            } else {
+                toast.error(error instanceof Error ? error.message : 'Failed to save course');
+            }
             setIsSubmitting(false);
         }
     }
@@ -856,7 +868,7 @@ export default function Courses() {
                                             <p className="text-xs text-red-500">{formErrors.location}</p>
                                         )}
                                     </div>
-                                    <div className="space-y-1">
+                                    {/* <div className="space-y-1">
                                         <label className="block font-medium text-sm">Address</label>
                                         <Input 
                                             placeholder="Full address" 
@@ -867,7 +879,7 @@ export default function Courses() {
                                         {formErrors.address && (
                                             <p className="text-xs text-red-500">{formErrors.address}</p>
                                         )}
-                                    </div>
+                                    </div> */}
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit" disabled={isSubmitting}>

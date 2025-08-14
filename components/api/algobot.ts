@@ -56,8 +56,6 @@ export const updateAlgoBot = async (id: string, botData: any) => {
   const formData = new FormData();
   const token = getAuthToken();
 
-
-
   try {
     const response = await axios.put(`${API_BASE_URL}/algoBot/updateBot?id=${id}`, botData, {
       headers: {
@@ -97,4 +95,136 @@ export const deleteAlgoBot = async (id: string) => {
     throw error;
   }
 };
+
+
+//algobots-category api
+export const getAllCategory = async (params?: PaginationParams) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/categories/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching algo bots:', error);
+    throw error;
+  }
+};
+
+export const createCategory = async (categoryData: any) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.post(`${API_BASE_URL}/categories/add`, categoryData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating category:', error);
+    throw error;
+  }
+};
+
+export const updateCategory = async (id: string, categoryData: any) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.put(`${API_BASE_URL}/categories/edit/${id}`, categoryData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating category:', error);
+    throw error;
+  }
+};
+
+export const deleteCategory = async (id: string) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/categories/delete/${id}`, {
+      headers: {
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    throw error;
+  }
+};
+
+//Bot Provider API
+export const getBotProviderDropDown = async (params?: PaginationParams) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/botProvider/dropdown`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching algo bots:', error);
+    throw error;
+  }
+};
+
+//Bot API
+export const getAllBots = async (params?: PaginationParams) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/bot/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching bots:', error);
+    throw error;
+  }
+};
+
+export const createBot = async (botData: { botProviderId: string; name: string }) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_BASE_URL}/bot/add`, botData, {
+      headers: {
+        'x-auth-token': token,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating bot:', error);
+    throw error;
+  }
+};
+
+export const updateBot = async (id: string, botData: { botProviderId: string; name: string }) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${API_BASE_URL}/bot/edit/${id}`, botData, {
+      headers: {
+        'x-auth-token': token,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating bot:', error);
+    throw error;
+  }
+};
+
+export const deleteBot = async (id: string) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.delete(`${API_BASE_URL}/bot/delete/${id}`, {
+      headers: {
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting bot:', error);
+    throw error;
+  }
+};
+
 

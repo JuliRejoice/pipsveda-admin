@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { MoreVertical } from 'lucide-react';
 
-interface Chapter {
+export interface Chapter {
     _id: string;
     chapterName: string; // new
     title?: string; // keep for backward compatibility
@@ -36,12 +36,13 @@ interface CourseChaptersProps {
     initialChapters: Chapter[];
     courseId: string;
     courseName?: string; // Add courseName prop
+    loading?: boolean;
+    setChapters?: (chapters: Chapter[]) => void;
+    setLoading?: (loading: boolean) => void;
 }
 
-export function CourseChapters({ initialChapters, courseId, courseName }: CourseChaptersProps) {
+export function CourseChapters({ initialChapters, courseId, courseName, loading, setLoading,setChapters }: CourseChaptersProps) {
     const router = useRouter();
-    const [chapters, setChapters] = useState<Chapter[]>(initialChapters);
-    const [loading, setLoading] = useState(true);
     const [isTabSwitching, setIsTabSwitching] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -62,20 +63,25 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
         image: null,
     });
 
-    // Update local state when initialChapters changes
+
+    // Handle route changes and tab switching
     useEffect(() => {
-        setLoading(true);
-        setChapters(initialChapters);
-        // Simulate loading delay for better UX
-        const timer = setTimeout(() => {
-            setLoading(false);
-            setIsTabSwitching(false);
-        }, 500);
+        if (!router) return;
 
-        return () => clearTimeout(timer);
-    }, [initialChapters]);
+        // Trigger tab switching loader
+        const handleRouteChange = () => {
+            setIsTabSwitching(true);
+            
+            // Stop loader after short delay
+            const timeout = setTimeout(() => {
+                setIsTabSwitching(false);
+            }, 500);
 
-    console.log(chapters)
+            return () => clearTimeout(timeout);
+        };
+
+        
+    }, [router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target as HTMLInputElement;
@@ -108,12 +114,14 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
             if (selectedChapter) {
                 await updateChapter(selectedChapter._id, data);
                 toast.success('Chapter updated successfully');
-                getChapters(courseId);
+                const res=await getChapters(courseId);
+                setChapters?.(res.payload?.data || []);
                 router.refresh(); // Only refresh after success!
             } else {
                 await createChapter(data);
                 toast.success('Chapter created successfully');
-                getChapters(courseId);
+                const res=await getChapters(courseId);
+                setChapters?.(res.payload?.data || []);
                 router.refresh();
             }
             setIsAddDialogOpen(false);
@@ -131,7 +139,9 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
         try {
             await deleteChapter(selectedChapter._id);
             toast.success('Chapter deleted successfully');
-            // Refresh the page to get the latest data
+            const res=await getChapters(courseId);
+            setChapters?.(res.payload?.data || []);
+           
             router.refresh();
             setIsDeleteDialogOpen(false);
             setSelectedChapter(null);
@@ -194,8 +204,8 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
             <Card>
                 <CardHeader>
                     <CardTitle><h2 className="text-2xl font-bold tracking-tight">
-                        {courseName || (chapters[0]?.courseId && typeof chapters[0].courseId === 'object'
-                            ? chapters[0].courseId.CourseName
+                        {courseName || (initialChapters[0]?.courseId && typeof initialChapters[0].courseId === 'object'
+                            ? initialChapters[0].courseId.CourseName
                             : 'Course Chapters')}
                     </h2></CardTitle>
                 </CardHeader>
@@ -204,14 +214,14 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
                         <div className="flex justify-center items-center h-32">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                         </div>
-                    ) : chapters.length === 0 ? (
+                    ) : initialChapters.length === 0 && !loading ? (
                         <div className="text-center py-12 text-muted-foreground">
                             <p>No chapters found for this course.</p>
                             <p className="mt-2">Click the "Add Chapter" button to get started.</p>
                         </div>
                     ) : (
                         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                            {chapters
+                            {initialChapters
                                 .sort((a, b) => {
                                     const aNo = typeof a.chapterNo === 'number' ? a.chapterNo : typeof a.order === 'number' ? a.order : 0;
                                     const bNo = typeof b.chapterNo === 'number' ? b.chapterNo : typeof b.order === 'number' ? b.order : 0;
