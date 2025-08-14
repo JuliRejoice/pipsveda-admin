@@ -57,6 +57,9 @@ export default function Courses() {
     // Add error state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+    // Add loading state
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     // Add this validation function at the top level of the component
     const validateForm = (formData: FormData, courseType: string) => {
         const errors: Record<string, string> = {};
@@ -199,6 +202,34 @@ export default function Courses() {
         fetchCourses();
     }, [currentPage, itemsPerPage, searchTerm, activeTab]);
 
+    // Add this effect to initialize form fields when editing
+    useEffect(() => {
+        if (editCourse) {
+            // Set the active tab based on course type
+            setActiveTab(editCourse.courseType || 'recorded');
+            
+            // Set date states if they exist
+            if (editCourse.courseStart) {
+                setRecordedStartDate(new Date(editCourse.courseStart));
+                setLiveStartDate(new Date(editCourse.courseStart));
+                setPhysicalStartDate(new Date(editCourse.courseStart));
+            }
+            if (editCourse.courseEnd) {
+                setRecordedEndDate(new Date(editCourse.courseEnd));
+                setLiveEndDate(new Date(editCourse.courseEnd));
+                setPhysicalEndDate(new Date(editCourse.courseEnd));
+            }
+        } else {
+            // Reset date states when creating new course
+            setRecordedStartDate(undefined);
+            setRecordedEndDate(undefined);
+            setLiveStartDate(undefined);
+            setLiveEndDate(undefined);
+            setPhysicalStartDate(undefined);
+            setPhysicalEndDate(undefined);
+        }
+    }, [editCourse]);
+
     // Handle search
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
@@ -338,85 +369,120 @@ export default function Courses() {
 
     async function handleCourseSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const courseType = formData.get('courseType');
         
-        // Validate form
-        const errors = validateForm(formData, courseType?.toString() || '');
-        setFormErrors(errors);
+        // Prevent multiple submissions
+        if (isSubmitting) return;
         
-        // If there are errors, stop submission
-        if (Object.keys(errors).length > 0) {
-            toast.error('Please fix the form errors');
-            return;
-        }
+        setIsSubmitting(true);
+        setFormErrors({});
 
-        // Get the thumbnail image file if it exists
-        const thumbnailImage = formData.get('thumbnailImage') as File | null;
-        
-        // Create a new FormData for the API request
-        const apiFormData = new FormData();
-        
-        // Add all form fields to the FormData
-        apiFormData.append('courseType', formData.get('courseType') || '');
-        apiFormData.append('CourseName', formData.get('name') || '');
-        apiFormData.append('description', formData.get('description') || '');
-        apiFormData.append('price', formData.get('price') || '0');
-        apiFormData.append('startDate', formData.get('startDate') || '');
-        apiFormData.append('endDate', formData.get('endDate') || '');
-        apiFormData.append('instructor', formData.get('instructor') || '');
-        apiFormData.append('language', formData.get('language') || 'english');
-        
-        // Add course type specific fields
-        if (courseType === 'live') {
-            apiFormData.append('zoomLink', formData.get('zoomLink') || '');
-        } else if (courseType === 'physical') {
-            apiFormData.append('location', formData.get('location') || '');
-            apiFormData.append('address', formData.get('address') || '');
-        }
-        
-        // Add the thumbnail image if it exists
-        if (thumbnailImage && thumbnailImage.size > 0) {
-            apiFormData.append('thumbnail', thumbnailImage);
-        }
-        
-        // Add course images if they exist (for recorded courses)
-        const courseImages = formData.getAll('image') as File[];
-        if (courseImages && courseImages.length > 0) {
-            courseImages.forEach((file, index) => {
-                apiFormData.append(`image`, file);
-            });
-        }
-
-        
         try {
-            let data;
-            if (editCourse && editCourse._id) {
-                // Update existing course
-                data = await updateCourse(editCourse._id, apiFormData);
-            } else {
-                // Create new course
-                data = await createCourse(apiFormData);
+            const formData = new FormData(e.currentTarget);
+            const courseType = formData.get('courseType');
+            
+            // Get the correct dates based on the active tab
+            let startDate = '';
+            let endDate = '';
+            
+            if (activeTab === 'recorded') {
+                startDate = recordedStartDate ? format(recordedStartDate, 'yyyy-MM-dd') : '';
+                endDate = recordedEndDate ? format(recordedEndDate, 'yyyy-MM-dd') : '';
+            } else if (activeTab === 'live') {
+                startDate = liveStartDate ? format(liveStartDate, 'yyyy-MM-dd') : '';
+                endDate = liveEndDate ? format(liveEndDate, 'yyyy-MM-dd') : '';
+            } else if (activeTab === 'physical') {
+                startDate = physicalStartDate ? format(physicalStartDate, 'yyyy-MM-dd') : '';
+                endDate = physicalEndDate ? format(physicalEndDate, 'yyyy-MM-dd') : '';
+            }
+            
+            // Add the dates to form data
+            formData.set('courseStart', startDate);
+            formData.set('courseEnd', endDate);
+
+            // Validate form
+            const errors = validateForm(formData, courseType?.toString() || '');
+            setFormErrors(errors);
+            
+            // If there are errors, stop submission
+            if (Object.keys(errors).length > 0) {
+                toast.error('Please fix the form errors');
+                setIsSubmitting(false);
+                return;
             }
 
-            if (data.success) {
-                setOpen(false);
-                setEditCourse(null);
-                toast.success(editCourse ? 'Course updated successfully' : 'Course created successfully', {
-                    description: data?.message || (editCourse ? 'The course has been updated.' : 'The course has been created.'),
-                });
-                // Refresh course list
-                const refreshed = await getCourses();
-                setCourses(refreshed.payload.data);
-            } else {
-                toast.error(editCourse ? 'Failed to update course' : 'Failed to create course', {
-                    description: data?.message || 'An error occurred.',
+            // Get the thumbnail image file if it exists
+            const thumbnailImage = formData.get('thumbnailImage') as File | null;
+            
+            // Create a new FormData for the API request
+            const apiFormData = new FormData();
+            
+            // Add all form fields to the FormData
+            apiFormData.append('courseType', formData.get('courseType') || '');
+            apiFormData.append('CourseName', formData.get('name') || '');
+            apiFormData.append('description', formData.get('description') || '');
+            apiFormData.append('price', formData.get('price') || '0');
+            apiFormData.append('courseStart', startDate);
+            apiFormData.append('courseEnd', endDate);
+            apiFormData.append('instructor', formData.get('instructor') || '');
+            apiFormData.append('language', formData.get('language') || 'english');
+            
+            // Add course type specific fields
+            if (courseType === 'live') {
+                apiFormData.append('zoomLink', formData.get('zoomLink') || '');
+            } else if (courseType === 'physical') {
+                apiFormData.append('location', formData.get('location') || '');
+                apiFormData.append('address', formData.get('address') || '');
+            }
+            
+            // Add the thumbnail image if it exists
+            if (thumbnailImage && thumbnailImage.size > 0) {
+                apiFormData.append('thumbnail', thumbnailImage);
+            }
+            
+            // Add course images if they exist (for recorded courses)
+            const courseImages = formData.getAll('image') as File[];
+            if (courseImages && courseImages.length > 0) {
+                courseImages.forEach((file, index) => {
+                    apiFormData.append(`image`, file);
                 });
             }
-        } catch (err) {
-            toast.error('API error', {
-                description: err instanceof Error ? err.message : 'An error occurred.',
-            });
+
+            
+            try {
+                let data;
+                if (editCourse && editCourse._id) {
+                    // Update existing course
+                    data = await updateCourse(editCourse._id, apiFormData);
+                } else {
+                    // Create new course
+                    data = await createCourse(apiFormData);
+                }
+
+                if (data.success) {
+                    setOpen(false);
+                    setEditCourse(null);
+                    toast.success(editCourse ? 'Course updated successfully' : 'Course created successfully', {
+                        description: data?.message || (editCourse ? 'The course has been updated.' : 'The course has been created.'),
+                    });
+                    // Refresh course list
+                    const refreshed = await getCourses();
+                    setCourses(refreshed.payload.data);
+                } else {
+                    toast.error(editCourse ? 'Failed to update course' : 'Failed to create course', {
+                        description: data?.message || 'An error occurred.',
+                    });
+                }
+            } catch (err) {
+                toast.error('API error', {
+                    description: err instanceof Error ? err.message : 'An error occurred.',
+                });
+            } finally {
+                setIsSubmitting(false);
+            }
+        } catch (error) {
+            console.error('Error submitting course:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to save course');
+            setIsSubmitting(false);
         }
     }
 
@@ -470,7 +536,7 @@ export default function Courses() {
                                 <input type="hidden" name="courseType" value="recorded" />
                                 <div>
                                     <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                                    <Input type="file" accept="image/*" name="thumbnailImage" />
+                                    <Input type="file" accept="image/*" name="image" />
                                 </div>
                                 <div>
                                     <label className="block font-medium mb-1">Course Name</label>
@@ -509,52 +575,44 @@ export default function Courses() {
                                         <label className="block font-medium mb-1">Start Date</label>
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left border rounded-md px-3 py-2 flex items-center gap-2"
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-start text-left font-normal"
                                                 >
-                                                    <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                                    {recordedStartDate ? (
-                                                        format(recordedStartDate, 'yyyy-MM-dd')
-                                                    ) : (
-                                                        <span className="text-gray-400">Pick a date</span>
-                                                    )}
-                                                </button>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {recordedStartDate ? format(recordedStartDate, 'PPP') : <span>Pick a date</span>}
+                                                </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={recordedStartDate} onSelect={setRecordedStartDate} initialFocus />
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={recordedStartDate}
+                                                    onSelect={setRecordedStartDate}
+                                                    initialFocus
+                                                />
                                             </PopoverContent>
-                                            <input
-                                                type="hidden"
-                                                name="startDate"
-                                                value={recordedStartDate ? format(recordedStartDate, 'yyyy-MM-dd') : ''}
-                                            />
                                         </Popover>
                                     </div>
                                     <div className="flex-1">
                                         <label className="block font-medium mb-1">End Date</label>
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left border rounded-md px-3 py-2 flex items-center gap-2"
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-start text-left font-normal"
                                                 >
-                                                    <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                                    {recordedEndDate ? (
-                                                        format(recordedEndDate, 'yyyy-MM-dd')
-                                                    ) : (
-                                                        <span className="text-gray-400">Pick a date</span>
-                                                    )}
-                                                </button>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {recordedEndDate ? format(recordedEndDate, 'PPP') : <span>Pick a date</span>}
+                                                </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={recordedEndDate} onSelect={setRecordedEndDate} initialFocus />
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={recordedEndDate}
+                                                    onSelect={setRecordedEndDate}
+                                                    initialFocus
+                                                />
                                             </PopoverContent>
-                                            <input
-                                                type="hidden"
-                                                name="endDate"
-                                                value={recordedEndDate ? format(recordedEndDate, 'yyyy-MM-dd') : ''}
-                                            />
                                         </Popover>
                                     </div>
                                 </div>
@@ -564,12 +622,14 @@ export default function Courses() {
                                     <Input placeholder="Course Price" type="number" name="price" defaultValue={editCourse?.price || ''} />
                                     {formErrors.price && <div className="text-red-500">{formErrors.price}</div>}
                                 </div>
-                                <div>
+                                {/* <div>
                                     <label className="block font-medium mb-1">Upload Course Images (per module/chapter)</label>
                                     <Input type="file" accept="image/*" name="image" />
-                                </div>
+                                </div> */}
                                 <DialogFooter>
-                                    <Button type="submit">{editCourse ? 'Update Course' : 'Create Recorded Course'}</Button>
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting ? 'Saving...' : (editCourse ? 'Update Course' : 'Create Recorded Course')}
+                                    </Button>
                                 </DialogFooter>
                             </form>
                         </TabsContent>
@@ -578,8 +638,8 @@ export default function Courses() {
                             <form className="space-y-4" onSubmit={handleCourseSubmit}>
                                 <input type="hidden" name="courseType" value="live" />
                                 <div>
-                                    <label className="block font-medium mb-1">Course Intro Video</label>
-                                    <Input type="file" accept="video/*" name="introVideo" />
+                                    <label className="block font-medium mb-1">Course Thumbnail Image</label>
+                                    <Input type="file" accept="image/*" name="image" />
                                 </div>
                                 <div>
                                     <label className="block font-medium mb-1">Course Name</label>
@@ -624,44 +684,44 @@ export default function Courses() {
                                         <label className="block font-medium mb-1">Start Date</label>
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left border rounded-md px-3 py-2 flex items-center gap-2"
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-start text-left font-normal"
                                                 >
-                                                    <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                                    {liveStartDate ? (
-                                                        format(liveStartDate, 'yyyy-MM-dd')
-                                                    ) : (
-                                                        <span className="text-gray-400">Pick a date</span>
-                                                    )}
-                                                </button>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {liveStartDate ? format(liveStartDate, 'PPP') : <span>Pick a date</span>}
+                                                </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={liveStartDate} onSelect={setLiveStartDate} initialFocus />
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={liveStartDate}
+                                                    onSelect={setLiveStartDate}
+                                                    initialFocus
+                                                />
                                             </PopoverContent>
-                                            <input type="hidden" name="startDate" value={liveStartDate ? format(liveStartDate, 'yyyy-MM-dd') : ''} />
                                         </Popover>
                                     </div>
                                     <div className="flex-1">
                                         <label className="block font-medium mb-1">End Date</label>
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left border rounded-md px-3 py-2 flex items-center gap-2"
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-start text-left font-normal"
                                                 >
-                                                    <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                                    {liveEndDate ? (
-                                                        format(liveEndDate, 'yyyy-MM-dd')
-                                                    ) : (
-                                                        <span className="text-gray-400">Pick a date</span>
-                                                    )}
-                                                </button>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {liveEndDate ? format(liveEndDate, 'PPP') : <span>Pick a date</span>}
+                                                </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={liveEndDate} onSelect={setLiveEndDate} initialFocus />
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={liveEndDate}
+                                                    onSelect={setLiveEndDate}
+                                                    initialFocus
+                                                />
                                             </PopoverContent>
-                                            <input type="hidden" name="endDate" value={liveEndDate ? format(liveEndDate, 'yyyy-MM-dd') : ''} />
                                         </Popover>
                                     </div>
                                 </div>
@@ -675,12 +735,14 @@ export default function Courses() {
                                     <Input placeholder="Zoom Meeting Link" name="zoomLink" defaultValue={editCourse?.meetingLink || ''} />
                                     {formErrors.zoomLink && <div className="text-red-500">{formErrors.zoomLink}</div>}
                                 </div>
-                                <div>
+                                {/* <div>
                                     <label className="block font-medium mb-1">Upload Meeting Recording (post-session)</label>
                                     <Input type="file" accept="video/*" name="meetingRecording" />
-                                </div>
+                                </div> */}
                                 <DialogFooter>
-                                    <Button type="submit">{editCourse ? 'Update Course' : 'Create Live Course'}</Button>
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting ? 'Saving...' : (editCourse ? 'Update Course' : 'Create Live Course')}
+                                    </Button>
                                 </DialogFooter>
                             </form>
                         </TabsContent>
@@ -689,8 +751,8 @@ export default function Courses() {
                             <form className="space-y-4" onSubmit={handleCourseSubmit}>
                                 <input type="hidden" name="courseType" value="physical" />
                                 <div>
-                                    <label className="block font-medium mb-1">Course Intro Video</label>
-                                    <Input type="file" accept="video/*" name="introVideo" />
+                                    <label className="block font-medium mb-1">Course Thumbnail Image</label>
+                                    <Input type="file" accept="image/*" name="image" />
                                 </div>
                                 <div>
                                     <label className="block font-medium mb-1">Course Name</label>
@@ -735,52 +797,44 @@ export default function Courses() {
                                         <label className="block font-medium mb-1">Start Date</label>
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left border rounded-md px-3 py-2 flex items-center gap-2"
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-start text-left font-normal"
                                                 >
-                                                    <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                                    {physicalStartDate ? (
-                                                        format(physicalStartDate, 'yyyy-MM-dd')
-                                                    ) : (
-                                                        <span className="text-gray-400">Pick a date</span>
-                                                    )}
-                                                </button>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {physicalStartDate ? format(physicalStartDate, 'PPP') : <span>Pick a date</span>}
+                                                </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={physicalStartDate} onSelect={setPhysicalStartDate} initialFocus />
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={physicalStartDate}
+                                                    onSelect={setPhysicalStartDate}
+                                                    initialFocus
+                                                />
                                             </PopoverContent>
-                                            <input
-                                                type="hidden"
-                                                name="startDate"
-                                                value={physicalStartDate ? format(physicalStartDate, 'yyyy-MM-dd') : ''}
-                                            />
                                         </Popover>
                                     </div>
                                     <div className="flex-1">
                                         <label className="block font-medium mb-1">End Date</label>
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left border rounded-md px-3 py-2 flex items-center gap-2"
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-start text-left font-normal"
                                                 >
-                                                    <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                                    {physicalEndDate ? (
-                                                        format(physicalEndDate, 'yyyy-MM-dd')
-                                                    ) : (
-                                                        <span className="text-gray-400">Pick a date</span>
-                                                    )}
-                                                </button>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {physicalEndDate ? format(physicalEndDate, 'PPP') : <span>Pick a date</span>}
+                                                </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={physicalEndDate} onSelect={setPhysicalEndDate} initialFocus />
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={physicalEndDate}
+                                                    onSelect={setPhysicalEndDate}
+                                                    initialFocus
+                                                />
                                             </PopoverContent>
-                                            <input
-                                                type="hidden"
-                                                name="endDate"
-                                                value={physicalEndDate ? format(physicalEndDate, 'yyyy-MM-dd') : ''}
-                                            />
                                         </Popover>
                                     </div>
                                 </div>
@@ -789,18 +843,36 @@ export default function Courses() {
                   <label className="block font-medium mb-1">Date and Time</label>
                   <Input placeholder="e.g. 2024-02-15 9:00 AM" name="dateTime" />
                 </div> */}
-                                <div>
-                                    <label className="block font-medium mb-1">Location</label>
-                                    <Input placeholder="Location" name="location" defaultValue={editCourse?.location || ''} />
-                                    {formErrors.location && <div className="text-red-500">{formErrors.location}</div>}
-                                </div>
-                                <div>
-                                    <label className="block font-medium mb-1">Address</label>
-                                    <Input placeholder="Address" name="address" defaultValue={editCourse?.address || ''} />
-                                    {formErrors.address && <div className="text-red-500">{formErrors.address}</div>}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="block font-medium text-sm">Location</label>
+                                        <Input 
+                                            placeholder="Location" 
+                                            name="location" 
+                                            defaultValue={editCourse?.location || ''} 
+                                            className="w-full"
+                                        />
+                                        {formErrors.location && (
+                                            <p className="text-xs text-red-500">{formErrors.location}</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="block font-medium text-sm">Address</label>
+                                        <Input 
+                                            placeholder="Full address" 
+                                            name="address" 
+                                            defaultValue={editCourse?.address || ''} 
+                                            className="w-full"
+                                        />
+                                        {formErrors.address && (
+                                            <p className="text-xs text-red-500">{formErrors.address}</p>
+                                        )}
+                                    </div>
                                 </div>
                                 <DialogFooter>
-                                    <Button type="submit">{editCourse ? 'Update Course' : 'Create Physical Course'}</Button>
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting ? 'Saving...' : (editCourse ? 'Update Course' : 'Create Physical Course')}
+                                    </Button>
                                 </DialogFooter>
                             </form>
                         </TabsContent>

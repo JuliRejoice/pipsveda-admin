@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, Edit, Trash2, ArrowLeft, Video } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { createChapter, updateChapter, deleteChapter } from '@/components/api/course';
+import { createChapter, updateChapter, deleteChapter, getChapters } from '@/components/api/course';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { MoreVertical } from 'lucide-react';
@@ -100,6 +100,7 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
             data.append('videoUrl', formData.videoUrl);
             data.append('chapterNo', String(formData.chapterNo));
             data.append('courseId', courseId);
+            
             if (formData.image) {
                 data.append('image', formData.image);
             }
@@ -107,10 +108,12 @@ export function CourseChapters({ initialChapters, courseId, courseName }: Course
             if (selectedChapter) {
                 await updateChapter(selectedChapter._id, data);
                 toast.success('Chapter updated successfully');
+                getChapters(courseId);
                 router.refresh(); // Only refresh after success!
             } else {
                 await createChapter(data);
                 toast.success('Chapter created successfully');
+                getChapters(courseId);
                 router.refresh();
             }
             setIsAddDialogOpen(false);
