@@ -86,7 +86,7 @@ export const updateCustomer = async (id: string, payload: any) => {
     }
 
     const res = await axios.put(
-      `${BaseUrl}/user/updateUser?id=${id}`,
+      `${BaseUrl}/user/update?id=${id}`,
       payload,
       { headers }
     );

@@ -351,42 +351,52 @@ export default function Courses() {
             return;
         }
 
-        // Build the payload object with correct keys
-        const CourseName = formData.get('name') || '';
-        const description = formData.get('description') || '';
-        const price = formData.get('price') || '';
-        const courseStart = formData.get('startDate') || '';
-        const courseEnd = formData.get('endDate') || '';
-        const meetingLink = formData.get('zoomLink') || '';
-        const location = formData.get('location') || '';
-        const instructor = formData.get('instructor') || '';
-        const language = formData.get('language') || 'english';
+        // Get the thumbnail image file if it exists
+        const thumbnailImage = formData.get('thumbnailImage') as File | null;
+        
+        // Create a new FormData for the API request
+        const apiFormData = new FormData();
+        
+        // Add all form fields to the FormData
+        apiFormData.append('courseType', formData.get('courseType') || '');
+        apiFormData.append('CourseName', formData.get('name') || '');
+        apiFormData.append('description', formData.get('description') || '');
+        apiFormData.append('price', formData.get('price') || '0');
+        apiFormData.append('startDate', formData.get('startDate') || '');
+        apiFormData.append('endDate', formData.get('endDate') || '');
+        apiFormData.append('instructor', formData.get('instructor') || '');
+        apiFormData.append('language', formData.get('language') || 'english');
+        
+        // Add course type specific fields
+        if (courseType === 'live') {
+            apiFormData.append('zoomLink', formData.get('zoomLink') || '');
+        } else if (courseType === 'physical') {
+            apiFormData.append('location', formData.get('location') || '');
+            apiFormData.append('address', formData.get('address') || '');
+        }
+        
+        // Add the thumbnail image if it exists
+        if (thumbnailImage && thumbnailImage.size > 0) {
+            apiFormData.append('thumbnail', thumbnailImage);
+        }
+        
+        // Add course images if they exist (for recorded courses)
+        const courseImages = formData.getAll('image') as File[];
+        if (courseImages && courseImages.length > 0) {
+            courseImages.forEach((file, index) => {
+                apiFormData.append(`image`, file);
+            });
+        }
 
-        const courseTypeValue = courseType ? String(courseType) : '';
-        const payload: Record<string, any> = {
-            CourseName,
-            description,
-            price,
-            courseStart,
-            courseEnd,
-            meetingLink,
-            location,
-            instructor,
-            language,
-            courseType: courseTypeValue,
-            // image: (add file upload later)
-        };
-
-        console.log('Submitting payload:', payload); // For debugging
-
+        
         try {
             let data;
             if (editCourse && editCourse._id) {
                 // Update existing course
-                data = await updateCourse(editCourse._id, payload);
+                data = await updateCourse(editCourse._id, apiFormData);
             } else {
                 // Create new course
-                data = await createCourse(payload);
+                data = await createCourse(apiFormData);
             }
 
             if (data.success) {
@@ -459,8 +469,8 @@ export default function Courses() {
                             <form className="space-y-4" onSubmit={handleCourseSubmit}>
                                 <input type="hidden" name="courseType" value="recorded" />
                                 <div>
-                                    <label className="block font-medium mb-1">Course Intro Video</label>
-                                    <Input type="file" accept="video/*" name="introVideo" />
+                                    <label className="block font-medium mb-1">Course Thumbnail Image</label>
+                                    <Input type="file" accept="image/*" name="thumbnailImage" />
                                 </div>
                                 <div>
                                     <label className="block font-medium mb-1">Course Name</label>
@@ -555,8 +565,8 @@ export default function Courses() {
                                     {formErrors.price && <div className="text-red-500">{formErrors.price}</div>}
                                 </div>
                                 <div>
-                                    <label className="block font-medium mb-1">Upload Videos (per module/chapter)</label>
-                                    <Input type="file" accept="video/*" multiple name="videos" />
+                                    <label className="block font-medium mb-1">Upload Course Images (per module/chapter)</label>
+                                    <Input type="file" accept="image/*" name="image" />
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit">{editCourse ? 'Update Course' : 'Create Recorded Course'}</Button>
@@ -601,6 +611,12 @@ export default function Courses() {
                                             <option value="hindi">Hindi</option>
                                         </select>
                                     </div>
+                                </div>
+                                {/* Add Price Field */}
+                                <div>
+                                    <label className="block font-medium mb-1">Course Price</label>
+                                    <Input placeholder="Course Price" type="number" name="price" defaultValue={editCourse?.price || ''} />
+                                    {formErrors.price && <div className="text-red-500">{formErrors.price}</div>}
                                 </div>
                                 {/* Start and End Date in one row */}
                                 <div className="flex flex-col md:flex-row gap-4">
@@ -706,6 +722,12 @@ export default function Courses() {
                                             <option value="hindi">Hindi</option>
                                         </select>
                                     </div>
+
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Course Price</label>
+                                    <Input placeholder="Course Price" type="number" name="price" defaultValue={editCourse?.price || ''} />
+                                    {formErrors.price && <div className="text-red-500">{formErrors.price}</div>}
                                 </div>
                                 {/* Start and End Date in one row */}
                                 <div className="flex flex-col md:flex-row gap-4">

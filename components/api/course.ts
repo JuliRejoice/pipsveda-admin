@@ -10,25 +10,32 @@ export const getAuthToken = (): string | null => {
     return null;
 };
 
-export const createCourse = async (payload: any) => {
+export const createCourse = async (payload: FormData) => {
     try {
         const token = getAuthToken();
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
+        const headers: Record<string, string> = {};
 
         if (token) {
             headers['x-auth-token'] = token;
         }
 
-        const res = await axios.post(`${BaseUrl}/course/createCourse`, payload, { headers });
+        const res = await axios.post(
+            `${BaseUrl}/course/createCourse`,
+            payload,
+            { 
+                headers,
+                transformRequest: [(data, headers) => {
+                    delete headers['Content-Type'];
+                    return data;
+                }]
+            }
+        );
         return res.data;
     } catch (error) {
-        console.error("Error on Course Creation", error);
+        console.error("Error creating course", error);
         throw error;
     }
 };
-
 export interface CourseApiResponse {
     success: boolean;
     message: string;
@@ -91,12 +98,10 @@ export const getCourses = async ({
     }
 };
 
-export const updateCourse = async (id: string, payload: any) => {
+export const updateCourse = async (id: string, payload: FormData) => {
     try {
         const token = getAuthToken();
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
+        const headers: Record<string, string> = {}; // Remove Content-Type header
 
         if (token) {
             headers['x-auth-token'] = token;
@@ -105,7 +110,15 @@ export const updateCourse = async (id: string, payload: any) => {
         const res = await axios.put(
             `${BaseUrl}/course/updateCourse?id=${id}`,
             payload,
-            { headers }
+            { 
+                headers,
+                // Remove the default JSON content type
+                transformRequest: [(data, headers) => {
+                    // Let the browser set the correct Content-Type with boundary
+                    delete headers['Content-Type'];
+                    return data;
+                }]
+            }
         );
         return res.data;
     } catch (error) {

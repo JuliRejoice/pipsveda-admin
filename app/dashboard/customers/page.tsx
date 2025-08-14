@@ -112,7 +112,7 @@ const customerFormSchema = z.object({
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must be at most 100 characters')
     .regex(/^[a-zA-Z\s-']+$/, 'Name can only contain letters, spaces, hyphens, and apostrophes'),
-    
+
   email: z.string()
     .email('Invalid email address')
     .max(100, 'Email must be at most 100 characters')
@@ -120,28 +120,28 @@ const customerFormSchema = z.object({
       const domain = email.split('@')[1];
       return domain && domain.length >= 3 && domain.includes('.');
     }, 'Invalid email domain'),
-    
+
   phone: z.string()
     .min(10, 'Phone number must be at least 10 digits')
     .max(15, 'Phone number must be at most 15 digits')
     .regex(/^[0-9+()\s-]+$/, 'Invalid phone number format'),
-    
+
   gender: z.enum(['male', 'female', 'other'], {
     errorMap: () => ({ message: 'Please select a valid gender' })
   }),
-  
+
   birthday: z.date({
     required_error: 'A date of birth is required.',
     invalid_type_error: 'Please enter a valid date',
   })
-  .max(new Date(new Date().setFullYear(new Date().getFullYear() - 13)), 'You must be at least 13 years old')
-  .min(new Date('1900-01-01'), 'Birth date cannot be before 1900'),
-  
+    .max(new Date(new Date().setFullYear(new Date().getFullYear() - 13)), 'You must be at least 13 years old')
+    .min(new Date('1900-01-01'), 'Birth date cannot be before 1900'),
+
   location: z.string()
     .min(2, 'Location must be at least 2 characters')
     .max(100, 'Location must be at most 100 characters')
     .regex(/^[a-zA-Z\s,-]+$/, 'Location can only contain letters, spaces, commas, and hyphens'),
-    
+
   roleId: z.string().min(1, 'Please select a role'),
 });
 
@@ -190,7 +190,7 @@ export default function Customers() {
         limit: itemsPerPage,
         search: searchTerm
       });
-      
+
       if (response.success) {
         const { data, count } = response.payload;
         setCustomers(data);
@@ -236,7 +236,9 @@ export default function Customers() {
       email: customer.email,
       phone: customer.phone,
       gender: customer.gender as 'male' | 'female' | 'other',
-      birthday: new Date(customer.birthday),
+      birthday: customer.birthday && !isNaN(new Date(customer.birthday).getTime())
+        ? new Date(customer.birthday)
+        : undefined,
       location: customer.location,
       roleId: customer.roleId._id,
     });
@@ -344,8 +346,8 @@ export default function Customers() {
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) 
- 
+    customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+
   );
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -366,7 +368,7 @@ export default function Customers() {
 
   return (
     <div className="space-t-6 max-h-[90vh]">
-     
+
 
       <Card className='border-none shadow-none'>
         <CardHeader>
@@ -384,13 +386,13 @@ export default function Customers() {
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary"></div>
                 </div>
-              )}  
+              )}
             </div>
 
-        <Button onClick={() => setIsAddCustomerOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Customer
-        </Button>
+            <Button onClick={() => setIsAddCustomerOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Customer
+            </Button>
 
           </div>
         </CardHeader>
@@ -428,18 +430,20 @@ export default function Customers() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">{customer.email}</div> 
+                          <div className="text-sm">{customer.email}</div>
                           {customer.phone && <div className="text-xs text-muted-foreground flex items-center gap-1">{customer.phone}</div>}
                         </TableCell>
                         <TableCell>
                           <span className="capitalize">{customer.gender?.toLowerCase() || 'N/A'}</span>
                         </TableCell>
                         <TableCell>
-                          {customer.birthday ? new Date(customer.birthday).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          }) : 'N/A'}
+                          {customer.birthday && !isNaN(new Date(customer.birthday).getTime())
+                            ? new Date(customer.birthday).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                            : 'N/A'}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="capitalize">
@@ -452,11 +456,13 @@ export default function Customers() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          {new Date(customer.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
+                          {customer.createdAt && !isNaN(new Date(customer.createdAt).getTime())
+                            ? new Date(customer.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                            : 'N/A'}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>

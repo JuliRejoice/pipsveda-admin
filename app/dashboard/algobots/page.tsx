@@ -54,15 +54,15 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 type Plan = {
-  duration: string;
-  price: number;
+  planType: string;
+  value: number;
 };
 
 interface AlgoBot {
   _id: string;
   botName: string;
   description: string;
-  price: number;
+  plans: Plan[];
   validity: string;
   isActive: boolean;
   image?: string;
@@ -132,6 +132,8 @@ export default function AlgoBots() {
     }
   };
 
+  console.log(algobots);
+
   useEffect(() => {
     fetchBots();
   }, [currentPage, itemsPerPage, searchTerm]);
@@ -156,8 +158,8 @@ export default function AlgoBots() {
       formData.append("validity", data.validity);
 
       plans.forEach((plan, index) => {
-        formData.append(`plans[${index}][planType]`, plan.duration);
-        formData.append(`plans[${index}][value]`, plan.price.toString());
+        formData.append(`plans[${index}][planType]`, plan.planType);
+        formData.append(`plans[${index}][value]`, plan.value.toString());
       });
 
       if (isEditMode && currentBotId) {
@@ -185,11 +187,21 @@ export default function AlgoBots() {
   const handleEdit = (bot: AlgoBot) => {
     setCurrentBotId(bot._id);
     setIsEditMode(true);
+    
+    // Reset the form with bot data
     reset({
       botName: bot.botName,
       description: bot.description,
       validity: bot.validity,
+      price: '', // Clear the price field when editing
+      plan: '1' // Reset plan selector to default
     });
+    
+    // Set the existing plans
+    setPlans([...bot.plans]);
+    
+    // Reset the form step to 1
+    setStep(1);
     setIsOpen(true);
   };
 
@@ -239,8 +251,8 @@ export default function AlgoBots() {
 
   if (isFetching) {
     return (
-      <div className="flex justify-center items-center min-h-[70vh] items-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -270,59 +282,57 @@ export default function AlgoBots() {
     if (!plan) return;
 
     const planNumber = parseInt(plan, 10);
-
     const newPlan: Plan = {
-      duration: `${planNumber} month`,
-      price: Number(price),
+      planType: `${planNumber} month`,
+      value: Number(price),
     };
 
-    setPlans((prev) => [...prev, newPlan]);
+    // Check if a plan with the same duration already exists
+    const planExists = plans.some(p => p.planType === newPlan.planType);
+    
+    if (planExists) {
+      // Update existing plan instead of adding a new one
+      setPlans(prev => 
+        prev.map(p => 
+          p.planType === newPlan.planType ? newPlan : p
+        )
+      );
+    } else {
+      // Add new plan
+      setPlans(prev => [...prev, newPlan]);
+    }
 
+    // Reset form fields
     setValue("plan", "1");
     setValue("price", "");
   };
 
-  const handleRemovePlan = (indexToRemove: number) => {
+  const handleRemovePlan: (indexToRemove: number) => void = (indexToRemove) => {
     setPlans((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between p-6">
-        {/*  <h1 className="text-2xl font-bold">AlgoBots</h1> */}
-        <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input placeholder="Search algobots..." value={searchTerm} onChange={handleSearch} className="pl-10" />
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">AlgoBots</h1>
+          <p className="text-muted-foreground">Manage your trading bots and their configurations</p>
         </div>
-        <Dialog
-          open={isOpen}
-          onOpenChange={(open) => {
-            if (!open) {
-              reset({
-                botName: "",
-                description: "",
-                price: "",
-                validity: "",
-              });
-              setPlans([]);
-              setStep(1);
-              setCurrentBotId(null);
-              setIsEditMode(false);
-            }
-            setIsOpen(open);
-          }}
-        >
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={handleCreateNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create AlgoBot
+            <Button onClick={() => {
+              setIsEditMode(false);
+              reset();
+              setPlans([]);
+            }}>
+              <Plus className="mr-2 h-4 w-4" /> Add New Bot
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] overflow-y-auto">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle className="pb-3">{isEditMode ? "Edit AlgoBot" : "Create New AlgoBot"}</DialogTitle>
+              <DialogTitle>{isEditMode ? 'Edit AlgoBot' : 'Create New AlgoBot'}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* LEFT: Step Sidebar */}
               <div className="flex space-x-6">
                 <div className={`pb-2 font-semibold ${step === 1 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent"}`}>Bot Details</div>
@@ -410,10 +420,10 @@ export default function AlgoBots() {
                           <div key={index} className="border rounded-md p-3 bg-background text-sm flex justify-between items-center">
                             <div>
                               <p>
-                                <strong>Duration:</strong> {plan.duration}
+                                <strong>Duration:</strong> {plan.planType}
                               </p>
                               <p>
-                                <strong>Price:</strong> ${plan.price}
+                                <strong>Price:</strong> ${plan.value}
                               </p>
                             </div>
                             <Button type="button" variant="ghost" size="sm" onClick={() => handleRemovePlan(index)} className="text-red-500 hover:text-red-700">
@@ -440,129 +450,146 @@ export default function AlgoBots() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 px-6">
-        {filteredBots.length > 0 ? (
-          filteredBots.map((bot) => (
-            <Card key={bot._id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <Bot className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{bot.botName}</CardTitle>
-                      <p className="text-sm text-gray-500">{bot.description}</p>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(bot)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download Code
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(bot._id);
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-green-600">${bot.price}</span>
-                    <Badge variant={bot.isActive ? "default" : "secondary"}>{bot.isActive ? "Active" : "Inactive"}</Badge>
-                  </div>
-
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Valid Before{" "}
-                      {new Date(bot.validity).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </div>
-                    <div>📊 0 sales</div>
-                  </div>
-                  {/*                   
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Download className="h-4 w-4 mr-2" />
-                      Code
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handleEdit(bot)}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                  </div> */}
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <div className="col-span-full text-center py-10">
-            <p className="text-muted-foreground">No algobots found. Create your first one!</p>
-          </div>
-        )}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search bots..."
+          className="w-full bg-background pl-8 md:w-[300px]"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
-      <DataTablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-        onPageChange={setCurrentPage}
-        onItemsPerPageChange={(value) => {
-          setItemsPerPage(value);
-          setCurrentPage(1);
-        }}
-        itemsPerPageOptions={[10, 20, 30, 50]}
-        className="border-t pt-4"
-      />
+      {isFetching ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <>
+          {algobots.length === 0 ? (
+            <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
+              <Bot className="h-12 w-12 text-muted-foreground" />
+              <div>
+                <h3 className="text-lg font-medium">No algobots found</h3>
+                <p className="text-sm text-muted-foreground">
+                  {searchTerm ? 'Try a different search term' : 'Get started by creating a new algobot'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {algobots.map((bot) => (
+                <Card key={bot._id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg font-semibold line-clamp-1">
+                        {bot.botName}
+                      </CardTitle>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">More</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(bot)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDeleteClick(bot._id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="mr-1 h-4 w-4" />
+                      <span>Valid until: {new Date(bot.validity).toLocaleDateString()}</span>
+                    </div>
+                    <Badge variant={bot.isActive ? 'default' : 'secondary'} className="w-fit">
+                      {bot.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {bot.description}
+                        </p>
+                        {/* {bot.description.split('\n').length > 2 && (
+                          <span className="text-xs text-muted-foreground">...</span>
+                        )} */}
+                      </div>
+                      <div className="flex justify-between items-center pt-2">
+                        <div className="text-2xl font-bold">
+                          ${bot?.plans?.[0].value}
+                          <span className="text-sm font-normal text-muted-foreground">/month</span>
+                        </div>
+                        <Button size="sm">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {totalItems > itemsPerPage && (
+            <div className="mt-6">
+              <DataTablePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={(value) => {
+                  setItemsPerPage(value);
+                  setCurrentPage(1);
+                }}
+                itemsPerPageOptions={[10, 20, 30, 50]}
+                className="border-t pt-4"
+              />
+            </div>
+          )}
+        </>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Delete AlgoBot
-            </DialogTitle>
+            <DialogTitle>Delete AlgoBot</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Alert>
-              <AlertDescription>Are you sure you want to delete this bot? This action cannot be undone.</AlertDescription>
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Are you sure you want to delete this bot? This action cannot be undone.
+              </AlertDescription>
             </Alert>
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
-                {isDeleting ? "Deleting..." : "Delete"}
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </Button>
             </div>
           </div>
