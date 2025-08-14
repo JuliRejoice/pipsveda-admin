@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -40,23 +39,14 @@ export default function AlgoBotsLayout({ children }: { children: React.ReactNode
           <div className="flex items-center gap-6 overflow-x-auto">
             {subNavItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === item.href ||
-                (item.href === "/dashboard/algobots" && pathname === "/dashboard/algobots");
+              const isActive = pathname === item.href || (item.href === "/dashboard/algobots" && pathname === "/dashboard/algobots");
 
               return (
                 <Link key={item.href} href={item.href}>
-                  <div
-                    className={cn(
-                      "relative flex items-center gap-2 px-2 pb-3 text-sm font-medium whitespace-nowrap transition-colors",
-                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
+                  <div className={cn("relative flex items-center gap-2 px-2 pb-3 text-sm font-medium whitespace-nowrap transition-colors", isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
                     <Icon className="h-4 w-4" />
                     <span>{item.title}</span>
-                    {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-                    )}
+                    {isActive && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />}
                   </div>
                 </Link>
               );
