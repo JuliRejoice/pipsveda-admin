@@ -37,6 +37,11 @@ interface BotItem {
   createdAt?: string;
   updatedAt?: string;
 }
+
+interface Providers {
+  _id: string;
+  companyName: string;
+}
 export default function BotPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -52,7 +57,7 @@ export default function BotPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [providers, setProviders] = useState<string[]>([]);
+  const [providers, setProviders] = useState<Providers[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
