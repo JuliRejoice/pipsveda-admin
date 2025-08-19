@@ -202,6 +202,24 @@ export default function Courses() {
         fetchCourses();
     }, [currentPage, itemsPerPage, searchTerm, activeTab]);
 
+    // Function to reset form and date states
+    const resetForm = () => {
+        setEditCourse(null);
+        setRecordedStartDate(undefined);
+        setRecordedEndDate(undefined);
+        setLiveStartDate(undefined);
+        setLiveEndDate(undefined);
+        setPhysicalStartDate(undefined);
+        setPhysicalEndDate(undefined);
+        setFormErrors({});
+        setActiveTab('recorded');
+        // Reset form fields if using a form ref
+        const form = document.querySelector('form');
+        if (form) {
+            form.reset();
+        }
+    };
+
     // Add this effect to initialize form fields when editing
     useEffect(() => {
         if (editCourse) {
@@ -220,13 +238,7 @@ export default function Courses() {
                 setPhysicalEndDate(new Date(editCourse.courseEnd));
             }
         } else {
-            // Reset date states when creating new course
-            setRecordedStartDate(undefined);
-            setRecordedEndDate(undefined);
-            setLiveStartDate(undefined);
-            setLiveEndDate(undefined);
-            setPhysicalStartDate(undefined);
-            setPhysicalEndDate(undefined);
+            resetForm();
         }
     }, [editCourse]);
 
@@ -917,7 +929,7 @@ export default function Courses() {
                 </div>
                 <Button
                     onClick={() => {
-                        setEditCourse(null);
+                        resetForm();
                         setOpen(true);
                     }}
                 >
