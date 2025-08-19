@@ -31,6 +31,7 @@ export default function Courses() {
     const [searchTerm, setSearchTerm] = useState('');
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('recorded');
+    const [formActiveTab, setFormActiveTab] = useState('recorded');
     const [isTabSwitching, setIsTabSwitching] = useState(false);
 
     // Pagination state
@@ -212,7 +213,7 @@ export default function Courses() {
         setPhysicalStartDate(undefined);
         setPhysicalEndDate(undefined);
         setFormErrors({});
-        setActiveTab('recorded');
+        // setActiveTab('recorded');
         // Reset form fields if using a form ref
         const form = document.querySelector('form');
         if (form) {
@@ -396,13 +397,13 @@ export default function Courses() {
             let startDate = '';
             let endDate = '';
             
-            if (activeTab === 'recorded') {
+            if (formActiveTab === 'recorded') {
                 startDate = recordedStartDate ? format(recordedStartDate, 'yyyy-MM-dd') : '';
                 endDate = recordedEndDate ? format(recordedEndDate, 'yyyy-MM-dd') : '';
-            } else if (activeTab === 'live') {
+            } else if (formActiveTab === 'live') {
                 startDate = liveStartDate ? format(liveStartDate, 'yyyy-MM-dd') : '';
                 endDate = liveEndDate ? format(liveEndDate, 'yyyy-MM-dd') : '';
-            } else if (activeTab === 'physical') {
+            } else if (formActiveTab === 'physical') {
                 startDate = physicalStartDate ? format(physicalStartDate, 'yyyy-MM-dd') : '';
                 endDate = physicalEndDate ? format(physicalEndDate, 'yyyy-MM-dd') : '';
             }
@@ -517,6 +518,10 @@ export default function Courses() {
         }, 500);
     };
 
+    const handleFormTabChange = (value: string) => {
+    setFormActiveTab(value);
+  };
+
     const renderCourseList = (courses: any[], emptyMessage: string) => {
         if (loading) {
             return (
@@ -547,7 +552,7 @@ export default function Courses() {
                             {editCourse ? `Edit ${editCourse.courseType?.charAt(0).toUpperCase() + editCourse.courseType?.slice(1)} Course` : 'Create Course'}
                         </DialogTitleUI>
                     </DialogHeader>
-                    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                    <Tabs value={formActiveTab} onValueChange={handleFormTabChange} className="w-full">
                         <TabsList className="grid w-full grid-cols-3 mb-4">
                             <TabsTrigger value="recorded">Recorded</TabsTrigger>
                             <TabsTrigger value="live">Live</TabsTrigger>
