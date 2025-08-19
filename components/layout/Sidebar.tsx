@@ -82,12 +82,15 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     router.push("/");
   };
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   return (
     <div className={cn("bg-background border-r transition-all duration-300 flex flex-col h-screen relative", isCollapsed ? "w-16" : "w-64")}>
@@ -140,12 +143,12 @@ export default function Sidebar() {
             <Button variant="ghost" className={cn("w-full justify-between h-auto p-2", isCollapsed ? "flex-col items-center justify-center space-y-1" : "flex items-center")}>
               <div className="flex items-center">
                 <Avatar className={cn("h-8 w-8", isCollapsed ? "mx-auto" : "mr-2")}>
-                  <AvatarFallback>AD</AvatarFallback>
+                  <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : "A"}</AvatarFallback>
                 </Avatar>
                 {!isCollapsed && (
                   <div className="text-left">
-                    <p className="text-sm font-medium">Admin User</p>
-                    <p className="text-xs text-muted-foreground">admin@example.com</p>
+                    <p className="text-sm font-medium">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                 )}
               </div>
