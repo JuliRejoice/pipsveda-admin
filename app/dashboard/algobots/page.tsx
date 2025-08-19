@@ -343,7 +343,7 @@ export default function AlgoBots() {
       };
 
       if (isEditMode && currentBotId) {
-        const response = await updateAlgoBot(currentBotId, data);
+        const response = await updateAlgoBot(currentBotId, step1Data);
         if (response?.payload?._id) {
           setBotPlanId(response.payload._id);
           toast.success("AlgoBot updated successfully");
@@ -839,22 +839,54 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="imageUrl">Image</Label>
-                      <Input id="imageUrl" type="file" accept="image/*" onChange={handleFileChange} disabled={uploading} />
-                      {errors.imageUrl && <p className="text-sm text-red-500">{String(errors.imageUrl.message)}</p>}
-                      {uploading && (
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                          <span>Uploading imageUrl...</span>
-                        </div>
+                      <label
+                        htmlFor="imageUrl"
+                        className={`flex items-center justify-center w-full h-40 border-2 border-dashed rounded-md cursor-pointer transition hover:border-primary relative ${uploading ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                      >
+                        {imagePreview ? (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-60 h-32 object-cover rounded-md"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                              onClick={removeImage}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            Click to upload
+                          </span>
+                        )}
+                      </label>
+
+                      <Input
+                        id="imageUrl"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        disabled={uploading}
+                      />
+
+                      {errors.imageUrl && (
+                        <p className="text-sm text-red-500">
+                          {String(errors.imageUrl.message)}
+                        </p>
                       )}
 
-                      {/* Image Preview */}
-                      {imagePreview && (
-                        <div className="relative inline-block">
-                          <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border" />
-                          <Button type="button" variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0" onClick={removeImage}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                      {uploading && (
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                          <span>Uploading image...</span>
                         </div>
                       )}
                     </div>
@@ -865,7 +897,7 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" placeholder="Enter detailed bot description" {...register("description")} className={errors.description ? "border-red-500" : ""} rows={3} />
+                      <Textarea id="description" placeholder="Enter detailed bot description" {...register("description")} className={errors.description ? "border-red-500" : ""} rows={12} />
                       {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
                     </div>
                     <div className="flex justify-end space-x-2 py-4">
@@ -1061,7 +1093,7 @@ export default function AlgoBots() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {algobots.map((bot) => (
                 <Card key={bot._id} className="hover:shadow-lg transition-shadow overflow-hidden">
-                  <img src={bot.imageUrl || "/images/logo.svg"} alt={bot.title} className="w-full h-45 object-cover" />
+                  <img src={bot.imageUrl || "/images/logo.svg"} alt={bot.title} className="w-full h-[210px] object-cover" />
                   <CardHeader className="pb-0">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-lg font-semibold line-clamp-1">{bot.title}</CardTitle>
