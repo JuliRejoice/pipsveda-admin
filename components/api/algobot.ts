@@ -239,6 +239,17 @@ export const getBotProviderDropDown = async (params?: PaginationParams) => {
   }
 };
 
+//Langugage dropdown api
+export const getLanguageDropDown = async (params?: PaginationParams) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/user/languages-dropdown`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching bots:', error);
+    throw error;
+  }
+};
+
 //Bot API
 export const getAllBots = async (params?: PaginationParams) => {
   try {
