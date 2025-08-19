@@ -31,14 +31,11 @@ interface AlgoBot {
   image?: File | string;
 }
 
-export const createAlgoBot = async (botData: any) => {
-  const formData = new FormData();
+export const uploadAlgoBotImage = async (image: any) => {
   const token = getAuthToken();
 
-
-
   try {
-    const response = await axios.post(`${API_BASE_URL}/algoBot/createBot`, botData, {
+    const response = await axios.post(`${API_BASE_URL}/strategies/upload`, image, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'x-auth-token': token,
@@ -51,15 +48,78 @@ export const createAlgoBot = async (botData: any) => {
   }
 };
 
+export const createAlgoBot = async (botData: any) => {
+  const token = getAuthToken();
+  try {
+    const response = await axios.post(`${API_BASE_URL}/strategies/add`, botData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating algo bot:', error);
+    throw error;
+  }
+};
 
-export const updateAlgoBot = async (id: string, botData: any) => {
-  const formData = new FormData();
+export const createAlgoBotPlan = async (id: string, botData: any) => {
+  const token = getAuthToken();
+  try {
+    const response = await axios.post(`${API_BASE_URL}/strategyPlan/add/${id}`, botData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating algo bot:', error);
+    throw error;
+  }
+};
+
+export const updateAlgoBotPlan = async (id: string, botData: any) => {
   const token = getAuthToken();
 
   try {
-    const response = await axios.put(`${API_BASE_URL}/algoBot/updateBot?id=${id}`, botData, {
+    const response = await axios.put(`${API_BASE_URL}/strategyPlan/edit/${id}`, botData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating algo bot:', error);
+    throw error;
+  }
+};
+
+export const deleteAlgoBotPlan = async (id: string) => {
+  const token = getAuthToken();
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/strategyPlan/delete/${id}`, {
+      headers: {
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting algo bot:', error);
+    throw error;
+  }
+};
+
+
+export const updateAlgoBot = async (id: string, botData: any) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.put(`${API_BASE_URL}/strategies/edit/${id}`, botData, {
+      headers: {
+        'Content-Type': 'application/json',
         'x-auth-token': token,
       },
     });
@@ -72,7 +132,7 @@ export const updateAlgoBot = async (id: string, botData: any) => {
 
 export const getAllAlgoBots = async (params?: PaginationParams) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/algoBot/getAllBot?${params?.page ? `page=${params.page}` : ''}&${params?.limit ? `limit=${params.limit}` : ''}&${params?.search ? `search=${params.search}` : ''}`);
+    const response = await axios.get(`${API_BASE_URL}/strategies?${params?.page ? `page=${params.page}` : ''}&${params?.limit ? `limit=${params.limit}` : ''}&${params?.search ? `search=${params.search}` : ''}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching algo bots:', error);
@@ -84,7 +144,7 @@ export const getAllAlgoBots = async (params?: PaginationParams) => {
 export const deleteAlgoBot = async (id: string) => {
   const token = getAuthToken();
   try {
-    const response = await axios.delete(`${API_BASE_URL}/algoBot/deleteBot?id=${id}`, {
+    const response = await axios.delete(`${API_BASE_URL}/strategies/delete/${id}`, {
       headers: {
         'x-auth-token': token,
       },
@@ -101,6 +161,16 @@ export const deleteAlgoBot = async (id: string) => {
 export const getAllCategory = async (params?: PaginationParams) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/categories/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching algo bots:', error);
+    throw error;
+  }
+};
+
+export const getCategoryDropdown = async (params?: PaginationParams) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/categories/dropdown`);
     return response.data;
   } catch (error) {
     console.error('Error fetching algo bots:', error);
@@ -180,6 +250,16 @@ export const getAllBots = async (params?: PaginationParams) => {
   }
 };
 
+export const getBotDropDown = async (params?: PaginationParams) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/bot/dropdown`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching bots:', error);
+    throw error;
+  }
+};
+
 export const createBot = async (botData: { botProviderId: string; name: string }) => {
   try {
     const token = localStorage.getItem('token');
@@ -216,6 +296,66 @@ export const deleteBot = async (id: string) => {
   try {
     const token = localStorage.getItem('token');
     const response = await axios.delete(`${API_BASE_URL}/bot/delete/${id}`, {
+      headers: {
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting bot:', error);
+    throw error;
+  }
+};
+
+//coupon api
+export const getAllCoupon = async (params?: PaginationParams) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/coupon/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching bots:', error);
+    throw error;
+  }
+};
+
+export const createCoupon = async (couponData: any) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.post(`${API_BASE_URL}/coupon/add`, couponData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating category:', error);
+    throw error;
+  }
+};
+
+export const updateCoupon = async (id: string, couponData: any) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.put(`${API_BASE_URL}/coupon/edit/${id}`, couponData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating category:', error);
+    throw error;
+  }
+};
+
+export const deleteCoupon = async (id: string) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.delete(`${API_BASE_URL}/coupon/delete/${id}`, {
       headers: {
         'x-auth-token': token,
       },

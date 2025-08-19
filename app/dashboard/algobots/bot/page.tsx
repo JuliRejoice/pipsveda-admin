@@ -42,6 +42,7 @@ interface Providers {
   _id: string;
   companyName: string;
 }
+
 export default function BotPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
