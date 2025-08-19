@@ -90,7 +90,6 @@ export default function BotPage() {
       setTotalPages(response.payload.totalPages || 0);
     } catch (error) {
       console.error("Error fetching bots:", error);
-      toast.error("Failed to fetch bots");
     } finally {
       setIsFetching(false);
     }

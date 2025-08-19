@@ -80,7 +80,6 @@ export default function Category() {
       setTotalPages(Math.ceil((response.payload.count || 0) / itemsPerPage));
     } catch (error) {
       console.error("Error fetching bots:", error);
-      toast.error("Failed to fetch algo bots");
     } finally {
       setIsFetching(false);
     }

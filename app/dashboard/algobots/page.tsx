@@ -49,10 +49,8 @@ const formSchema = z.object({
 
   price: z.string().optional(),
 
-  // optional discount (e.g., percentage or flat amount as string)
   discount: z.string().optional(),
 
-  // Step 2: Bot provider and bot selection (optional here; enforced on Add Plan button)
   botProviderId: z.string().optional(),
   botId: z.string().optional(),
 
@@ -70,7 +68,6 @@ const formSchema = z.object({
     )
     .min(1, "At least one video link is required"),
 
-  // Make image optional in schema; we'll enforce presence manually based on existing preview or new upload
   imageUrl: z.any().optional(),
 });
 
@@ -155,10 +152,10 @@ export default function AlgoBots() {
   const [isFetchingBotsList, setIsFetchingBotsList] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [botPlanId, setBotPlanId] = useState<string | null>(null);
   const [planEdit, setPlanEdit] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [priceError, setPriceError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -186,9 +183,6 @@ export default function AlgoBots() {
     clearErrors,
     formState: { errors },
   } = form;
-
-  // Custom price validation state
-  const [priceError, setPriceError] = useState<string | null>(null);
 
   // Fetch dropdown data: categories, providers, and bots
   useEffect(() => {
@@ -274,12 +268,9 @@ export default function AlgoBots() {
         setAlgobots(response.payload.data);
         setTotalItems(response.payload.totalRecords);
         setTotalPages(Math.ceil(response.payload.totalPages / itemsPerPage));
-      } else {
-        toast.error("Failed to fetch algobots");
       }
     } catch (error) {
       console.error("Error fetching algobots:", error);
-      toast.error("Failed to fetch algobots");
     } finally {
       setIsFetching(false);
     }
@@ -293,7 +284,7 @@ export default function AlgoBots() {
     if (planEdit && editingPlanId) {
       const editingPlan = plans.find((p) => p._id === editingPlanId);
       if (editingPlan) {
-        setValue("plan", editingPlan.planType); // ✅ sets only `plan`
+        setValue("plan", editingPlan.planType);
       }
     }
   }, [planEdit, editingPlanId, plans, setValue]);
@@ -321,7 +312,6 @@ export default function AlgoBots() {
       // Create preview immediately
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
-      setSelectedImageFile(file);
 
       // Upload the file
       await handleFileUpload(file);
@@ -331,7 +321,6 @@ export default function AlgoBots() {
 
   const removeImage = () => {
     setImagePreview(null);
-    setSelectedImageFile(null);
     setStep1((prev) => ({ ...prev, imageUrl: undefined }));
   };
 
@@ -344,7 +333,7 @@ export default function AlgoBots() {
         categoryId: data.categoryId,
         shortDescription: data.shortDescription,
         description: data.description,
-        imageUrl: imagePreview, // Assuming this is where you store the uploaded image URL
+        imageUrl: imagePreview,
         link: (data.links || [])
           .filter((link) => link.url && link.url.trim() !== "")
           .map((link) => ({
@@ -367,9 +356,6 @@ export default function AlgoBots() {
         }
       }
 
-      // setIsOpen(false);
-      // reset();
-      // setPlans([]);
       setCurrentPage(1);
       setStep(2);
       // await fetchBots();
@@ -387,7 +373,6 @@ export default function AlgoBots() {
       setIsLoading(true);
 
       if (isEditMode && currentBotId) {
-        // For editing, refresh the bot data to show newly added plans
         try {
           const response = await getAllAlgoBots({
             page: currentPage,
@@ -450,7 +435,7 @@ export default function AlgoBots() {
   // Set up form for editing
   const handleEdit = (bot: AlgoBot) => {
     setCurrentBotId(bot._id);
-    setBotPlanId(bot._id); // Set the real bot ID for editing
+    setBotPlanId(bot._id);
     setIsEditMode(true);
 
     // Set tutorial video links or default
@@ -472,7 +457,6 @@ export default function AlgoBots() {
       setStep1((prev) => ({ ...prev, imageUrl: bot.imageUrl }));
     } else {
       setImagePreview(null);
-      setSelectedImageFile(null);
     }
 
     // Reset the form with bot data
@@ -544,8 +528,6 @@ export default function AlgoBots() {
     setPlanEdit(false);
     setEditingPlanId(null);
   };
-
-  // const filteredBots = algobots.filter((bot) => bot.title.toLowerCase().includes(searchTerm.toLowerCase()) || bot.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
