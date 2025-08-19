@@ -556,7 +556,7 @@ export default function Courses() {
                         <TabsList className="grid w-full grid-cols-3 mb-4">
                             <TabsTrigger value="recorded">Recorded</TabsTrigger>
                             <TabsTrigger value="live">Live</TabsTrigger>
-                            <TabsTrigger value="physical">Physical</TabsTrigger>
+                            <TabsTrigger value="physical">In-Person</TabsTrigger>
                         </TabsList>
                         {/* Recorded Course Form */}
                         <TabsContent value="recorded">
@@ -769,7 +769,7 @@ export default function Courses() {
                                 </div> */}
                                 <DialogFooter>
                                     <Button type="submit" disabled={isSubmitting}>
-                                        {isSubmitting ? 'Saving...' : (editCourse ? 'Update Course' : 'Create Live Course')}
+                                        {isSubmitting ? 'Saving...' : (editCourse ? 'Update Course' : 'Create Live Online')}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -899,7 +899,7 @@ export default function Courses() {
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit" disabled={isSubmitting}>
-                                        {isSubmitting ? 'Saving...' : (editCourse ? 'Update Course' : 'Create Physical Course')}
+                                        {isSubmitting ? 'Saving...' : (editCourse ? 'Update Course' : 'Create In-Person Course')}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -947,7 +947,7 @@ export default function Courses() {
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="recorded" className="w-full">Recorded</TabsTrigger>
                     <TabsTrigger value="live" className="w-full">Live</TabsTrigger>
-                    <TabsTrigger value="physical" className="w-full">Physical</TabsTrigger>
+                    <TabsTrigger value="physical" className="w-full">In-Person</TabsTrigger>
                 </TabsList>
 
                 {isTabSwitching ? (
