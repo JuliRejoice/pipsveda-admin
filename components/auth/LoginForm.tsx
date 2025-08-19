@@ -140,6 +140,7 @@ export default function LoginForm() {
       const response = await SignIn(loginData);
       if (response.data) {
         localStorage.setItem('token', response.data.payload.token);
+        localStorage.setItem("user", JSON.stringify(response.data.payload));
         router.push('/dashboard');
       }
     } catch (err: any) {
