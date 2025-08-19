@@ -405,7 +405,6 @@ export default function Courses() {
             
             // If there are errors, stop submission
             if (Object.keys(errors).length > 0) {
-                toast.error('Please fix the form errors');
                 setIsSubmitting(false);
                 return;
             }

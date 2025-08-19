@@ -103,7 +103,6 @@ export default function CouponPage() {
       setTotalPages(Math.ceil(response.payload.totalPages / itemsPerPage));
     } catch (error) {
       console.error("Error fetching coupons:", error);
-      toast.error("Failed to fetch coupons");
     } finally {
       setIsLoading(false);
     }
@@ -274,9 +273,7 @@ export default function CouponPage() {
                       </TableCell>
                       <TableCell>{coupon.discount}</TableCell>
                       <TableCell> {coupon.usageLimit}</TableCell>
-                      <TableCell>
-                       {coupon.usageCount}
-                      </TableCell>
+                      <TableCell>{coupon.usageCount}</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
