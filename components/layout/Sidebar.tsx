@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Pipslogo from "@/public/images/pipslogo";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell, UserPlus, Settings, ChevronLeft, ChevronRight, Mail, MessageSquare, User, LogOut, ChevronDown, Settings as SettingsIcon } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell, UserPlus, Settings, ChevronLeft, ChevronRight, Mail, MessageSquare, User, LogOut, ChevronDown, Settings as SettingsIcon, Waves } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -62,6 +62,11 @@ const sidebarItems = [
     title: "Contact",
     href: "/dashboard/contact",
     icon: MessageSquare,
+  },
+  {
+    title: "Utility",
+    href: "/dashboard/utility",
+    icon: Waves,
   },
   // {
   //   title: 'Content',
