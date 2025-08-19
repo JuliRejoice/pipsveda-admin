@@ -12,25 +12,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { createAlgoBot, getAllAlgoBots, deleteAlgoBot, updateAlgoBot, getCategoryDropdown, getBotProviderDropDown, getBotDropDown, uploadAlgoBotImage, createAlgoBotPlan, updateAlgoBotPlan, deleteAlgoBotPlan } from "@/components/api/algobot";
+import { createAlgoBot, getAllAlgoBots, deleteAlgoBot, updateAlgoBot, getCategoryDropdown, getBotProviderDropDown, getBotDropDown, uploadAlgoBotImage, createAlgoBotPlan, updateAlgoBotPlan, deleteAlgoBotPlan, getLanguageDropDown } from "@/components/api/algobot";
 import { Search, Plus, Bot, Calendar, Download, Edit, Trash2, MoreVertical, AlertTriangle, ChevronDown, Pencil } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
-
-// Language options for tutorial videos
-const LANGUAGE_OPTIONS = [
-  { value: "en", label: "English" },
-  { value: "es", label: "Spanish" },
-  { value: "fr", label: "French" },
-  { value: "de", label: "German" },
-  { value: "it", label: "Italian" },
-  { value: "pt", label: "Portuguese" },
-  { value: "ru", label: "Russian" },
-  { value: "ja", label: "Japanese" },
-  { value: "ko", label: "Korean" },
-  { value: "zh", label: "Chinese" },
-];
 
 // Form validation schema
 const formSchema = z.object({
@@ -141,7 +127,7 @@ export default function AlgoBots() {
   const [totalPages, setTotalPages] = useState(1);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [step, setStep] = useState(1);
-  const [step1, setStep1] = useState({ links: [{ url: "", language: "en" }] });
+  const [step1, setStep1] = useState({ links: [{ url: "", language: "" }] });
   const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isFetchingCategories, setIsFetchingCategories] = useState(false);
@@ -156,6 +142,7 @@ export default function AlgoBots() {
   const [planEdit, setPlanEdit] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
+  const [languages, setLanguages] = useState<{ _id: string; languageName: string }[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -168,7 +155,7 @@ export default function AlgoBots() {
       discount: "",
       botProviderId: "",
       botId: "",
-      links: [{ url: "", language: "en" }],
+      links: [{ url: "", language: "" }],
     },
   });
 
@@ -254,6 +241,19 @@ export default function AlgoBots() {
     });
     return () => subscription.unsubscribe();
   }, [bots, form.watch, setValue]);
+
+  useEffect(() => {
+    const loadLanguages = async () => {
+      try {
+        const langs = await getLanguageDropDown();
+        setLanguages(langs?.payload);
+      } catch (error) {
+        console.error("Failed to load languages:", error);
+      }
+    };
+
+    loadLanguages();
+  }, []);
 
   // Fetch bots on component mount
   const fetchBots = async () => {
@@ -444,10 +444,10 @@ export default function AlgoBots() {
       Array.isArray(rawLinks) && rawLinks.length > 0
         ? rawLinks.map((l: any) => ({
             url: l.url || "",
-            language: l.language || "en",
+            language: l.language || "",
             _id: l._id,
           }))
-        : [{ url: "", language: "en" }];
+        : [{ url: "", language: "" }];
 
     setStep1({ links: botLinks });
     setValue("links", botLinks);
@@ -515,10 +515,10 @@ export default function AlgoBots() {
       discount: "",
       botProviderId: "",
       botId: "",
-      links: [{ url: "", language: "en" }],
+      links: [{ url: "", language: "" }],
     });
     setPlans([]);
-    setStep1({ links: [{ url: "", language: "en" }] });
+    setStep1({ links: [{ url: "", language: "" }] });
     setCurrentBotId(null);
     setBotPlanId(null);
     setIsEditMode(false);
@@ -729,7 +729,7 @@ export default function AlgoBots() {
   };
 
   const handleAddLink = () => {
-    const newLinks = [...step1.links, { url: "", language: "en" }];
+    const newLinks = [...step1.links, { url: "", language: "" }];
     setStep1({ ...step1, links: newLinks });
     setValue("links", newLinks);
   };
@@ -790,15 +790,15 @@ export default function AlgoBots() {
                                 <Input value={link?.url || ""} onChange={(e) => handleLinkChange(index, e.target.value)} placeholder="Enter Tutorial Video Links... " className="w-full h-10" />
                                 <div className="relative h-[40px]">
                                   <div className="py-1 px-3 border shadow-sm h-[40px] rounded-lg w-36 flex justify-between items-center cursor-pointer" onClick={() => setOpenDropdownIndex(openDropdownIndex === index ? null : index)}>
-                                    <span className="text-sm font-medium text-muted-foreground">{LANGUAGE_OPTIONS.find((opt) => opt.value === link?.language)?.label || "English"}</span>
+                                    <span className="text-sm font-medium text-muted-foreground">{languages.find((opt) => opt._id === link?.language)?.languageName || "English"}</span>
                                     <ChevronDown className={`h-4 w-4 transition-all duration-500 ease-in-out ${openDropdownIndex === index ? "rotate-180" : ""}`} />
                                   </div>
                                   {openDropdownIndex === index && (
                                     <div className="max-h-[300px] absolute top-full border-input rounded-lg border-[1px] shadow-sm left-0 z-10 w-full transition-all duration-500 ease-in-out overflow-hidden">
                                       <div className="px-2 py-1 bg-background rounded-lg">
-                                        {LANGUAGE_OPTIONS.map((option) => (
-                                          <div key={option.value} className="bg-background group hover:bg-gray-100 px-3 py-2 transition-all duration-500 ease-in-out flex flex-col" onClick={() => handleLanguageChange(index, option.value)}>
-                                            <span className="text-sm font-medium text-muted-foreground group-hover:text-gray-500 rounded-md cursor-pointer">{option.label}</span>
+                                        {languages.map((option) => (
+                                          <div key={option._id} className="bg-background group hover:bg-gray-100 px-3 py-2 transition-all duration-500 ease-in-out flex flex-col" onClick={() => handleLanguageChange(index, option._id)}>
+                                            <span className="text-sm font-medium text-muted-foreground group-hover:text-gray-500 rounded-md cursor-pointer">{option.languageName}</span>
                                           </div>
                                         ))}
                                       </div>
@@ -839,49 +839,22 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="imageUrl">Image</Label>
-                      <label
-                        htmlFor="imageUrl"
-                        className={`flex items-center justify-center w-full h-40 border-2 border-dashed rounded-md cursor-pointer transition hover:border-primary relative ${uploading ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
-                      >
+                      <label htmlFor="imageUrl" className={`flex items-center justify-center w-full h-40 border-2 border-dashed rounded-md cursor-pointer transition hover:border-primary relative ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}>
                         {imagePreview ? (
                           <div className="relative">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
-                              className="w-60 h-32 object-cover rounded-md"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                              onClick={removeImage}
-                            >
+                            <img src={imagePreview} alt="Preview" className="w-60 h-32 object-cover rounded-md" />
+                            <Button type="button" variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0" onClick={removeImage}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground">
-                            Click to upload
-                          </span>
+                          <span className="text-sm text-muted-foreground">Click to upload</span>
                         )}
                       </label>
 
-                      <Input
-                        id="imageUrl"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileChange}
-                        disabled={uploading}
-                      />
+                      <Input id="imageUrl" type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
 
-                      {errors.imageUrl && (
-                        <p className="text-sm text-red-500">
-                          {String(errors.imageUrl.message)}
-                        </p>
-                      )}
+                      {errors.imageUrl && <p className="text-sm text-red-500">{String(errors.imageUrl.message)}</p>}
 
                       {uploading && (
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
