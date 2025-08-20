@@ -86,35 +86,41 @@ export default function Courses() {
       errors.instructor = "Instructor name is required";
     }
 
-    // Validate price
-    const price = parseFloat(formData.get("price")?.toString() || "0");
-    if (isNaN(price) || price < 0) {
-      errors.price = "Please enter a valid price";
+    // Validate price (required and > 0)
+    const priceValue = formData.get("price")?.toString();
+    const price = parseFloat(priceValue || "");
+    if (!priceValue || isNaN(price) || price <= 0) {
+      errors.price = "Please enter a valid price greater than 0";
     }
 
-    //validate hours
-    const hours = parseFloat(formData.get("hours")?.toString() || "0");
-    if (isNaN(hours) || hours < 0) {
-      errors.hours = "Please enter a valid number of hours";
+    // Validate hours (required and > 0)
+    const hoursValue = formData.get("hours")?.toString();
+    const hours = parseFloat(hoursValue || "");
+    if (!hoursValue || isNaN(hours) || hours <= 0) {
+      errors.hours = "Please enter valid hours greater than 0";
     }
 
-    // Validate dates
-    const startDate = formData.get("startDate")?.toString();
-    const endDate = formData.get("endDate")?.toString();
+    // Validate dates (use courseStart/courseEnd set before validation)
+    const startDate = formData.get("courseStart")?.toString();
+    const endDate = formData.get("courseEnd")?.toString();
 
+    if (!startDate) {
+      errors.startDate = "Start date is required";
+    }
+    if (!endDate) {
+      errors.endDate = "End date is required";
+    }
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       errors.dateRange = "End date must be after start date";
     }
 
-    // Course type specific validations
-    // if (courseType === 'recorded') {
-    //     if (!formData.get('courseVideo')?.toString().trim() && !editCourse?.courseVideo) {
-    //         errors.courseVideo = 'Course video URL is required';
-    //     } else if (formData.get('courseVideo') && !isValidUrl(formData.get('courseVideo')?.toString() || '')) {
-    //         errors.courseVideo = 'Please enter a valid URL';
-    //     }
-    // }
+    // Image required on create (skip when editing)
+    const imageEntries = formData.getAll("image").filter((v) => v instanceof File && (v as File).size > 0) as File[];
+    if (!editCourse && imageEntries.length === 0) {
+      errors.image = "Please upload a image";
+    }
 
+    // Course type specific validations
     if (courseType === "live") {
       if (!formData.get("zoomLink")?.toString().trim() && !editCourse?.meetingLink) {
         errors.zoomLink = "Zoom meeting link is required";
@@ -127,9 +133,6 @@ export default function Courses() {
       if (!formData.get("location")?.toString().trim()) {
         errors.location = "Location is required";
       }
-      // if (!formData.get('address')?.toString().trim()) {
-      //     errors.address = 'Address is required';
-      // }
     }
 
     return errors;
@@ -232,6 +235,7 @@ export default function Courses() {
     if (editCourse) {
       // Set the active tab based on course type
       setActiveTab(editCourse.courseType || "recorded");
+      setFormActiveTab(editCourse.courseType || "recorded");
 
       // Set date states if they exist
       if (editCourse.courseStart) {
@@ -539,7 +543,30 @@ export default function Courses() {
 
   return (
     <div>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(val) => {
+          setOpen(val);
+          if (!val) {
+            setFormErrors({});
+            setIsSubmitting(false);
+            setEditCourse(null);
+            setRecordedStartDate(undefined);
+            setRecordedEndDate(undefined);
+            setLiveStartDate(undefined);
+            setLiveEndDate(undefined);
+            setPhysicalStartDate(undefined);
+            setPhysicalEndDate(undefined);
+            const form = document.querySelector("form");
+            if (form) {
+              form.reset();
+            }
+          } else {
+            setFormActiveTab(editCourse?.courseType || "recorded");
+            setFormErrors({});
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitleUI>{editCourse ? `Edit ${editCourse.courseType?.charAt(0).toUpperCase() + editCourse.courseType?.slice(1)} Course` : "Create Course"}</DialogTitleUI>
@@ -557,6 +584,7 @@ export default function Courses() {
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
                   <Input type="file" accept="image/*" name="image" />
+                  {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
@@ -600,6 +628,7 @@ export default function Courses() {
                         <Calendar mode="single" selected={recordedStartDate} onSelect={setRecordedStartDate} initialFocus />
                       </PopoverContent>
                     </Popover>
+                    {formErrors.startDate && <div className="text-red-500">{formErrors.startDate}</div>}
                   </div>
                   <div className="flex-1">
                     <label className="block font-medium mb-1">End Date</label>
@@ -614,6 +643,7 @@ export default function Courses() {
                         <Calendar mode="single" selected={recordedEndDate} onSelect={setRecordedEndDate} initialFocus />
                       </PopoverContent>
                     </Popover>
+                    {formErrors.endDate && <div className="text-red-500">{formErrors.endDate}</div>}
                   </div>
                 </div>
                 {formErrors.dateRange && <div className="text-red-500">{formErrors.dateRange}</div>}
@@ -647,6 +677,7 @@ export default function Courses() {
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
                   <Input type="file" accept="image/*" name="image" />
+                  {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
@@ -684,7 +715,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">Hours</label>
-                    <Input placeholder="Hours" type="test" name="hours" defaultValue={editCourse?.hours || ""} />
+                    <Input placeholder="Hours" type="number" name="hours" defaultValue={editCourse?.hours || ""} />
                     {formErrors.hours && <div className="text-red-500">{formErrors.hours}</div>}
                   </div>
                 </div>
@@ -703,6 +734,7 @@ export default function Courses() {
                         <Calendar mode="single" selected={liveStartDate} onSelect={setLiveStartDate} initialFocus />
                       </PopoverContent>
                     </Popover>
+                    {formErrors.startDate && <div className="text-red-500">{formErrors.startDate}</div>}
                   </div>
                   <div className="flex-1">
                     <label className="block font-medium mb-1">End Date</label>
@@ -717,6 +749,7 @@ export default function Courses() {
                         <Calendar mode="single" selected={liveEndDate} onSelect={setLiveEndDate} initialFocus />
                       </PopoverContent>
                     </Popover>
+                    {formErrors.endDate && <div className="text-red-500">{formErrors.endDate}</div>}
                   </div>
                 </div>
                 {formErrors.dateRange && <div className="text-red-500">{formErrors.dateRange}</div>}
@@ -747,6 +780,7 @@ export default function Courses() {
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
                   <Input type="file" accept="image/*" name="image" />
+                  {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
@@ -802,6 +836,7 @@ export default function Courses() {
                         <Calendar mode="single" selected={physicalStartDate} onSelect={setPhysicalStartDate} initialFocus />
                       </PopoverContent>
                     </Popover>
+                    {formErrors.startDate && <div className="text-red-500">{formErrors.startDate}</div>}
                   </div>
                   <div className="flex-1">
                     <label className="block font-medium mb-1">End Date</label>
@@ -816,6 +851,7 @@ export default function Courses() {
                         <Calendar mode="single" selected={physicalEndDate} onSelect={setPhysicalEndDate} initialFocus />
                       </PopoverContent>
                     </Popover>
+                    {formErrors.endDate && <div className="text-red-500">{formErrors.endDate}</div>}
                   </div>
                 </div>
                 {formErrors.dateRange && <div className="text-red-500">{formErrors.dateRange}</div>}
@@ -825,9 +861,9 @@ export default function Courses() {
                 </div> */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="block font-medium text-sm">Location</label>
+                    <label className="block font-medium">Location</label>
                     <Input placeholder="Location" name="location" defaultValue={editCourse?.location || ""} className="w-full" />
-                    {formErrors.location && <p className="text-xs text-red-500">{formErrors.location}</p>}
+                    {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
                   </div>
                   {/* <div className="space-y-1">
                                         <label className="block font-medium text-sm">Address</label>

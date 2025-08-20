@@ -53,6 +53,7 @@ export interface Course {
     courseStart?: string;
     courseEnd?: string;
     meetingLink?: string;
+    zoomLink?: string;
     location?: string;
     instructor?: string;
     language?: string;
