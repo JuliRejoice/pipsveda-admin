@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -67,6 +66,9 @@ export default function Category() {
     formState: { errors },
   } = form;
 
+  const [allCategories, setAllCategories] = useState<CategoryItem[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<CategoryItem[]>([]);
+
   const fetchCategories = async () => {
     try {
       setIsFetching(true);
@@ -76,21 +78,41 @@ export default function Category() {
         search: searchTerm,
       });
 
-      setCategories(response.payload.data || []);
-      setTotalItems(response.payload.count || 0);
-      setTotalPages(Math.ceil((response.payload.count || 0) / itemsPerPage));
+      const categoriesData = response.payload.data || [];
+      setAllCategories(categoriesData);
+      filterCategories(categoriesData, searchTerm);
     } catch (error) {
-      console.error("Error fetching bots:", error);
+      console.error("Error fetching categories:", error);
     } finally {
       setIsFetching(false);
     }
   };
 
+  const filterCategories = (categories: CategoryItem[], search: string) => {
+    if (!search.trim()) {
+      setFilteredCategories(categories);
+      setTotalItems(categories.length);
+      setTotalPages(Math.ceil(categories.length / itemsPerPage));
+      return;
+    }
+
+    const searchLower = search.toLowerCase();
+    const filtered = categories.filter(category => 
+      category.title.toLowerCase().includes(searchLower)
+    );
+
+    setFilteredCategories(filtered);
+    setTotalItems(filtered.length);
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  };
+
+  useEffect(() => {
+    filterCategories(allCategories, searchTerm);
+  }, [searchTerm]);
+
   useEffect(() => {
     fetchCategories();
-  }, [currentPage, itemsPerPage, searchTerm]);
-  console.log(categories);
-
+  }, []);
   // Handle form submission for both create and update
   const onSubmit = async (data: FormValues) => {
     try {
@@ -218,7 +240,7 @@ export default function Category() {
         </div>
       ) : (
         <>
-          {categories.length === 0 ? (
+          {filteredCategories.length === 0 ? (
             <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
               <Tag className="h-12 w-12 text-muted-foreground" />
               <div>
@@ -236,7 +258,9 @@ export default function Category() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {categories.map((category) => (
+                  {filteredCategories
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((category) => (
                     <TableRow key={category._id}>
                       <TableCell className="font-medium">{category.title}</TableCell>
                       <TableCell className="text-right">
