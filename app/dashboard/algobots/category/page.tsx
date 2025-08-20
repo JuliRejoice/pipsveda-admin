@@ -10,11 +10,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Search, Plus, Tag, Edit, Trash2, MoreVertical, AlertTriangle } from "lucide-react";
+import { Search, Plus, Tag, Edit, Trash2, AlertTriangle, MoreHorizontal } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { createCategory, getAllCategory, updateCategory, deleteCategory } from "@/components/api/algobot";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Form validation schema - only category name field
 const formSchema = z.object({
@@ -226,33 +227,45 @@ export default function Category() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {categories.map((category) => (
-                <Card key={category._id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center">{category.title}</CardTitle>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(category)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Edit</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteClick(category._id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardHeader>
-                </Card>
-              ))}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[80%]">Category Name</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {categories.map((category) => (
+                    <TableRow key={category._id}>
+                      <TableCell className="font-medium">{category.title}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(category)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              <span>Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive" 
+                              onClick={() => handleDeleteClick(category._id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
 

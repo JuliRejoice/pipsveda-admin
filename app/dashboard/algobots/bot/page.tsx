@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Search, Plus, Bot, Edit, Trash2, MoreVertical, AlertTriangle } from "lucide-react";
+import { Search, Plus, Bot, Edit, Trash2, AlertTriangle, MoreHorizontal } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
@@ -270,33 +271,48 @@ export default function BotPage() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {bots.map((bot) => (
-                <Card key={bot._id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base flex items-center">{bot.name}</CardTitle>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(bot)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Edit</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteClick(bot._id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardHeader>
-                </Card>
-              ))}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Bot Name</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {bots.map((bot) => {
+                    const provider = providers?.find(p => p._id === bot.botProviderId);
+                    return (
+                      <TableRow key={bot._id}>
+                        <TableCell className="font-medium">{bot.name}</TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Open menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(bot)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-destructive focus:text-destructive" 
+                                onClick={() => handleDeleteClick(bot._id)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
           )}
 
