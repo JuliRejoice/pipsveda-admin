@@ -254,7 +254,7 @@ export default function Category() {
                 <TableHeader>
                   <TableRow>
                   <TableHead>Sr. No</TableHead>
-                    <TableHead className="w-[80%]">Category Name</TableHead>
+                    <TableHead>Category Name</TableHead>
                     <TableHead>Edit</TableHead>
                     <TableHead>Delete</TableHead>
                   </TableRow>
