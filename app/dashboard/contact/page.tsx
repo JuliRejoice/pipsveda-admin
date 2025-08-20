@@ -1,132 +1,153 @@
-'use client';
+"use client";
 
-import { getContact } from '@/components/api/contact';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Mail, Phone, MessageSquare, MapPin, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-
+import { getContact } from "@/components/api/contact";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Mail, Phone, MessageSquare, MapPin, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Contact = {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    location: string;
-    description: string;
-    createdAt: string;
-    isActive: boolean;
-}
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  description: string;
+  createdAt: string;
+  isActive: boolean;
+  firstName: string;
+  lastName: string;
+  subject: string;
+};
 
 export default function ContactPage() {
-    const [contactData, setContactData] = useState<Contact[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    
-    useEffect(() => {
-        const getContactData = async () => {
-            try {
-                setIsLoading(true);
-                const data = await getContact();
-                setContactData(data.payload.data);
-            } catch (error) {
-                console.error('Error fetching contacts:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        getContactData();
-    }, []);
+  const [contactData, setContactData] = useState<Contact[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState("");
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[70vh]">
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
+  useEffect(() => {
+    const getContactData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getContact();
+        setContactData(data.payload.data);
+      } catch (error) {
+        console.error("Error fetching contacts:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getContactData();
+  }, []);
 
+  if (isLoading) {
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Contact Submissions</h1>
-            </div>
-
-            <div className="space-y-4">
-                {contactData.length === 0 ? (
-                    <div className="text-center py-12 bg-card rounded-lg border">
-                        <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-                        <h3 className="mt-4 text-lg font-medium text-foreground">No contact submissions</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">No one has submitted the contact form yet.</p>
-                    </div>
-                ) : (
-                    contactData.map((submission, index) => (
-                        <div key={submission.id || index} className="bg-background text-foreground rounded-lg border overflow-hidden hover:shadow-md transition-shadow">
-                            {/* Header */}
-                            <div className="bg-background px-6 py-3 border-b">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <h3 className="font-medium text-base text-foreground">{submission.name}</h3>
-                                        <Badge 
-                                            variant={submission.isActive ? 'default' : 'secondary'}
-                                            className="text-xs font-medium"
-                                        >
-                                            {submission.isActive ? 'Active' : 'Inactive'}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                        <Calendar className="w-4 h-4 mr-1.5" />
-                                        {new Date(submission.createdAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Contact Details */}
-                            <div className="px-6 py-4">
-                                <div className="flex flex-wrap items-center gap-4 mb-4">
-                                    <div className="flex items-center space-x-2">
-                                        <Mail className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-sm text-foreground">{submission.email}</span>
-                                    </div>
-
-                                    {submission.phone && (
-                                        <div className="flex items-center space-x-2">
-                                            <Phone className="w-4 h-4 text-muted-foreground" />
-                                            <span className="text-sm text-foreground">{submission.phone}</span>
-                                        </div>
-                                    )}
-
-                                    {submission.location && (
-                                        <div className="flex items-center space-x-2">
-                                            <MapPin className="w-4 h-4 text-muted-foreground" />
-                                            <span className="text-sm text-foreground">{submission.location}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Message */}
-                                {submission.description && (
-                                    <div className="mt-4">
-                                        <div className="flex items-start space-x-3">
-                                            <MessageSquare className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2 mt-0.5">Message</p>
-                                        </div>
-                                        <div className="flex-1 mt-2">
-                                            <div className="bg-card rounded-md p-3">
-                                                <p className="text-sm text-foreground leading-relaxed">{submission.description}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+      </div>
     );
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <TooltipProvider>
+    <div className="space-y-6">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-2xl font-semibold text-foreground">Contact Submissions</h1>
+      </div>
+
+      <div className="rounded-md border">
+        {contactData.length === 0 ? (
+          <div className="text-center py-12 bg-card">
+            <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-medium text-foreground">No contact submissions</h3>
+            <p className="mt-1 text-sm text-muted-foreground">No one has submitted the contact form yet.</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Submitted On</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {contactData.map((submission) => (
+                <TableRow key={submission.id}>
+                  <TableCell className="font-medium">
+                    {submission.firstName} {submission.lastName}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span>{submission.email}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {submission.phone && (
+                      <div className="flex items-center space-x-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span>{submission.phone}</span>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-default">
+                          {submission.subject?.length > 30 
+                            ? `${submission.subject.substring(0, 30)}...` 
+                            : submission.subject}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">{submission.subject}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell className="font-medium max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-default">
+                          {submission.description?.length > 40 
+                            ? `${submission.description.substring(0, 40)}...` 
+                            : submission.description}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-md">
+                        <p className="whitespace-pre-wrap break-words">{submission.description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end space-x-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span>{formatDate(submission.createdAt)}</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </div>
+    </TooltipProvider>
+  );
 }

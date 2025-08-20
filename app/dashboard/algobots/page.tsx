@@ -25,11 +25,11 @@ const formSchema = z.object({
     .nonempty("Strategy title is required")
     .min(2, "Strategy name must be at least 2 characters")
     .max(50, "Strategy name must be at most 50 characters")
-    .regex(/^[a-zA-Z0-9\s-]+$/, "Strategy name can only contain letters, numbers, spaces, and hyphens"),
+    .regex(/^[a-zA-Z0-9\s\-()]+$/, "Strategy name can only contain letters, numbers, spaces, hyphens, and parentheses"),
 
   categoryId: z.string().min(1, "Category is required"),
 
-  shortDescription: z.string().nonempty("Short Description is required").min(10, "Short description must be at least 10 characters").max(50, "Short description must be at most 200 characters"),
+  shortDescription: z.string().nonempty("Short Description is required").min(10, "Short description must be at least 10 characters").max(200, "Short description must be at most 200 characters"),
 
   description: z.string().nonempty("Description is required").min(10, "Description must be at least 10 characters"),
 
@@ -790,14 +790,14 @@ export default function AlgoBots() {
                                 <Input value={link?.url || ""} onChange={(e) => handleLinkChange(index, e.target.value)} placeholder="Enter Tutorial Video Links... " className="w-full h-10" />
                                 <div className="relative h-[40px]">
                                   <div className="py-1 px-3 border shadow-sm h-[40px] rounded-lg w-36 flex justify-between items-center cursor-pointer" onClick={() => setOpenDropdownIndex(openDropdownIndex === index ? null : index)}>
-                                    <span className="text-sm font-medium text-muted-foreground">{languages.find((opt) => opt._id === link?.language)?.languageName || "English"}</span>
+                                    <span className="text-sm font-medium text-muted-foreground">{languages.find((opt) => opt.languageName === link?.language)?.languageName || "English"}</span>
                                     <ChevronDown className={`h-4 w-4 transition-all duration-500 ease-in-out ${openDropdownIndex === index ? "rotate-180" : ""}`} />
                                   </div>
                                   {openDropdownIndex === index && (
                                     <div className="max-h-[300px] absolute top-full border-input rounded-lg border-[1px] shadow-sm left-0 z-10 w-full transition-all duration-500 ease-in-out overflow-hidden">
                                       <div className="px-2 py-1 bg-background rounded-lg">
                                         {languages.map((option) => (
-                                          <div key={option._id} className="bg-background group hover:bg-gray-100 px-3 py-2 transition-all duration-500 ease-in-out flex flex-col" onClick={() => handleLanguageChange(index, option._id)}>
+                                          <div key={option?._id} className="bg-background group hover:bg-gray-100 px-3 py-2 transition-all duration-500 ease-in-out flex flex-col" onClick={() => handleLanguageChange(index, option.languageName)}>
                                             <span className="text-sm font-medium text-muted-foreground group-hover:text-gray-500 rounded-md cursor-pointer">{option.languageName}</span>
                                           </div>
                                         ))}
