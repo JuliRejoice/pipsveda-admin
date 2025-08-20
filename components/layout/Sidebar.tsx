@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -77,6 +77,7 @@ const sidebarItems = [
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [user, setUser] = useState<{ name?: string; email?: string }>({});
   const pathname = usePathname();
   const router = useRouter();
 
@@ -90,7 +91,18 @@ export default function Sidebar() {
     setIsCollapsed(!isCollapsed);
   };
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Failed to parse user from localStorage", e);
+        }
+      }
+    }
+  }, []);
 
   return (
     <div className={cn("bg-background border-r transition-all duration-300 flex flex-col h-screen relative", isCollapsed ? "w-16" : "w-64")}>
@@ -156,14 +168,14 @@ export default function Sidebar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align={isCollapsed ? "start" : "end"} side={isCollapsed ? "right" : "top"}>
-            <DropdownMenuItem>
+            {/* <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <SettingsIcon className="mr-2 h-4 w-4" />
               <span>Settings</span>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>

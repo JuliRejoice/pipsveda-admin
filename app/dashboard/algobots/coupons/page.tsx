@@ -238,6 +238,7 @@ export default function CouponPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Sr. No</TableHead>
                   <TableHead>Created Date</TableHead>
                   <TableHead>Expiry Date</TableHead>
                   <TableHead>Coupon Code</TableHead>
@@ -261,8 +262,9 @@ export default function CouponPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCoupons.map((coupon) => (
+                  filteredCoupons.map((coupon, index) => (
                     <TableRow key={coupon._id}>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell>{format(new Date(coupon.createdAt), "M/d/yyyy, h:mm:ss a")}</TableCell>
                       <TableCell>{format(new Date(coupon.expiryDate), "M/d/yyyy, h:mm:ss a")}</TableCell>
                       <TableCell className="font-medium">

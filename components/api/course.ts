@@ -61,6 +61,8 @@ export interface Course {
     price?: number;
     createdAt?: string;
     updatedAt?: string;
+    courseVideo?: string;
+    hours?: string;
 }
 
 export const getCourses = async ({
