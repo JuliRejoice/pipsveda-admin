@@ -439,7 +439,7 @@ export default function Courses() {
 
       // Add course type specific fields
       if (courseType === "live") {
-        apiFormData.append("zoomLink", formData.get("zoomLink") || "");
+        apiFormData.append("meetingLink", formData.get("zoomLink") || "");
       } else if (courseType === "physical") {
         apiFormData.append("location", formData.get("location") || "");
         // apiFormData.append('address', formData.get('address') || '');
