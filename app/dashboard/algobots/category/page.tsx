@@ -253,39 +253,21 @@ export default function Category() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                  <TableHead>Sr. No</TableHead>
                     <TableHead className="w-[80%]">Category Name</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Edit</TableHead>
+                    <TableHead>Delete</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredCategories
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((category) => (
+                    .map((category,index) => (
                     <TableRow key={category._id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell className="font-medium">{category.title}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(category)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-destructive focus:text-destructive" 
-                              onClick={() => handleDeleteClick(category._id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                      <TableCell className="font-medium"><button onClick={() => handleEdit(category)}><Edit className="mr-2 h-4 w-4" /></button></TableCell>
+                      <TableCell className="font-medium"><button onClick={() => handleDeleteClick(category._id)}><Trash2 className="mr-2 h-4 w-4" /></button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
