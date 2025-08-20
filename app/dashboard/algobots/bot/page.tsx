@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -50,7 +49,8 @@ export default function BotPage() {
   const [currentBotId, setCurrentBotId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [bots, setBots] = useState<BotItem[]>([]);
+  const [allBots, setAllBots] = useState<BotItem[]>([]);
+  const [filteredBots, setFilteredBots] = useState<BotItem[]>([]);
   const [isFetching, setIsFetching] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [botToDelete, setBotToDelete] = useState<string | null>(null);
@@ -86,9 +86,9 @@ export default function BotPage() {
         search: searchTerm,
       });
 
-      setBots(response.payload.data || []);
-      setTotalItems(response.payload.count || 0);
-      setTotalPages(response.payload.totalPages || 0);
+      const botsData = response.payload.data || [];
+      setAllBots(botsData);
+      filterBots(botsData, searchTerm);
     } catch (error) {
       console.error("Error fetching bots:", error);
     } finally {
@@ -96,6 +96,32 @@ export default function BotPage() {
     }
   };
 
+  // Filter bots based on search term
+  const filterBots = (bots: BotItem[], search: string) => {
+    if (!search.trim()) {
+      setFilteredBots(bots);
+      setTotalItems(bots.length);
+      setTotalPages(Math.ceil(bots.length / itemsPerPage));
+      return;
+    }
+
+    const searchLower = search.toLowerCase();
+    const filtered = bots.filter(bot => 
+      bot.name.toLowerCase().includes(searchLower) ||
+      providers.find(p => p._id === bot.botProviderId)?.companyName.toLowerCase().includes(searchLower)
+    );
+
+    setFilteredBots(filtered);
+    setTotalItems(filtered.length);
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  };
+
+  // Update filtered bots when search term changes
+  useEffect(() => {
+    filterBots(allBots, searchTerm);
+  }, [searchTerm]);
+
+  // Initial data fetch
   useEffect(() => {
     fetchBots();
   }, [currentPage, itemsPerPage]);
@@ -131,7 +157,9 @@ export default function BotPage() {
 
       setIsOpen(false);
       reset();
-      fetchBots();
+      const updatedBots = await getAllBots({ page: 1, limit: 1000 });
+      setAllBots(updatedBots.payload.data || []);
+      filterBots(updatedBots.payload.data || [], searchTerm);
     } catch (error) {
       console.error("Error saving bot:", error);
       toast.error("Failed to save bot");
@@ -165,7 +193,9 @@ export default function BotPage() {
       setIsDeleting(true);
       await deleteBot(botToDelete);
       toast.success("Category deleted successfully");
-      setBots(bots.filter((bot) => bot._id !== botToDelete));
+      const updatedBots = allBots.filter((bot) => bot._id !== botToDelete);
+      setAllBots(updatedBots);
+      filterBots(updatedBots, searchTerm);
       toast.success("Bot deleted successfully!");
       setDeleteDialogOpen(false);
     } catch (error) {
@@ -262,7 +292,7 @@ export default function BotPage() {
         </div>
       ) : (
         <>
-          {bots.length === 0 ? (
+          {filteredBots.length === 0 ? (
             <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
               <Bot className="h-12 w-12 text-muted-foreground" />
               <div>
@@ -280,7 +310,9 @@ export default function BotPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bots.map((bot) => {
+                  {filteredBots
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((bot) => {
                     const provider = providers?.find(p => p._id === bot.botProviderId);
                     return (
                       <TableRow key={bot._id}>
