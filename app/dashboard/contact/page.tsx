@@ -65,7 +65,7 @@ export default function ContactPage() {
     <TooltipProvider>
     <div className="space-y-6">
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-semibold text-foreground">Contact Submissions</h1>
+        <h1 className="text-2xl font-semibold text-color">Contact Submissions</h1>
       </div>
 
       <div className="rounded-md border">
@@ -79,17 +79,19 @@ export default function ContactPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Sr. No</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Subject</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead className="text-right">Submitted On</TableHead>
+                <TableHead>Submitted On</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {contactData.map((submission) => (
+              {contactData.map((submission, index) => (
                 <TableRow key={submission.id}>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell className="font-medium">
                     {submission.firstName} {submission.lastName}
                   </TableCell>
@@ -135,8 +137,8 @@ export default function ContactPage() {
                       </TooltipContent>
                     </Tooltip>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end space-x-2">
+                  <TableCell>
+                    <div className="flex space-x-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>{formatDate(submission.createdAt)}</span>
                     </div>

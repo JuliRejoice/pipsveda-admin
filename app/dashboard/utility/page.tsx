@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { SquarePen, Phone, Mail } from "lucide-react";
+import { SquarePen, Phone, Mail, Search, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { getUtility, updateUtility } from "@/components/api/utility";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DataTablePagination } from "@/components/ui/DataTablePagination";
 
 type UtilitySettings = {
   _id?: string;
@@ -36,8 +37,12 @@ export default function Utility() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentField, setCurrentField] = useState<keyof UtilitySettings | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Mock API calls - replace with actual API calls
   const fetchUtilitySettings = async () => {
     try {
       // Replace with actual API call
@@ -102,65 +107,124 @@ export default function Utility() {
     chatNumber: "Chat Number",
   };
 
-  const fieldIcons: Record<keyof Omit<UtilitySettings, '_id'>, React.ReactNode> = {
-    email: <Mail className="h-5 w-5 text-muted-foreground" />,
-    phoneNo: <Phone className="h-5 w-5 text-muted-foreground" />,
-    facebookLink: <Mail className="h-5 w-5 text-muted-foreground" />,
-    instagramLink: <Phone className="h-5 w-5 text-muted-foreground" />,
-    linkedin: <Mail className="h-5 w-5 text-muted-foreground" />,
-    location: <Phone className="h-5 w-5 text-muted-foreground" />,
-    twitter: <Mail className="h-5 w-5 text-muted-foreground" />,
-    chatNumber: <Phone className="h-5 w-5 text-muted-foreground" />,
-  };  
+  // Filter and prepare table data
+  const tableData = Object.entries(utilitySettings)
+    .filter(([key]) => !['_id', 'deletedAt', 'updatedAt'].includes(key))
+    .map(([key, value], index) => ({
+      id: key,
+      serial: index + 1,
+      field: key,
+      label: fieldLabels[key as keyof Omit<UtilitySettings, '_id'>],
+      value: value || "Not set",
+    }));
+
+  // Apply search filter
+  const filteredData = searchTerm
+    ? tableData.filter(item => 
+        item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(item.value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : tableData;
+
+  // Apply pagination
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Utility Settings</h1>
-            </div>
-
-      <div className="grid gap-6 md:grid-cols-4">
-        {Object.entries(utilitySettings).filter(([key]) => !['_id', 'deletedAt','updatedAt'].includes(key)).map(([key, value]) => (
-          <Card key={key} className="relative">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-medium">
-                  {fieldLabels[key as keyof Omit<UtilitySettings, '_id'>]}
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleEditClick(key as keyof UtilitySettings)}
-                >
-                  <SquarePen className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-3">
-                {fieldIcons[key as keyof Omit<UtilitySettings, '_id'>]}
-                <span className="text-sm text-muted-foreground">{value || "Not set"}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-color">Utility Settings</h1>
+          <p className="text-sm text-muted-foreground">Manage your application's utility settings</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search settings..."
+              className="pl-8 w-[200px] lg:w-[300px]"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
       </div>
 
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[80px]">Sr. No</TableHead>
+              <TableHead>Setting</TableHead>
+              <TableHead>Value</TableHead>
+              <TableHead>Edit</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedData.length > 0 ? (
+              paginatedData.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.serial}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <span>{item.label}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="max-w-[400px] truncate">
+                    {item.value}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditClick(item.field as keyof UtilitySettings)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <SquarePen className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  No results found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      {/* <DataTablePagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(filteredData.length / itemsPerPage)}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setItemsPerPage}
+        pageSize={itemsPerPage}
+        totalItems={filteredData.length}
+      /> */}
+
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Edit </DialogTitle>
+            <DialogTitle>
+              {currentField && fieldLabels[currentField as keyof Omit<UtilitySettings, '_id'>]}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor={currentField || ""}>
-                {currentField}
+                {currentField && fieldLabels[currentField as keyof Omit<UtilitySettings, '_id'>]}
               </Label>
               <Input
                 name={currentField || ""}
                 defaultValue={currentField ? utilitySettings[currentField] : ""}
-                placeholder={`Enter ${currentField?.toLowerCase()}`}
+                placeholder={`Enter ${currentField ? fieldLabels[currentField as keyof Omit<UtilitySettings, '_id'>].toLowerCase() : 'value'}`}
                 required
               />
             </div>

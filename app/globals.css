@@ -20,7 +20,8 @@
   :root {
     --background: 255 100% 99%;
     --foreground: 263 84% 34%; /* #3A0CA3 */
-    color: #3A0CA3;
+    color: 106, 100%, 4%;
+    --blacktheme: 106, 100%, 4%;
 
     --card: 255 100% 100%;
     --card-foreground: 263 84% 34%;
@@ -138,4 +139,19 @@
 .dark .glass-card {
   background: rgba(58, 12, 163, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+.outline-hide {
+  border: none !important;
+  outline: 0px !important;
+}
+
+
+h1,h2,h3,h4,h5,h6,p,span,a {
+  color: #051600;
+}
+
+* {
+  font-family: "Funnel Display", sans-serif
 }

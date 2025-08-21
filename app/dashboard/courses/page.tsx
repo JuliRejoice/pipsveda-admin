@@ -17,49 +17,49 @@ import { toast } from 'sonner';
 import { createCourse, getCourses, updateCourse, deleteCourse } from '@/components/api/course';
 import React from 'react';
 import {
-    Dialog as ConfirmDialog,
-    DialogContent as ConfirmDialogContent,
-    DialogHeader as ConfirmDialogHeader,
-    DialogTitle as ConfirmDialogTitle,
-    DialogFooter as ConfirmDialogFooter,
+  Dialog as ConfirmDialog,
+  DialogContent as ConfirmDialogContent,
+  DialogHeader as ConfirmDialogHeader,
+  DialogTitle as ConfirmDialogTitle,
+  DialogFooter as ConfirmDialogFooter,
 } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { Course } from '@/components/api/course';
 
 export default function Courses() {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [open, setOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState('recorded');
-    const [formActiveTab, setFormActiveTab] = useState('recorded');
-    const [isTabSwitching, setIsTabSwitching] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('recorded');
+  const [formActiveTab, setFormActiveTab] = useState('recorded');
+  const [isTabSwitching, setIsTabSwitching] = useState(false);
 
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-    // Date states...
-    const [recordedStartDate, setRecordedStartDate] = useState<Date | undefined>();
-    const [recordedEndDate, setRecordedEndDate] = useState<Date | undefined>();
-    const [liveStartDate, setLiveStartDate] = useState<Date | undefined>();
-    const [liveEndDate, setLiveEndDate] = useState<Date | undefined>();
-    const [physicalStartDate, setPhysicalStartDate] = useState<Date | undefined>();
-    const [physicalEndDate, setPhysicalEndDate] = useState<Date | undefined>();
+  // Date states...
+  const [recordedStartDate, setRecordedStartDate] = useState<Date | undefined>();
+  const [recordedEndDate, setRecordedEndDate] = useState<Date | undefined>();
+  const [liveStartDate, setLiveStartDate] = useState<Date | undefined>();
+  const [liveEndDate, setLiveEndDate] = useState<Date | undefined>();
+  const [physicalStartDate, setPhysicalStartDate] = useState<Date | undefined>();
+  const [physicalEndDate, setPhysicalEndDate] = useState<Date | undefined>();
 
-    const [courses, setCourses] = useState<Course[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [editCourse, setEditCourse] = useState<Course | null>(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editCourse, setEditCourse] = useState<Course | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
 
-    // Add error state
-    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  // Add error state
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-    // Add loading state
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  // Add loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add this validation function at the top level of the component
   const validateForm = (formData: FormData, courseType: string) => {
@@ -347,7 +347,9 @@ export default function Courses() {
           <div className="flex justify-between items-center">
             <span className="text-lg font-semibold">${course.price || "0"}</span>
             <Badge variant="outline" className="capitalize">
-              {course.courseType}
+              <span className="text-blacktheme">
+                {course.courseType}
+              </span>
             </Badge>
           </div>
 

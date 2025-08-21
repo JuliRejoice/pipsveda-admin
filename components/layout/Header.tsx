@@ -55,7 +55,7 @@ export default function Header({ title = 'Dashboard', className }: HeaderProps) 
     <header className={cn("bg-background border-b px-6 py-5", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-semibold text-foreground">
+          <h1 className="text-2xl font-semibold text-blacktheme">
             {title}
           </h1>
         </div>

@@ -283,9 +283,9 @@ export default function CouponPage() {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="text-blacktheme">
                             <DropdownMenuItem onClick={() => handleEdit(coupon)}>
-                              <Edit className="mr-2 h-4 w-4" />
+                              <Edit className="mr-2 h-4 w-4 text-blacktheme" />
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
