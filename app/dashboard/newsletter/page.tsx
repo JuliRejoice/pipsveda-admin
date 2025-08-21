@@ -107,7 +107,7 @@ export default function NewsletterPage() {
                 <TableHead className="max-w-[150px]">User Email</TableHead>
                 <TableHead className="min-w-[120px]">Status</TableHead>
                 <TableHead className="min-w-[150px]">Subscribed</TableHead>
-                <TableHead className="min-w-[120px] text-right">Actions</TableHead>
+                <TableHead className="min-w-[120px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -141,7 +141,7 @@ export default function NewsletterPage() {
                   <TableCell className="py-3">
                     <div className="text-sm">{formatDate(subscriber.createdAt)}</div>
                   </TableCell>
-                  <TableCell className="py-3 text-right">
+                  <TableCell className="py-3">
                     <Button variant="ghost" size="sm" onClick={() => handleViewDetails(subscriber)} className="text-blacktheme hover:bg-primary/10 h-8 px-2">
                       View
                     </Button>

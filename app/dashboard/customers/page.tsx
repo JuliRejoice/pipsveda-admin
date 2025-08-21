@@ -360,9 +360,9 @@ export default function Customers() {
                     <TableHead>Gender</TableHead>
                     <TableHead>Birthday</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-right">Joined Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Joined Date</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -407,12 +407,12 @@ export default function Customers() {
                             {customer.roleId.name}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell>
                           <Badge variant={customer.isActive ? "default" : "secondary"} className="outline-hide">
                             {customer.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell>
                           {customer.createdAt && !isNaN(new Date(customer.createdAt).getTime())
                             ? new Date(customer.createdAt).toLocaleDateString("en-US", {
                                 year: "numeric",
@@ -421,7 +421,7 @@ export default function Customers() {
                               })
                             : "N/A"}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" className="h-8 w-8 p-0">
