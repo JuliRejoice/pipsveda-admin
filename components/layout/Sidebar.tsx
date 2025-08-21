@@ -92,7 +92,7 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         try {
@@ -130,7 +130,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className={`flex-1 ${isCollapsed ? "p-2" : "p-4"}`}>
         <nav className="space-y-2">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
@@ -138,7 +138,7 @@ export default function Sidebar() {
 
             return (
               <Link key={item.href} href={item.href}>
-                <Button variant={isActive ? "default" : "ghost"} className={cn(`w-full justify-start group ${isActive && !isCollapsed ? "px-0 " : "px-4"}`)}>
+                <Button variant={isActive ? "default" : "ghost"} className={cn(`w-full justify-start group ${isCollapsed ? "!px-0 flex items-center justify-center" : ""} ${isActive && !isCollapsed ? "px-0" : "px-4"}`, isCollapsed ? "h-10" : "h-12")}>
                   <Icon className={cn("h-4 w-4", !isCollapsed && "mr-3")} />
                   {!isCollapsed && item.title}
                 </Button>
@@ -177,7 +177,7 @@ export default function Sidebar() {
               <span>Settings</span>
             </DropdownMenuItem> */}
             <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="mr-2 h-4 w-4 text-blacktheme" />
               <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

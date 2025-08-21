@@ -1079,7 +1079,7 @@ export default function AlgoBots() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleEdit(bot)}>
-                            <Edit className="mr-2 h-4 w-4" />
+                            <Edit className="mr-2 h-4 w-4 text-blacktheme" />
                             <span>Edit</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteClick(bot._id)}>

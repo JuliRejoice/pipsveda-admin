@@ -1,66 +1,31 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Phone } from 'lucide-react';
-import { getCustomers, updateCustomer, deleteCustomer, setCustomerStatus, createCustomer } from '@/components/api/customer';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Phone } from "lucide-react";
+import { getCustomers, updateCustomer, deleteCustomer, setCustomerStatus, createCustomer } from "@/components/api/customer";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 
 const classNames = {
-  dropdown_root: cn(
-    "relative rounded-md border border-border bg-muted text-foreground px-2 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
-  ),
+  dropdown_root: cn("relative rounded-md border border-border bg-muted text-foreground px-2 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"),
   dropdown: "absolute inset-0 opacity-0 appearance-none",
   // other class overrides...
 };
@@ -108,48 +73,53 @@ const scrollbarStyles = `
 `;
 
 const customerFormSchema = z.object({
-  name: z.string()
-    .min(2, 'Name must be at least 2 characters')
-    .max(100, 'Name must be at most 100 characters')
-    .regex(/^[a-zA-Z\s-']+$/, 'Name can only contain letters, spaces, hyphens, and apostrophes'),
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be at most 100 characters")
+    .regex(/^[a-zA-Z\s-']+$/, "Name can only contain letters, spaces, hyphens, and apostrophes"),
 
-  email: z.string()
-    .email('Invalid email address')
-    .max(100, 'Email must be at most 100 characters')
-    .refine(email => {
-      const domain = email.split('@')[1];
-      return domain && domain.length >= 3 && domain.includes('.');
-    }, 'Invalid email domain'),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .max(100, "Email must be at most 100 characters")
+    .refine((email) => {
+      const domain = email.split("@")[1];
+      return domain && domain.length >= 3 && domain.includes(".");
+    }, "Invalid email domain"),
 
-  phone: z.string()
-    .min(10, 'Phone number must be at least 10 digits')
-    .max(15, 'Phone number must be at most 15 digits')
-    .regex(/^[0-9+()\s-]+$/, 'Invalid phone number format'),
+  phone: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .max(15, "Phone number must be at most 15 digits")
+    .regex(/^[0-9+()\s-]+$/, "Invalid phone number format"),
 
-  gender: z.enum(['male', 'female', 'other'], {
-    errorMap: () => ({ message: 'Please select a valid gender' })
+  gender: z.enum(["male", "female", "other"], {
+    errorMap: () => ({ message: "Please select a valid gender" }),
   }),
 
-  birthday: z.date({
-    required_error: 'A date of birth is required.',
-    invalid_type_error: 'Please enter a valid date',
-  })
-    .max(new Date(new Date().setFullYear(new Date().getFullYear() - 13)), 'You must be at least 13 years old')
-    .min(new Date('1900-01-01'), 'Birth date cannot be before 1900'),
+  birthday: z
+    .date({
+      required_error: "A date of birth is required.",
+      invalid_type_error: "Please enter a valid date",
+    })
+    .max(new Date(new Date().setFullYear(new Date().getFullYear() - 13)), "You must be at least 13 years old")
+    .min(new Date("1900-01-01"), "Birth date cannot be before 1900"),
 
-  location: z.string()
-    .min(2, 'Location must be at least 2 characters')
-    .max(100, 'Location must be at most 100 characters')
-    .regex(/^[a-zA-Z\s,-]+$/, 'Location can only contain letters, spaces, commas, and hyphens'),
+  location: z
+    .string()
+    .min(2, "Location must be at least 2 characters")
+    .max(100, "Location must be at most 100 characters")
+    .regex(/^[a-zA-Z\s,-]+$/, "Location can only contain letters, spaces, commas, and hyphens"),
 
-  roleId: z.string().min(1, 'Please select a role'),
+  roleId: z.string().min(1, "Please select a role"),
 });
 
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 export default function Customers() {
-  const [searchInput, setSearchInput] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,13 +142,13 @@ export default function Customers() {
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      gender: 'male',
+      name: "",
+      email: "",
+      phone: "",
+      gender: "male",
       birthday: undefined,
-      location: '',
-      roleId: '',
+      location: "",
+      roleId: "",
     },
   });
 
@@ -188,7 +158,7 @@ export default function Customers() {
       const response: CustomerApiResponse = await getCustomers({
         page: currentPage,
         limit: itemsPerPage,
-        search: searchTerm
+        search: searchTerm,
       });
 
       if (response.success) {
@@ -198,11 +168,11 @@ export default function Customers() {
         setTotalPages(Math.ceil(count / itemsPerPage));
         setError(null);
       } else {
-        setError('Failed to fetch customers');
+        setError("Failed to fetch customers");
       }
     } catch (err) {
-      console.error('Error fetching customers:', err);
-      setError('An error occurred while fetching customers');
+      console.error("Error fetching customers:", err);
+      setError("An error occurred while fetching customers");
     } finally {
       setIsLoading(false);
       setIsSearching(false);
@@ -214,7 +184,7 @@ export default function Customers() {
   }, [currentPage, itemsPerPage, searchTerm]);
 
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = scrollbarStyles;
     document.head.appendChild(style);
     document.head.removeChild(style);
@@ -235,10 +205,8 @@ export default function Customers() {
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
-      gender: customer.gender as 'male' | 'female' | 'other',
-      birthday: customer.birthday && !isNaN(new Date(customer.birthday).getTime())
-        ? new Date(customer.birthday)
-        : undefined,
+      gender: customer.gender as "male" | "female" | "other",
+      birthday: customer.birthday && !isNaN(new Date(customer.birthday).getTime()) ? new Date(customer.birthday) : undefined,
       location: customer.location,
       roleId: customer.roleId._id,
     });
@@ -250,7 +218,7 @@ export default function Customers() {
     setSelectedCustomer({
       id: customer._id,
       name: customer.name,
-      currentStatus: customer.isActive
+      currentStatus: customer.isActive,
     });
     setDeleteDialogOpen(true);
   };
@@ -265,7 +233,7 @@ export default function Customers() {
 
       toast.success(`Customer "${selectedCustomer.name}" has been deleted.`);
     } catch (error) {
-      console.error('Error deleting customer:', error);
+      console.error("Error deleting customer:", error);
       toast.error("Failed to delete customer. Please try again.");
     }
   };
@@ -274,7 +242,7 @@ export default function Customers() {
     setSelectedCustomer({
       id: customer._id,
       name: customer.name,
-      currentStatus: customer.isActive
+      currentStatus: customer.isActive,
     });
     setStatusDialogOpen(true);
   };
@@ -287,16 +255,12 @@ export default function Customers() {
 
       await setCustomerStatus(selectedCustomer.id, newStatus);
 
-      setCustomers(customers.map(customer =>
-        customer._id === selectedCustomer.id
-          ? { ...customer, isActive: newStatus }
-          : customer
-      ));
+      setCustomers(customers.map((customer) => (customer._id === selectedCustomer.id ? { ...customer, isActive: newStatus } : customer)));
 
       setStatusDialogOpen(false);
-      toast.success(`Customer "${selectedCustomer.name}" has been ${newStatus ? 'activated' : 'deactivated'}.`);
+      toast.success(`Customer "${selectedCustomer.name}" has been ${newStatus ? "activated" : "deactivated"}.`);
     } catch (error) {
-      console.error('Error updating customer status:', error);
+      console.error("Error updating customer status:", error);
       toast.error("Failed to update customer status. Please try again.");
     }
   };
@@ -321,8 +285,8 @@ export default function Customers() {
           birthday: data.birthday.toISOString(),
           location: data.location,
           roleId: data.roleId,
-          password: 'defaultPassword123!',
-          confirmPassword: 'defaultPassword123!',
+          password: "defaultPassword123!",
+          confirmPassword: "defaultPassword123!",
         };
 
         await createCustomer(customerData);
@@ -334,21 +298,17 @@ export default function Customers() {
         toast.success(`New customer "${data.name}" has been added.`);
       }
     } catch (error) {
-      console.error('Error saving customer:', error);
-      toast.error(`Failed to ${isEditMode ? 'update' : 'add'} customer. Please try again.`);
+      console.error("Error saving customer:", error);
+      toast.error(`Failed to ${isEditMode ? "update" : "add"} customer. Please try again.`);
     }
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-
-  );
+  const filteredCustomers = customers.filter((customer) => customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || customer.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
@@ -368,20 +328,13 @@ export default function Customers() {
 
   return (
     <div className="space-t-6 max-h-[90vh]">
-
-
-      <Card className='border-none shadow-none'>
+      <Card className="border-none shadow-none">
         <CardHeader>
           <div className="flex items-center justify-between">
             {/* <CardTitle>All Customers</CardTitle> */}
             <div className="relative w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search by name, email, or phone..."
-                value={searchInput}
-                onChange={handleSearchInputChange}
-                className="pl-10"
-              />
+              <Input placeholder="Search by name, email, or phone..." value={searchInput} onChange={handleSearchInputChange} className="pl-10" />
               {isSearching && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary"></div>
@@ -393,7 +346,6 @@ export default function Customers() {
               <Plus className="h-4 w-4 mr-2" />
               Add Customer
             </Button>
-
           </div>
         </CardHeader>
         <CardContent>
@@ -402,6 +354,7 @@ export default function Customers() {
               <Table>
                 <TableHeader className="bg-background">
                   <TableRow>
+                    <TableHead>Sr. No</TableHead>
                     <TableHead className="w-[250px]">Customer</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Gender</TableHead>
@@ -414,13 +367,17 @@ export default function Customers() {
                 </TableHeader>
                 <TableBody>
                   {filteredCustomers.length > 0 ? (
-                    filteredCustomers.map((customer) => (
+                    filteredCustomers.map((customer, index) => (
                       <TableRow key={customer._id}>
+                        <TableCell>{index + 1}</TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-9 w-9">
                               <AvatarFallback>
-                                {customer.name.split(' ').map(n => n[0]).join('')}
+                                {customer.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
                               </AvatarFallback>
                             </Avatar>
                             <div>
@@ -434,16 +391,16 @@ export default function Customers() {
                           {customer.phone && <div className="text-xs text-muted-foreground flex items-center gap-1">{customer.phone}</div>}
                         </TableCell>
                         <TableCell>
-                          <span className="capitalize">{customer.gender?.toLowerCase() || 'N/A'}</span>
+                          <span className="capitalize">{customer.gender?.toLowerCase() || "N/A"}</span>
                         </TableCell>
                         <TableCell>
                           {customer.birthday && !isNaN(new Date(customer.birthday).getTime())
-                            ? new Date(customer.birthday).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })
-                            : 'N/A'}
+                            ? new Date(customer.birthday).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })
+                            : "N/A"}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="capitalize">
@@ -451,18 +408,18 @@ export default function Customers() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant={customer.isActive ? 'default' : 'secondary'}>
-                            {customer.isActive ? 'Active' : 'Inactive'}
+                          <Badge variant={customer.isActive ? "default" : "secondary"} className="outline-hide">
+                            {customer.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           {customer.createdAt && !isNaN(new Date(customer.createdAt).getTime())
-                            ? new Date(customer.createdAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })
-                            : 'N/A'}
+                            ? new Date(customer.createdAt).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })
+                            : "N/A"}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -474,7 +431,7 @@ export default function Customers() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleEdit(customer)}>
-                                <Edit className="mr-2 h-4 w-4" />
+                                <Edit className="mr-2 h-4 w-4 text-blacktheme" />
                                 <span>Edit</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
@@ -482,7 +439,7 @@ export default function Customers() {
                                   e.stopPropagation();
                                   handleStatusToggleClick(customer);
                                 }}
-                                className={customer.isActive ? 'text-red-600' : 'text-foreground'}
+                                className={customer.isActive ? "text-red-600" : "text-foreground"}
                               >
                                 {customer.isActive ? (
                                   <>
@@ -525,11 +482,7 @@ export default function Customers() {
                             </svg>
                           </div>
                           <h3 className="text-lg font-medium text-gray-900">No customers found</h3>
-                          <p className="text-sm text-gray-500">
-                            {searchTerm ?
-                              'Try adjusting your search or filter to find what you\'re looking for.' :
-                              'Get started by adding a new customer.'}
-                          </p>
+                          <p className="text-sm text-gray-500">{searchTerm ? "Try adjusting your search or filter to find what you're looking for." : "Get started by adding a new customer."}</p>
                           {!searchTerm && (
                             <Button className="mt-4">
                               <Plus className="h-4 w-4 mr-2" />
@@ -565,26 +518,18 @@ export default function Customers() {
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {selectedCustomer?.currentStatus ? 'Deactivate Customer' : 'Activate Customer'}
-            </DialogTitle>
+            <DialogTitle>{selectedCustomer?.currentStatus ? "Deactivate Customer" : "Activate Customer"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to {selectedCustomer?.currentStatus ? 'deactivate' : 'activate'}
-              <span className="font-semibold"> {selectedCustomer?.name}</span>?
-              {selectedCustomer?.currentStatus
-                ? ' They will no longer be able to access their account.'
-                : ' They will regain access to their account.'}
+              Are you sure you want to {selectedCustomer?.currentStatus ? "deactivate" : "activate"}
+              <span className="font-semibold"> {selectedCustomer?.name}</span>?{selectedCustomer?.currentStatus ? " They will no longer be able to access their account." : " They will regain access to their account."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant={selectedCustomer?.currentStatus ? 'destructive' : 'default'}
-              onClick={confirmStatusToggle}
-            >
-              {selectedCustomer?.currentStatus ? 'Deactivate' : 'Activate'}
+            <Button variant={selectedCustomer?.currentStatus ? "destructive" : "default"} onClick={confirmStatusToggle}>
+              {selectedCustomer?.currentStatus ? "Deactivate" : "Activate"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -597,18 +542,14 @@ export default function Customers() {
             <DialogTitle>Delete Customer</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete
-              <span className="font-semibold"> {selectedCustomer?.name}</span>?
-              This action cannot be undone and all associated data will be permanently removed.
+              <span className="font-semibold"> {selectedCustomer?.name}</span>? This action cannot be undone and all associated data will be permanently removed.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-            >
+            <Button variant="destructive" onClick={confirmDelete}>
               Delete Permanently
             </Button>
           </DialogFooter>
@@ -616,28 +557,29 @@ export default function Customers() {
       </Dialog>
 
       {/* Add Customer Dialog */}
-      <Dialog open={isAddCustomerOpen} onOpenChange={(open) => {
-        if (!open) {
-          form.reset({
-            name: '',
-            email: '',
-            phone: '',
-            gender: 'male',
-            birthday: undefined,
-            location: '',
-            roleId: ''
-          });
-          setEditingCustomer(null);
-          setIsEditMode(false);
-        }
-        setIsAddCustomerOpen(open);
-      }}>
+      <Dialog
+        open={isAddCustomerOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            form.reset({
+              name: "",
+              email: "",
+              phone: "",
+              gender: "male",
+              birthday: undefined,
+              location: "",
+              roleId: "",
+            });
+            setEditingCustomer(null);
+            setIsEditMode(false);
+          }
+          setIsAddCustomerOpen(open);
+        }}
+      >
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? 'Edit Customer' : 'Add New Customer'}</DialogTitle>
-            <DialogDescription>
-              Fill in the details below to {isEditMode ? 'edit' : 'add'} a new customer.
-            </DialogDescription>
+            <DialogTitle>{isEditMode ? "Edit Customer" : "Add New Customer"}</DialogTitle>
+            <DialogDescription>Fill in the details below to {isEditMode ? "edit" : "add"} a new customer.</DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -716,37 +658,14 @@ export default function Customers() {
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
+                              <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              captionLayout="dropdown"
-                              defaultMonth={field.value}
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date > new Date() || date < new Date("1900-01-01")
-                              }
-                              fromYear={1900}
-                              toYear={new Date().getFullYear()}
-                              classNames={classNames}
-                            />
-
+                            <Calendar captionLayout="dropdown" defaultMonth={field.value} mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} fromYear={1900} toYear={new Date().getFullYear()} classNames={classNames} />
                           </PopoverContent>
                         </Popover>
                         <FormMessage />
@@ -795,12 +714,8 @@ export default function Customers() {
                   Cancel
                 </Button>
                 <Button type="submit">
-                  {isEditMode ? (
-                    <Edit className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Plus className="h-4 w-4 mr-2" />
-                  )}
-                  {isEditMode ? 'Save Changes' : 'Add Customer'}
+                  {isEditMode ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  {isEditMode ? "Save Changes" : "Add Customer"}
                 </Button>
               </DialogFooter>
             </form>
