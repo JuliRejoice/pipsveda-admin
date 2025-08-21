@@ -7,7 +7,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Pips veda',
+  title: 'Pips Veda',
   description: 'Admin dashboard for course and algobot management',
   icons: {
     icon: '/icons/favicon.ico', // Make sure this exists in your /public/images folder
