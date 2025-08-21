@@ -7,6 +7,11 @@ import { Bot, Tag, Gift } from "lucide-react";
 
 const subNavItems = [
   {
+    title: "AlgoBots",
+    href: "/dashboard/algobots",
+    icon: Bot,
+  },
+  {
     title: "Bot",
     href: "/dashboard/algobots/bot",
     icon: Bot,
@@ -15,11 +20,6 @@ const subNavItems = [
     title: "Category",
     href: "/dashboard/algobots/category",
     icon: Tag,
-  },
-  {
-    title: "AlgoBot",
-    href: "/dashboard/algobots",
-    icon: Bot,
   },
   {
     title: "Coupons",
