@@ -766,12 +766,22 @@ export default function AlgoBots() {
             {/* <form onSubmit={handleSubmit(onSubmit)} className="space-y-4"> */}
             {/* LEFT: Step Sidebar */}
             <div className="flex space-x-6">
-              <div className={`pb-2 font-semibold ${step === 1 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent"}`}>Bot Details</div>
-              <div className={`pb-2 font-semibold ${step === 2 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent"}`}>Plans</div>
+              <div 
+                onClick={() => setStep(1)}
+                className={`pb-2 font-semibold cursor-pointer ${step === 1 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}
+              >
+                Bot Details
+              </div>
+              <div 
+                onClick={() => setStep(2)}
+                className={`pb-2 font-semibold cursor-pointer ${step === 2 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}
+              >
+                Plans
+              </div>
             </div>
 
             {/* RIGHT: Form Step Content */}
-            <div className="space-y-4 h-[60vh] overflow-y-auto px-1">
+            <div className="space-y-4 h-[60vh] overflow-y-auto px-1 scroll-thin">
               {step === 1 && (
                 <>
                   <div className="space-y-4">
@@ -870,7 +880,7 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" placeholder="Enter detailed bot description" {...register("description")} className={errors.description ? "border-red-500" : ""} rows={12} />
+                      <Textarea id="description" placeholder="Enter detailed bot description" {...register("description")} className={`scroll-notvisible ${errors.description ? "border-red-500" : ""}`} rows={12} />
                       {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
                     </div>
                     <div className="flex justify-end space-x-2 py-4">
@@ -1019,16 +1029,8 @@ export default function AlgoBots() {
                     )}
 
                     <div className="flex justify-end gap-2 pt-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setStep(1);
-                          setPlanEdit(false);
-                          setEditingPlanId(null);
-                        }}
-                      >
-                        Back
+                    <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                        Cancel
                       </Button>
                       <Button type="submit" disabled={isLoading}>
                         {isLoading ? "Saving..." : "Save AlgoBot"}

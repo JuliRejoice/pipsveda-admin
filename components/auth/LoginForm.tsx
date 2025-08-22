@@ -105,17 +105,31 @@ export default function LoginForm() {
     validateField(name, value);
   };
 
-  const validateForm = () => {
+  const validateForm = () => {    
+    // Reset all errors
+    const newErrors: FormErrors = {};
     let isValid = true;
-    const newTouched = { email: true, password: true };
-    setTouched(newTouched);
     
-    // Validate all fields
-    Object.entries(formData).forEach(([key, value]) => {
-      if (!validateField(key, value)) {
-        isValid = false;
-      }
-    });
+    // Validate email
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+      isValid = false;
+    }
+    
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+    
+    setErrors(newErrors);
+    setTouched({ email: true, password: true });
     
     return isValid;
   };
@@ -244,7 +258,7 @@ export default function LoginForm() {
           <Button 
             type="submit" 
             className="w-full mt-6" 
-            disabled={isLoading || Object.keys(errors).length > 0}
+            disabled={isLoading}
           >
             {isLoading ? (
               <>

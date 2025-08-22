@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud, Image } from 'lucide-react';
+import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud, Image, CalendarPlus, BookPlus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle as DialogTitleUI, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -132,6 +132,18 @@ export default function Courses() {
     if (courseType === "physical") {
       if (!formData.get("location")?.toString().trim()) {
         errors.location = "Location is required";
+      }
+      if (!formData.get("email")?.toString().trim()) {
+        errors.email = "Email is required";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.get("email")?.toString().trim() || "")) {
+        errors.email = "Please enter a valid email address";
+      }
+      
+      // For required phone
+      if (!formData.get("phone")?.toString().trim()) {
+        errors.phone = "Phone number is required";
+      } else if (!/^[+\d\s-]{10,}$/.test(formData.get("phone")?.toString().trim() || "")) {
+        errors.phone = "Please enter a valid phone number (min 10 digits)";
       }
     }
 
@@ -319,6 +331,33 @@ export default function Courses() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+              {activeTab === 'live' ? (
+                <Link href={`/dashboard/courses/${course._id}/sessions`} className="w-full">
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setPopoverOpen(false);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    <span>Add Session</span>
+                  </DropdownMenuItem>
+                </Link>
+              ) : (
+                <Link href={`/dashboard/courses/${course._id}`} className="w-full">
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setPopoverOpen(false);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <BookPlus className="mr-2 h-4 w-4" />
+                    <span>Add Chapters</span>
+                  </DropdownMenuItem>
+                </Link>
+              )}
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
@@ -444,6 +483,8 @@ export default function Courses() {
         apiFormData.append("meetingLink", formData.get("zoomLink") || "");
       } else if (courseType === "physical") {
         apiFormData.append("location", formData.get("location") || "");
+        apiFormData.append("email", formData.get("email") || "");
+        apiFormData.append("phone", formData.get("phone") || "");
         // apiFormData.append('address', formData.get('address') || '');
       }
 
@@ -581,7 +622,7 @@ export default function Courses() {
             </TabsList>
             {/* Recorded Course Form */}
             <TabsContent value="recorded">
-              <form className="space-y-4" onSubmit={handleCourseSubmit}>
+              <form className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin" onSubmit={handleCourseSubmit}>
                 <input type="hidden" name="courseType" value="recorded" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
@@ -627,7 +668,13 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={recordedStartDate} onSelect={setRecordedStartDate} initialFocus />
+                        <Calendar 
+                          mode="single" 
+                          selected={recordedStartDate} 
+                          onSelect={setRecordedStartDate} 
+                          initialFocus 
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        />
                       </PopoverContent>
                     </Popover>
                     {formErrors.startDate && <div className="text-red-500">{formErrors.startDate}</div>}
@@ -642,7 +689,13 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={recordedEndDate} onSelect={setRecordedEndDate} initialFocus />
+                        <Calendar 
+                          mode="single" 
+                          selected={recordedEndDate} 
+                          onSelect={setRecordedEndDate} 
+                          initialFocus 
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        />
                       </PopoverContent>
                     </Popover>
                     {formErrors.endDate && <div className="text-red-500">{formErrors.endDate}</div>}
@@ -661,10 +714,6 @@ export default function Courses() {
                     {formErrors.hours && <div className="text-red-500">{formErrors.hours}</div>}
                   </div>
                 </div>
-                {/* <div>
-                                    <label className="block font-medium mb-1">Upload Course Images (per module/chapter)</label>
-                                    <Input type="file" accept="image/*" name="image" />
-                                </div> */}
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : editCourse ? "Update Course" : "Create Recorded Course"}
@@ -674,7 +723,7 @@ export default function Courses() {
             </TabsContent>
             {/* Live Course Form */}
             <TabsContent value="live">
-              <form className="space-y-4" onSubmit={handleCourseSubmit}>
+              <form className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin" onSubmit={handleCourseSubmit}>
                 <input type="hidden" name="courseType" value="live" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
@@ -733,7 +782,13 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={liveStartDate} onSelect={setLiveStartDate} initialFocus />
+                        <Calendar 
+                          mode="single" 
+                          selected={liveStartDate} 
+                          onSelect={setLiveStartDate} 
+                          initialFocus 
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        />
                       </PopoverContent>
                     </Popover>
                     {formErrors.startDate && <div className="text-red-500">{formErrors.startDate}</div>}
@@ -748,26 +803,24 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={liveEndDate} onSelect={setLiveEndDate} initialFocus />
+                        <Calendar 
+                          mode="single" 
+                          selected={liveEndDate} 
+                          onSelect={setLiveEndDate} 
+                          initialFocus 
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        />
                       </PopoverContent>
                     </Popover>
                     {formErrors.endDate && <div className="text-red-500">{formErrors.endDate}</div>}
                   </div>
                 </div>
                 {formErrors.dateRange && <div className="text-red-500">{formErrors.dateRange}</div>}
-                {/* <div>
-                  <label className="block font-medium mb-1">Date and Time</label>
-                  <Input placeholder="e.g. 2024-01-20 10:00 AM" name="dateTime" />
-                </div> */}
                 <div>
                   <label className="block font-medium mb-1">Zoom Meeting Link</label>
                   <Input placeholder="Zoom Meeting Link" name="zoomLink" defaultValue={editCourse?.meetingLink || ""} />
                   {formErrors.zoomLink && <div className="text-red-500">{formErrors.zoomLink}</div>}
                 </div>
-                {/* <div>
-                                    <label className="block font-medium mb-1">Upload Meeting Recording (post-session)</label>
-                                    <Input type="file" accept="video/*" name="meetingRecording" />
-                                </div> */}
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : editCourse ? "Update Course" : "Create Live Online"}
@@ -777,7 +830,7 @@ export default function Courses() {
             </TabsContent>
             {/* Physical Course Form */}
             <TabsContent value="physical">
-              <form className="space-y-4" onSubmit={handleCourseSubmit}>
+              <form className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin" onSubmit={handleCourseSubmit}>
                 <input type="hidden" name="courseType" value="physical" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
@@ -835,7 +888,13 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={physicalStartDate} onSelect={setPhysicalStartDate} initialFocus />
+                        <Calendar 
+                          mode="single" 
+                          selected={physicalStartDate} 
+                          onSelect={setPhysicalStartDate} 
+                          initialFocus 
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        />
                       </PopoverContent>
                     </Popover>
                     {formErrors.startDate && <div className="text-red-500">{formErrors.startDate}</div>}
@@ -850,7 +909,13 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={physicalEndDate} onSelect={setPhysicalEndDate} initialFocus />
+                        <Calendar 
+                          mode="single" 
+                          selected={physicalEndDate} 
+                          onSelect={setPhysicalEndDate} 
+                          initialFocus 
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        />
                       </PopoverContent>
                     </Popover>
                     {formErrors.endDate && <div className="text-red-500">{formErrors.endDate}</div>}
@@ -863,9 +928,26 @@ export default function Courses() {
                 </div> */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="block font-medium">Location</label>
-                    <Input placeholder="Location" name="location" defaultValue={editCourse?.location || ""} className="w-full" />
-                    {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
+                    <label className="block font-medium">Email</label>
+                    <Input 
+                      type="email" 
+                      placeholder="Email" 
+                      name="email" 
+                      defaultValue={editCourse?.email || ""} 
+                      className="w-full" 
+                    />
+                    {formErrors.email && <p className="text-red-500">{formErrors.email}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block font-medium">Phone No.</label>
+                    <Input 
+                      type="tel" 
+                      placeholder="Phone Number" 
+                      name="phone" 
+                      defaultValue={editCourse?.phone || ""} 
+                      className="w-full" 
+                    />
+                    {formErrors.phone && <p className="text-red-500">{formErrors.phone}</p>}
                   </div>
                   {/* <div className="space-y-1">
                                         <label className="block font-medium text-sm">Address</label>
@@ -880,6 +962,11 @@ export default function Courses() {
                                         )}
                                     </div> */}
                 </div>
+                <div className="space-y-1">
+                    <label className="block font-medium">Location</label>
+                    <Input placeholder="Location" name="location" defaultValue={editCourse?.location || ""} className="w-full" />
+                    {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
+                  </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : editCourse ? "Update Course" : "Create In-Person Course"}
@@ -918,7 +1005,8 @@ export default function Courses() {
         <Button
           onClick={() => {
             resetForm();
-            setOpen(true);
+            setOpen(true);            
+            setFormActiveTab(activeTab);
           }}
         >
           <Plus className="h-4 w-4 mr-2" />

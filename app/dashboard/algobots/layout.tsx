@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Bot, Tag, Gift } from "lucide-react";
+import { Bot, Tag, Gift, Cpu, Building2 } from "lucide-react";
 
 const subNavItems = [
   {
@@ -14,7 +14,12 @@ const subNavItems = [
   {
     title: "Bot",
     href: "/dashboard/algobots/bot",
-    icon: Bot,
+    icon: Cpu,
+  },
+  {
+    title: "Company",
+    href: "/dashboard/algobots/company",
+    icon: Building2,
   },
   {
     title: "Category",
