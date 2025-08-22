@@ -32,11 +32,10 @@ import { getCourses } from "@/components/api/course";
 
 interface CourseSessionsProps {
   params: { courseId: string };
-  courseName: string;
 }
 
-export default function CourseSessions({ params, courseName: initialCourseName = "" }: CourseSessionsProps) {
-  const [courseName, setCourseName] = useState(initialCourseName);
+export default function CourseSessions({ params }: CourseSessionsProps) {
+  const [courseName, setCourseName] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
