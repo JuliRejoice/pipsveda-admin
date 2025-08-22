@@ -32,10 +32,10 @@ import { getCourses } from "@/components/api/course";
 
 interface CourseSessionsProps {
   params: { courseId: string };
-  courseName?: string;
+  courseName: string;
 }
 
-export default function CourseSessions({ params, courseName: initialCourseName }: CourseSessionsProps) {
+export default function CourseSessions({ params, courseName: initialCourseName = "" }: CourseSessionsProps) {
   const [courseName, setCourseName] = useState(initialCourseName);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -260,61 +260,6 @@ export default function CourseSessions({ params, courseName: initialCourseName }
               </div>
             ) : (
               <>
-                {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {sessions.map((session) => (
-                    <Card key={session._id} className="overflow-hidden">
-                      {session.sessionVideo && (
-                        <div className="h-40 bg-gray-100 overflow-hidden">
-                          <img src={session.sessionVideo} alt={session.sessionName} className="w-full h-full object-cover" />
-                        </div>
-                      )}
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">{session.sessionName}</CardTitle>
-                          <div className="flex space-x-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(session)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-red-500 hover:text-red-600"
-                              onClick={() => {
-                                setSelectedSession(session);
-                                setIsDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{session.description}</p>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center text-muted-foreground">
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {new Date(session.date).toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center text-muted-foreground">
-                            <Clock className="mr-2 h-4 w-4" />
-                            {session.time}
-                          </div>
-                          {session.meetingLink && (
-                            <div className="flex items-center">
-                              <Button variant="link" size="sm" className="h-auto p-0 text-sm" asChild>
-                                <a href={session.meetingLink} target="_blank" rel="noopener noreferrer">
-                                  <Video className="mr-2 h-4 w-4" />
-                                  Join Meeting
-                                </a>
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div> */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {sessions.map((session) => (
                     <Card key={session._id} className="flex flex-col h-full relative">
