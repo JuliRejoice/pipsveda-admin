@@ -35,13 +35,13 @@
     --secondary: 27 100% 57%; /* #FF7E29 (orange) */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 263 20% 65%; 
+    --muted: 263 20% 65%;
     --muted-foreground: 263 20% 45%;
 
     --accent: 27 100% 95%; /* light orange background */
     --accent-foreground: 263 84% 34%;
 
-    --destructive: 0 100% 60%; 
+    --destructive: 0 100% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 263 20% 85%;
@@ -51,8 +51,8 @@
     --chart-1: 268 93% 58%; /* purple */
     --chart-2: 27 100% 57%; /* orange */
     --chart-3: 263 84% 34%; /* dark violet */
-    --chart-4: 0 100% 60%;  /* red */
-    --chart-5: 27 80% 75%;  /* soft orange */
+    --chart-4: 0 100% 60%; /* red */
+    --chart-5: 27 80% 75%; /* soft orange */
 
     --radius: 0.5rem;
   }
@@ -96,12 +96,12 @@
 
 /* Gradient background */
 .gradient-bg {
-  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #FF7E29 100%);
+  background: linear-gradient(90deg, #3a0ca3 0%, #7b2ff7 50%, #ff7e29 100%);
 }
 
 /* Gradient button */
 .gradient-button {
-  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #FF7E29 100%);
+  background: linear-gradient(90deg, #3a0ca3 0%, #7b2ff7 50%, #ff7e29 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -117,7 +117,7 @@
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(90deg, #3A0CA3 0%, #7B2FF7 50%, #FF7E29 100%);
+  background: linear-gradient(90deg, #3a0ca3 0%, #7b2ff7 50%, #ff7e29 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
@@ -141,17 +141,32 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-
 .outline-hide {
   border: none !important;
   outline: 0px !important;
 }
 
-
-h1,h2,h3,h4,h5,h6,p,span,a {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+a {
   color: #051600;
 }
 
 * {
-  font-family: "Funnel Display", sans-serif
+  font-family: "Funnel Display", sans-serif;
+}
+
+/* .scroll-thin::-webkit-scrollbar { */
+.scroll-thin {
+  scrollbar-width: thin;
+}
+
+.scroll-notvisible::-webkit-scrollbar {
+  display: none;
 }

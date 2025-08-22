@@ -22,7 +22,7 @@ export const createCourse = async (payload: FormData) => {
         const res = await axios.post(
             `${BaseUrl}/course/createCourse`,
             payload,
-            { 
+            {
                 headers,
                 transformRequest: [(data, headers) => {
                     delete headers['Content-Type'];
@@ -64,6 +64,8 @@ export interface Course {
     updatedAt?: string;
     courseVideo?: string;
     hours?: string;
+    email?: string;
+    phone?: string;
 }
 
 export const getCourses = async ({
@@ -113,7 +115,7 @@ export const updateCourse = async (id: string, payload: FormData) => {
         const res = await axios.put(
             `${BaseUrl}/course/updateCourse?id=${id}`,
             payload,
-            { 
+            {
                 headers,
                 // Remove the default JSON content type
                 transformRequest: [(data, headers) => {
@@ -217,6 +219,85 @@ export const deleteChapter = async (id: string) => {
         }
 
         const res = await axios.delete(`${BaseUrl}/chapter/deleteChapter?id=${id}`, { headers });
+        return res.data;
+    } catch (error) {
+        console.error("Error deleting chapter", error);
+        throw error;
+    }
+};
+
+
+//session api
+export const getSession = async (id: string) => {
+    try {
+        const token = getAuthToken();
+        const headers: Record<string, string> = {};
+
+        if (token) {
+            headers['x-auth-token'] = token;
+        }
+
+        const res = await axios.get(`${BaseUrl}/sesstion/getAllSession?courseId=${id}`, { headers });
+        console.log(res.data);
+        return res.data;
+    } catch (error) {
+        console.error("Error fetching chapters", error);
+        throw error;
+    }
+};
+
+export const createSession = async (payload: any) => {
+    try {
+        const token = getAuthToken();
+        const headers: Record<string, string> = {
+            'Content-Type': 'multipart/form-data',
+        };
+
+        if (token) {
+            headers['x-auth-token'] = token;
+        }
+
+        const res = await axios.post(`${BaseUrl}/sesstion/createSession`, payload, { headers });
+        return res.data;
+    } catch (error) {
+        console.error("Error creating chapter", error);
+        throw error;
+    }
+};
+
+export const updateSession = async (id: string, payload: any) => {
+    try {
+        const token = getAuthToken();
+        const headers: Record<string, string> = {
+            'Content-Type': 'multipart/form-data',
+        };
+
+        if (token) {
+            headers['x-auth-token'] = token;
+        }
+
+        const res = await axios.put(
+            `${BaseUrl}/sesstion/updateSession?id=${id}`,
+            payload,
+            { headers }
+        );
+        return res.data;
+    } catch (error) {
+        console.error("Error updating chapter", error);
+        throw error;
+    }
+};
+
+export const deleteSession = async (id: string) => {
+    try {
+        const token = getAuthToken();
+        const headers: Record<string, string> = {};
+
+        if (token) {
+            headers['x-auth-token'] = token;
+        }
+
+        const res = await axios.delete(`${BaseUrl}/sesstion/deleteSession?id=${id}`, { headers });
         return res.data;
     } catch (error) {
         console.error("Error deleting chapter", error);

@@ -60,11 +60,6 @@ export default function NewsletterPage() {
     }
   };
 
-  const handleViewDetails = (subscriber: Subscriber) => {
-    setSelectedSubscriber(subscriber);
-    setIsDialogOpen(true);
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[70vh] items-center">
@@ -102,49 +97,19 @@ export default function NewsletterPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Sr. No</TableHead>
-                <TableHead className="max-w-[150px]">Subscriber</TableHead>
-                <TableHead className="max-w-[200px]">Subscription Email</TableHead>
-                <TableHead className="max-w-[150px]">User Email</TableHead>
-                <TableHead className="min-w-[120px]">Status</TableHead>
-                <TableHead className="min-w-[150px]">Subscribed</TableHead>
-                <TableHead className="min-w-[120px]">Actions</TableHead>
+                <TableHead>Subscription Email</TableHead>
+                <TableHead>Subscribed</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {subscribers.map((subscriber, index) => (
                 <TableRow key={subscriber._id} className="hover:bg-muted/50">
                   <TableCell>{index + 1}</TableCell>
-                  <TableCell className="py-3 min-w-[150px]">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-1.5 rounded-full bg-primary/20 dark:bg-muted">
-                        <User className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-medium truncate">{subscriber.uid?.name || "No Name"}</div>
-                        <div className="text-xs text-muted-foreground truncate">{subscriber.uid?._id}</div>
-                      </div>
-                    </div>
-                  </TableCell>
                   <TableCell className="py-3">
                     <div className="text-sm truncate">{subscriber.email}</div>
-                    {subscriber.description && <div className="text-xs text-muted-foreground truncate">{subscriber.description}</div>}
-                  </TableCell>
-                  <TableCell className="py-3 min-w-[150px]">
-                    <div className="text-sm truncate">{subscriber.uid?.email || "N/A"}</div>
-                  </TableCell>
-                  <TableCell className="py-3 min-w-[150px]">
-                    <Badge variant={subscriber.isActive ? "default" : "secondary"} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium outline-hide !text-white">
-                      {subscriber.isActive ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                      <span className="text-white">{subscriber.isActive ? "Active" : "Inactive"}</span>
-                    </Badge>
                   </TableCell>
                   <TableCell className="py-3">
                     <div className="text-sm">{formatDate(subscriber.createdAt)}</div>
-                  </TableCell>
-                  <TableCell className="py-3">
-                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(subscriber)} className="text-blacktheme hover:bg-primary/10 h-8 px-2">
-                      View
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

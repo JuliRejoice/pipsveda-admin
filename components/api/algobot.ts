@@ -228,6 +228,67 @@ export const deleteCategory = async (id: string) => {
   }
 };
 
+//get all company
+export const getAllCompany = async (params?: PaginationParams) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/botProvider/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching algo bots:', error);
+    throw error;
+  }
+};
+
+export const createCompany = async (companyData: any) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.post(`${API_BASE_URL}/botProvider/add`, companyData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating category:', error);
+    throw error;
+  }
+};
+
+export const updateCompany = async (id: string, companyData: any) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.put(`${API_BASE_URL}/botProvider/edit/${id}`, companyData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating category:', error);
+    throw error;
+  }
+};
+
+export const deleteCompany = async (id: string) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/botProvider/delete/${id}`, {
+      headers: {
+        'x-auth-token': token,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    throw error;
+  }
+};
+
 //Bot Provider API
 export const getBotProviderDropDown = async (params?: PaginationParams) => {
   try {
