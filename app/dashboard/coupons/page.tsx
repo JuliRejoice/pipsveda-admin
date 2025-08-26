@@ -47,7 +47,12 @@ const couponFormSchema = z.object({
     .max(20, "Coupon code must be at most 20 characters")
     .regex(/^[A-Z0-9-_]+$/, "Coupon code can only contain uppercase letters, numbers, hyphens, and underscores"),
 
-  discount: z.number().min(1, "Discount must be at least 1%").max(100, "Discount cannot exceed 100%"),
+  discount: z.string()
+    .min(1, "Discount is required")
+    .regex(/^[1-9]\d*$/, "Discount must be a positive number")
+    .refine(val => parseInt(val) >= 1 && parseInt(val) <= 99, {
+      message: "Discount must be between 1% and 99%"
+    }),
 
   expiryDate: z
     .date({
@@ -56,7 +61,12 @@ const couponFormSchema = z.object({
     })
     .min(new Date(), "Expiry date must be in the future"),
 
-  usageLimit: z.number().min(1, "Usage limit must be at least 1").max(10000, "Usage limit cannot exceed 10,000"),
+  usageLimit: z.string()
+    .min(1, "Usage limit is required")
+    .regex(/^[1-9]\d*$/, "Usage limit must be a positive number")
+    .refine(val => parseInt(val) >= 1 && parseInt(val) <= 10000, {
+      message: "Usage limit must be between 1 and 10,000"
+    }),
 });
 
 type CouponFormValues = z.infer<typeof couponFormSchema>;
@@ -80,9 +90,9 @@ export default function CouponPage() {
     resolver: zodResolver(couponFormSchema),
     defaultValues: {
       couponCode: "",
-      discount: 0,
+      discount: "",
       expiryDate: undefined as unknown as Date, // no default; force user to pick
-      usageLimit: 0,
+      usageLimit: "",
     },
   });
 
@@ -118,9 +128,9 @@ export default function CouponPage() {
     setEditingCoupon(coupon);
     form.reset({
       couponCode: coupon.couponCode,
-      discount: coupon.discount,
+      discount: String(coupon.discount),
       expiryDate: new Date(coupon.expiryDate),
-      usageLimit: coupon.usageLimit,
+      usageLimit: String(coupon.usageLimit),
     });
     setIsAddCouponOpen(true);
   };
@@ -196,9 +206,9 @@ export default function CouponPage() {
     setEditingCoupon(null);
     form.reset({
       couponCode: "",
-      discount: 0,
+      discount: "",
       expiryDate: undefined as unknown as Date,
-      usageLimit: 0,
+      usageLimit: "",
     });
     setIsAddCouponOpen(true);
   };
@@ -350,9 +360,9 @@ export default function CouponPage() {
                   name="discount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discount</FormLabel>
+                      <FormLabel>Discount(%)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="10" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                        <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(e.target.value)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -399,7 +409,7 @@ export default function CouponPage() {
                     <FormItem>
                       <FormLabel>Usage Limit</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="100" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                        <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(e.target.value)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
