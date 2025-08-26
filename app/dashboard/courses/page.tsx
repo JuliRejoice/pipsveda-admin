@@ -568,7 +568,7 @@ export default function Courses() {
   const renderCourseList = (courses: any[], emptyMessage: string) => {
     if (loading) {
       return (
-        <div className="flex justify-center items-center min-h-[70vh] items-center">
+        <div className="flex justify-center items-center min-h-[70vh]">
           <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
         </div>
       );
@@ -673,7 +673,12 @@ export default function Courses() {
                         <Calendar
                           mode="single"
                           selected={recordedStartDate}
-                          onSelect={setRecordedStartDate}
+                          onSelect={(date) => {
+                            setRecordedStartDate(date);
+                            // Close the popover after selection
+                            const popoverTrigger = document.querySelector('[aria-haspopup="dialog"][data-state="open"]') as HTMLElement;
+                            if (popoverTrigger) popoverTrigger.click();
+                          }}
                           initialFocus
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
@@ -694,7 +699,12 @@ export default function Courses() {
                         <Calendar
                           mode="single"
                           selected={recordedEndDate}
-                          onSelect={setRecordedEndDate}
+                          onSelect={(date) => {
+                            setRecordedEndDate(date);
+                            // Close the popover after selection
+                            const popoverTrigger = document.querySelector('[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])') as HTMLElement;
+                            if (popoverTrigger) popoverTrigger.click();
+                          }}
                           initialFocus
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
@@ -1033,7 +1043,7 @@ export default function Courses() {
         </TabsList>
 
         {isTabSwitching ? (
-          <div className="flex justify-center items-center min-h-[70vh] items-center">
+          <div className="flex justify-center items-center min-h-[70vh]">
             <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : (
