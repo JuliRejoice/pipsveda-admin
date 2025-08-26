@@ -374,7 +374,18 @@ export default function CouponPage() {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date()} initialFocus />
+                          <Calendar 
+                            mode="single" 
+                            selected={field.value} 
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              // Close the popover after selection
+                              const popoverTrigger = document.querySelector('[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])') as HTMLElement;
+                              if (popoverTrigger) popoverTrigger.click();
+                            }} 
+                            disabled={(date) => date < new Date()} 
+                            initialFocus 
+                          />
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
