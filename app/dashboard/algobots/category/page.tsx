@@ -119,11 +119,19 @@ export default function Category() {
       setIsLoading(true);
 
       if (isEditMode && currentCategoryId) {
-        await updateCategory(currentCategoryId, data);
-        toast.success("Category updated successfully!");
+        const response = await updateCategory(currentCategoryId, data);
+        if(response.success){
+          toast.success("Category updated successfully!");
+        }else{
+          toast.error(response.message);
+        }
       } else {
-        await createCategory(data);
-        toast.success("Category created successfully!");
+        const response = await createCategory(data);
+        if(response.success){
+          toast.success("Category created successfully!");
+        }else{
+          toast.error(response.message);
+        }
       }
 
       setIsOpen(false);
@@ -160,6 +168,7 @@ export default function Category() {
       toast.success("Category deleted successfully");
       setCategories(categories.filter((category) => category._id !== categoryToDelete));
       setDeleteDialogOpen(false);
+      fetchCategories();
     } catch (error) {
       console.error("Error deleting category:", error);
       toast.error("Failed to delete category");

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Pipslogo from "@/public/images/pipslogo";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell, UserPlus, Settings, ChevronLeft, ChevronRight, Mail, MessageSquare, User, LogOut, ChevronDown, Settings as SettingsIcon, Waves } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell, UserPlus, Settings, ChevronLeft, ChevronRight, Mail, MessageSquare, User, LogOut, ChevronDown, Settings as SettingsIcon, Waves, Gift } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -33,16 +33,21 @@ const sidebarItems = [
     href: "/dashboard/algobots",
     icon: Bot,
   },
-  // {
-  //   title: 'Telegram',
-  //   href: '/dashboard/telegram',
-  //   icon: MessageCircle
-  // },
-  // {
-  //   title: 'Payments',
-  //   href: '/dashboard/payments',
-  //   icon: CreditCard
-  // },
+  {
+    title: 'Telegram',
+    href: '/dashboard/telegram',
+    icon: MessageCircle
+  },
+  {
+    title: "Coupons",
+    href: "/dashboard/coupons",
+    icon: Gift,
+  },
+  {
+    title: 'Payments',
+    href: '/dashboard/payments',
+    icon: CreditCard
+  },
   // {
   //   title: 'Notifications',
   //   href: '/dashboard/notifications',
