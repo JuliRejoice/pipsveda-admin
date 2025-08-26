@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Plus, Edit, Trash2, ArrowLeft, Video } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, Video, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { createChapter, updateChapter, deleteChapter, getChapters } from '@/components/api/course';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { MoreVertical } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export interface Chapter {
     _id: string;
@@ -41,7 +42,7 @@ interface CourseChaptersProps {
     setLoading?: (loading: boolean) => void;
 }
 
-export function CourseChapters({ initialChapters, courseId, courseName, loading, setLoading,setChapters }: CourseChaptersProps) {
+export function CourseChapters({ initialChapters, courseId, courseName, loading, setLoading, setChapters }: CourseChaptersProps) {
     const router = useRouter();
     const [isTabSwitching, setIsTabSwitching] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -71,7 +72,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
         // Trigger tab switching loader
         const handleRouteChange = () => {
             setIsTabSwitching(true);
-            
+
             // Stop loader after short delay
             const timeout = setTimeout(() => {
                 setIsTabSwitching(false);
@@ -80,7 +81,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
             return () => clearTimeout(timeout);
         };
 
-        
+
     }, [router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -106,7 +107,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
             data.append('videoUrl', formData.videoUrl);
             data.append('chapterNo', String(formData.chapterNo));
             data.append('courseId', courseId);
-            
+
             if (formData.image) {
                 data.append('image', formData.image);
             }
@@ -114,13 +115,13 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
             if (selectedChapter) {
                 await updateChapter(selectedChapter._id, data);
                 toast.success('Chapter updated successfully');
-                const res=await getChapters(courseId);
+                const res = await getChapters(courseId);
                 setChapters?.(res.payload?.data || []);
                 router.refresh(); // Only refresh after success!
             } else {
                 await createChapter(data);
                 toast.success('Chapter created successfully');
-                const res=await getChapters(courseId);
+                const res = await getChapters(courseId);
                 setChapters?.(res.payload?.data || []);
                 router.refresh();
             }
@@ -139,9 +140,9 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
         try {
             await deleteChapter(selectedChapter._id);
             toast.success('Chapter deleted successfully');
-            const res=await getChapters(courseId);
+            const res = await getChapters(courseId);
             setChapters?.(res.payload?.data || []);
-           
+
             router.refresh();
             setIsDeleteDialogOpen(false);
             setSelectedChapter(null);
@@ -285,7 +286,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-semibold text-lg mb-1">{chapter.chapterName}</h3>
+                                                        <h3 className="font-semibold text-lg mb-1 line-clamp-1 max-w-[95%]">{chapter.chapterName}</h3>
                                                         <div className="flex flex-wrap gap-2 items-center text-xs text-muted-foreground mb-1">
                                                             <span className="bg-gray-100 px-2 py-0.5 rounded">Chapter {chapter.chapterNo}</span>
                                                             <span className="bg-gray-100 px-2 py-0.5 rounded">
@@ -397,19 +398,24 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Delete Chapter</DialogTitle>
                     </DialogHeader>
-                    <p>Are you sure you want to delete this chapter? This action cannot be undone.</p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="destructive" onClick={handleDelete}>
-                            Delete
-                        </Button>
-                    </DialogFooter>
+                    <div className="space-y-4">
+                        <Alert variant="destructive">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>Are you sure you want to delete this chapter? This action cannot be undone.</AlertDescription>
+                        </Alert>
+                        <div className="flex justify-end space-x-2">
+                            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button variant="destructive" onClick={handleDelete}>
+                                Delete
+                            </Button>
+                        </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

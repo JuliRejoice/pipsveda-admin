@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, CloudDownload, Download} from 'lucide-react';
+import { Download, Search, FileSearch, ArrowUpDown, MoreHorizontal, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface Payment {
@@ -84,12 +84,9 @@ export default function Payments() {
       try {
         setIsLoading(true);
         const response = await getPaymentHistory();
-        console.log('API Response:', response);
         
         if (response.success) {
           const paymentsData = response.payload.data || [];
-          console.log('Fetched payments:', paymentsData);
-          console.log('Course payments:', paymentsData.filter((p: Payment) => p.itemType === 'course'));
           setPayments(paymentsData);
         } else {
           console.error('API Error:', response.message);
@@ -568,7 +565,10 @@ export default function Payments() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Payment & Revenue</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Payment History</h1>
+          <p className="text-muted-foreground">Track all your transactions in one place.</p>
+        </div>
       </div>
 
       <Tabs 
@@ -594,7 +594,12 @@ export default function Payments() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="text-center py-12 text-gray-500">
+                <p className="text-lg font-medium">No data found</p>
+                <p className="text-sm mt-1">
+                No payment records available at the moment.
+                </p>
+              </div>
               ) : (
                 <>
                   {renderSearchInput("Search payments...")}
@@ -616,7 +621,12 @@ export default function Payments() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="text-center py-12 text-gray-500">
+                <p className="text-lg font-medium">No data found</p>
+                <p className="text-sm mt-1">
+                No payment records available at the moment.
+                </p>
+              </div>
               ) : (
                 <>
                   {renderSearchInput("Search courses...")}
@@ -638,7 +648,12 @@ export default function Payments() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="text-center py-12 text-gray-500">
+                <p className="text-lg font-medium">No data found</p>
+                <p className="text-sm mt-1">
+                No payment records available at the moment.
+                </p>
+              </div>
               ) : (
                 <>
                   {renderSearchInput("Search algobots...")}
@@ -660,7 +675,12 @@ export default function Payments() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="text-center py-12 text-gray-500">
+                <p className="text-lg font-medium">No data found</p>
+                <p className="text-sm mt-1">
+                No payment records available at the moment.
+                </p>
+              </div>
               ) : (
                 <>
                   {renderSearchInput("Search telegram subscriptions...")}

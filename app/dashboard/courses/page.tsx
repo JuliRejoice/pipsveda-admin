@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud, Image, CalendarPlus, BookPlus } from 'lucide-react';
+import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud, Image, CalendarPlus, BookPlus, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle as DialogTitleUI, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -26,6 +26,8 @@ import {
 import Link from 'next/link';
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { Course } from '@/components/api/course';
+import { DialogTitle } from '@radix-ui/react-dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Courses() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -138,7 +140,7 @@ export default function Courses() {
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.get("email")?.toString().trim() || "")) {
         errors.email = "Please enter a valid email address";
       }
-      
+
       // For required phone
       if (!formData.get("phone")?.toString().trim()) {
         errors.phone = "Phone number is required";
@@ -331,33 +333,33 @@ export default function Courses() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-              {activeTab === 'live' ? (
-                <Link href={`/dashboard/courses/${course._id}/sessions`} className="w-full">
-                  <DropdownMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setPopoverOpen(false);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <CalendarPlus className="mr-2 h-4 w-4" />
-                    <span>Add Session</span>
-                  </DropdownMenuItem>
-                </Link>
-              ) : (
-                <Link href={`/dashboard/courses/${course._id}`} className="w-full">
-                  <DropdownMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setPopoverOpen(false);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <BookPlus className="mr-2 h-4 w-4" />
-                    <span>Add Chapters</span>
-                  </DropdownMenuItem>
-                </Link>
-              )}
+                {activeTab === 'live' ? (
+                  <Link href={`/dashboard/courses/${course._id}/sessions`} className="w-full">
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        setPopoverOpen(false);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <CalendarPlus className="mr-2 h-4 w-4" />
+                      <span>Add Session</span>
+                    </DropdownMenuItem>
+                  </Link>
+                ) : (
+                  <Link href={`/dashboard/courses/${course._id}`} className="w-full">
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        setPopoverOpen(false);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <BookPlus className="mr-2 h-4 w-4" />
+                      <span>Add Chapters</span>
+                    </DropdownMenuItem>
+                  </Link>
+                )}
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
@@ -668,11 +670,11 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar 
-                          mode="single" 
-                          selected={recordedStartDate} 
-                          onSelect={setRecordedStartDate} 
-                          initialFocus 
+                        <Calendar
+                          mode="single"
+                          selected={recordedStartDate}
+                          onSelect={setRecordedStartDate}
+                          initialFocus
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
                       </PopoverContent>
@@ -689,11 +691,11 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar 
-                          mode="single" 
-                          selected={recordedEndDate} 
-                          onSelect={setRecordedEndDate} 
-                          initialFocus 
+                        <Calendar
+                          mode="single"
+                          selected={recordedEndDate}
+                          onSelect={setRecordedEndDate}
+                          initialFocus
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
                       </PopoverContent>
@@ -782,11 +784,11 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar 
-                          mode="single" 
-                          selected={liveStartDate} 
-                          onSelect={setLiveStartDate} 
-                          initialFocus 
+                        <Calendar
+                          mode="single"
+                          selected={liveStartDate}
+                          onSelect={setLiveStartDate}
+                          initialFocus
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
                       </PopoverContent>
@@ -803,11 +805,11 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar 
-                          mode="single" 
-                          selected={liveEndDate} 
-                          onSelect={setLiveEndDate} 
-                          initialFocus 
+                        <Calendar
+                          mode="single"
+                          selected={liveEndDate}
+                          onSelect={setLiveEndDate}
+                          initialFocus
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
                       </PopoverContent>
@@ -888,11 +890,11 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar 
-                          mode="single" 
-                          selected={physicalStartDate} 
-                          onSelect={setPhysicalStartDate} 
-                          initialFocus 
+                        <Calendar
+                          mode="single"
+                          selected={physicalStartDate}
+                          onSelect={setPhysicalStartDate}
+                          initialFocus
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
                       </PopoverContent>
@@ -909,11 +911,11 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar 
-                          mode="single" 
-                          selected={physicalEndDate} 
-                          onSelect={setPhysicalEndDate} 
-                          initialFocus 
+                        <Calendar
+                          mode="single"
+                          selected={physicalEndDate}
+                          onSelect={setPhysicalEndDate}
+                          initialFocus
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                         />
                       </PopoverContent>
@@ -929,23 +931,23 @@ export default function Courses() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="block font-medium">Email</label>
-                    <Input 
-                      type="email" 
-                      placeholder="Email" 
-                      name="email" 
-                      defaultValue={editCourse?.email || ""} 
-                      className="w-full" 
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      name="email"
+                      defaultValue={editCourse?.email || ""}
+                      className="w-full"
                     />
                     {formErrors.email && <p className="text-red-500">{formErrors.email}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="block font-medium">Phone No.</label>
-                    <Input 
-                      type="tel" 
-                      placeholder="Phone Number" 
-                      name="phone" 
-                      defaultValue={editCourse?.phone || ""} 
-                      className="w-full" 
+                    <Input
+                      type="tel"
+                      placeholder="Phone Number"
+                      name="phone"
+                      defaultValue={editCourse?.phone || ""}
+                      className="w-full"
                     />
                     {formErrors.phone && <p className="text-red-500">{formErrors.phone}</p>}
                   </div>
@@ -963,10 +965,10 @@ export default function Courses() {
                                     </div> */}
                 </div>
                 <div className="space-y-1">
-                    <label className="block font-medium">Location</label>
-                    <Input placeholder="Location" name="location" defaultValue={editCourse?.location || ""} className="w-full" />
-                    {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
-                  </div>
+                  <label className="block font-medium">Location</label>
+                  <Input placeholder="Location" name="location" defaultValue={editCourse?.location || ""} className="w-full" />
+                  {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
+                </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : editCourse ? "Update Course" : "Create In-Person Course"}
@@ -978,24 +980,27 @@ export default function Courses() {
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <ConfirmDialogContent>
-          <ConfirmDialogHeader>
-            <ConfirmDialogTitle>Delete Course</ConfirmDialogTitle>
-          </ConfirmDialogHeader>
-          <div>
-            Are you sure you want to delete <b>{courseToDelete?.CourseName}</b>? This action cannot be undone.
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Course</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>Are you sure you want to delete this course? This action cannot be undone.</AlertDescription>
+            </Alert>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={() => courseToDelete && handleDeleteCourse(courseToDelete._id)}>
+                Delete
+              </Button>
+            </div>
           </div>
-          <ConfirmDialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={() => courseToDelete && handleDeleteCourse(courseToDelete._id)}>
-              Delete
-            </Button>
-          </ConfirmDialogFooter>
-        </ConfirmDialogContent>
-      </ConfirmDialog>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex items-center justify-between space-x-2 p-6">
         <div className="relative flex-1 max-w-sm">
@@ -1005,7 +1010,7 @@ export default function Courses() {
         <Button
           onClick={() => {
             resetForm();
-            setOpen(true);            
+            setOpen(true);
             setFormActiveTab(activeTab);
           }}
         >

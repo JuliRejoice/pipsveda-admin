@@ -119,8 +119,8 @@ export default function CompanyPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Companies</h1>
-          <p className="text-muted-foreground">Manage bot provider companies</p>
+          <h1 className="text-3xl font-bold">Company</h1>
+          <p className="text-muted-foreground">Manage bot provider company</p>
         </div>
 
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -139,7 +139,7 @@ export default function CompanyPage() {
               <DialogTitle>{isEditMode ? "Edit Company" : "Add New Company"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label>Company Name</Label>
                 <Input {...register("companyName")} className={errors.companyName ? "border-red-500" : ""} />
                 {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
@@ -160,7 +160,7 @@ export default function CompanyPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search companies..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8" />
+          <Input placeholder="Search company..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8" />
         </div>
       </div>
 
