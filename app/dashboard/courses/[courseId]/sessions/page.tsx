@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Calendar as CalendarIcon, ArrowLeft, MoreVertical, CalendarPlus, Upload, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
@@ -413,7 +415,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                         </div>
                         <div className="flex items-start space-x-4">
                           <div className="p-2 bg-primary/10 rounded-lg min-w-[25%] min-h-[56px] flex items-center justify-center">
-                            <img src={session.sessionVideo} alt={session.sessionVideo} className="w-24 h-24 object-cover rounded-md border border-gray-200 hover:opacity-80 transition" />
+                            <img src={session.sessionVideo} alt="Session Image" className="w-24 h-24 object-cover rounded-md border border-gray-200 hover:opacity-80 transition" />
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg mb-1">{session.sessionName}</h3>
@@ -496,16 +498,30 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
-                <Input
-                  type="date"
-                  value={formData.date || ""}
-                  onChange={(e) => {
-                    setFormData({ ...formData, date: e.target.value });
-                    if (errors.date) setErrors(prev => ({ ...prev, date: '' }));
-                  }}
-                  className={errors.date ? 'border-red-500' : ''}
-                  min={new Date().toISOString().split('T')[0]}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.date ? format(new Date(formData.date), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.date ? new Date(formData.date) : undefined}
+                      onSelect={(date) => {
+                        const dateString = date ? format(date, "yyyy-MM-dd") : "";
+                        setFormData({ ...formData, date: dateString });
+                        if (errors.date) setErrors(prev => ({ ...prev, date: '' }));
+                        // Close the popover after selection
+                        const popoverTrigger = document.querySelector('[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])') as HTMLElement;
+                        if (popoverTrigger) popoverTrigger.click();
+                      }}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date}</p>}
               </div>
 
