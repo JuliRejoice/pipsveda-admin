@@ -235,7 +235,7 @@ export default function Category() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search categories..." value={searchTerm} onChange={handleSearch} className="pl-8" />
+          <Input placeholder="Search category..." value={searchTerm} onChange={handleSearch} className="pl-8" />
         </div>
       </div>
 

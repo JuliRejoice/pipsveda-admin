@@ -319,7 +319,10 @@ export default function Courses() {
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-medium text-lg line-clamp-2">
-                <Link href={`/dashboard/courses/${course._id}`} className="hover:underline cursor-pointer">
+                <Link 
+                  href={activeTab === 'live' ? `/dashboard/courses/${course._id}/sessions` : `/dashboard/courses/${course._id}`} 
+                  className="hover:underline cursor-pointer"
+                >
                   {course.CourseName}
                 </Link>
               </h3>
