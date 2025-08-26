@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { marked } from "marked";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/dashboard/RichTextEditor";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { createAlgoBot, getAllAlgoBots, deleteAlgoBot, updateAlgoBot, getCategoryDropdown, getBotProviderDropDown, getBotDropDown, uploadAlgoBotImage, createAlgoBotPlan, updateAlgoBotPlan, deleteAlgoBotPlan, getLanguageDropDown } from "@/components/api/algobot";
-import { Search, Plus, Bot, Calendar, Download, Edit, Trash2, MoreVertical, AlertTriangle, ChevronDown, Pencil } from "lucide-react";
+import { Search, Plus, Bot, Calendar, Download, Edit, Trash2, MoreVertical, AlertTriangle, ChevronDown, Pencil, Eye } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
@@ -31,7 +33,17 @@ const formSchema = z.object({
 
   shortDescription: z.string().nonempty("Short Description is required").min(10, "Short description must be at least 10 characters").max(200, "Short description must be at most 200 characters"),
 
-  description: z.string().nonempty("Description is required").min(10, "Description must be at least 10 characters"),
+  description: z
+    .string()
+    .nonempty("Description is required")
+    .refine(
+      (val) => {
+        // Remove HTML tags and check if there's actual content
+        const textContent = val.replace(/<[^>]*>?/gm, "").trim();
+        return textContent.length >= 10;
+      },
+      { message: "Description must be at least 10 characters" }
+    ),
 
   price: z.string().optional(),
 
@@ -64,7 +76,14 @@ type Plan = {
   planType: string;
   value: number;
   price: string;
-  botId: string;
+  botId: {
+    _id: string;
+    botProviderId: {
+      _id: string;
+      companyName: string;
+    };
+    name: string;
+  };
   botProviderId: string;
   discount: string;
   initialPrice: number;
@@ -108,6 +127,7 @@ interface AlgoBot {
   createdAt?: string;
   updatedAt?: string;
   strategyPlan?: Plan[];
+  link?: TutorialLink[];
 }
 
 export default function AlgoBots() {
@@ -138,11 +158,14 @@ export default function AlgoBots() {
   const [isFetchingBotsList, setIsFetchingBotsList] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [botPlanId, setBotPlanId] = useState<string | null>(null);
   const [planEdit, setPlanEdit] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [languages, setLanguages] = useState<{ _id: string; languageName: string }[]>([]);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedBot, setSelectedBot] = useState<AlgoBot | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -168,6 +191,7 @@ export default function AlgoBots() {
     trigger,
     setError,
     clearErrors,
+    watch,
     formState: { errors },
   } = form;
 
@@ -317,6 +341,35 @@ export default function AlgoBots() {
       await handleFileUpload(file);
     }
     if (e.target) e.target.value = "";
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (uploading) return;
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (uploading) return;
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please drop an image file");
+      return;
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+    await handleFileUpload(file);
   };
 
   const removeImage = () => {
@@ -504,6 +557,72 @@ export default function AlgoBots() {
     }
   };
 
+  const handleViewDetails = (bot: AlgoBot) => {
+    setSelectedBot(bot);
+    setViewDialogOpen(true);
+  };
+
+  // Add this Dialog component just before the main return statement, after all your other code
+  const BotDetailsDialog = () => (
+    <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+      <DialogContent className="sm:max-w-[600px] h-[80vh] p-5 overflow-y-auto scroll-thin">
+        <DialogHeader>
+          <DialogTitle>Bot Details</DialogTitle>
+        </DialogHeader>
+        {selectedBot && (
+          <div className="space-y-4">
+            <div className="relative h-64 w-full overflow-hidden rounded-lg">
+              <img src={selectedBot.imageUrl || "/images/logo.svg"} alt={selectedBot.title} className="h-full w-full object-cover" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold">{selectedBot.title}</h3>
+              <p className="text-sm text-muted-foreground">{selectedBot.shortDescription}</p>
+              <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: marked(selectedBot.description || "") }} />
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium">Tutorial Link</h4>
+              <div className="grid">
+                {selectedBot.link?.map((links, index) => (
+                  <div key={index} className="py-3">
+                    <span className="font-medium">{links.language} : </span>
+
+                    <a href={links.url} target="_blank" className="text-sm text-blue-500 mr-2">
+                      {links.url}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium">Plans</h4>
+              <div className="grid gap-2">
+                {selectedBot.strategyPlan?.map((plan, index) => (
+                  <div key={index} className="rounded-lg border p-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium">{plan.planType}</span>
+                      <div>
+                        <span className="text-sm text-muted-foreground mr-2">${plan.initialPrice}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-end">
+                <Button onClick={() => setViewDialogOpen(false)}>Cancel</Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
   // Reset form for creating new bot
   const handleCreateNew = () => {
     reset({
@@ -601,15 +720,48 @@ export default function AlgoBots() {
         };
 
         if (planEdit && editingPlanId) {
-          // Check if this is a temporary plan (newly created) or existing plan
           if (editingPlanId.startsWith("temp_")) {
-            // This is a temporary plan, just update the local state
-            setPlans((prev: Plan[]) => prev.map((p) => (p._id === editingPlanId ? { ...p, ...newPlan } : p)));
+            setPlans((prev: Plan[]) =>
+              prev.map((p) =>
+                p._id === editingPlanId
+                  ? {
+                      ...p,
+                      ...newPlan,
+                      botId: {
+                        _id: newPlan.botId,
+                        botProviderId: {
+                          _id: newPlan.botProviderId,
+                          companyName: "",
+                        },
+                        name: "",
+                      },
+                    }
+                  : p
+              )
+            );
+
             toast.success("Plan updated successfully");
           } else {
-            // This is an existing plan, update via API
             await updateAlgoBotPlan(editingPlanId as string, step2Data);
-            setPlans((prev: Plan[]) => prev.map((p) => (p._id === editingPlanId ? { ...p, ...newPlan } : p)));
+            setPlans((prev: Plan[]) =>
+              prev.map((p) =>
+                p._id === editingPlanId
+                  ? {
+                      ...p,
+                      ...newPlan,
+                      botId: {
+                        _id: newPlan.botId,
+                        botProviderId: {
+                          _id: newPlan.botProviderId,
+                          companyName: "",
+                        },
+                        name: "",
+                      },
+                    }
+                  : p
+              )
+            );
+
             toast.success("Plan updated successfully");
           }
           setPlanEdit(false);
@@ -669,8 +821,26 @@ export default function AlgoBots() {
     setValue("plan", plan.planType);
     setValue("price", plan.initialPrice?.toString() || plan.price?.toString() || "");
     setValue("discount", plan.discount?.toString() || "0");
-    setValue("botProviderId", plan.botProviderId || "");
-    setValue("botId", plan.botId || "");
+
+    // Handle nested bot and provider structure
+    if (plan.botId && typeof plan.botId === "object") {
+      const botId = plan.botId._id;
+      const providerId = plan.botId.botProviderId?._id;
+
+      if (providerId) {
+        // First set the provider and wait for state update
+        setValue("botProviderId", providerId);
+
+        // Then set the botId in the next tick
+        setTimeout(() => {
+          setValue("botId", botId);
+
+          // Filter bots for the selected provider
+          const fb = bots.filter((b) => b.botProviderId === providerId || !b.botProviderId);
+          setFilteredBots(fb);
+        }, 0);
+      }
+    }
 
     // Scroll to the form
     setTimeout(() => {
@@ -679,14 +849,6 @@ export default function AlgoBots() {
         formElement.scrollIntoView({ behavior: "smooth" });
       }
     }, 100);
-
-    // Update filtered bots based on selected provider
-    if (plan.botProviderId) {
-      const fb = bots.filter((b) => !b.botProviderId || b.botProviderId === plan.botProviderId);
-      setFilteredBots(fb);
-    } else {
-      setFilteredBots([]);
-    }
   };
 
   const handleRemovePlan: (indexToRemove: number) => void = async (indexToRemove) => {
@@ -766,16 +928,10 @@ export default function AlgoBots() {
             {/* <form onSubmit={handleSubmit(onSubmit)} className="space-y-4"> */}
             {/* LEFT: Step Sidebar */}
             <div className="flex space-x-6">
-              <div 
-                onClick={() => setStep(1)}
-                className={`pb-2 font-semibold cursor-pointer ${step === 1 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}
-              >
+              <div onClick={() => setStep(1)} className={`pb-2 font-semibold cursor-pointer ${step === 1 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}>
                 Bot Details
               </div>
-              <div 
-                onClick={() => setStep(2)}
-                className={`pb-2 font-semibold cursor-pointer ${step === 2 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}
-              >
+              <div onClick={() => setStep(2)} className={`pb-2 font-semibold cursor-pointer ${step === 2 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}>
                 Plans
               </div>
             </div>
@@ -849,7 +1005,7 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="imageUrl">Image</Label>
-                      <label htmlFor="imageUrl" className={`flex items-center justify-center w-full h-40 border-2 border-dashed rounded-md cursor-pointer transition hover:border-primary relative ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}>
+                      <label htmlFor="imageUrl" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`flex items-center justify-center w-full h-40 border-2 border-dashed rounded-md cursor-pointer transition hover:border-primary relative ${uploading ? "opacity-50 cursor-not-allowed" : ""} ${isDragging ? "border-primary bg-muted/30" : ""}`}>
                         {imagePreview ? (
                           <div className="relative">
                             <img src={imagePreview} alt="Preview" className="w-60 h-32 object-cover rounded-md" />
@@ -858,7 +1014,7 @@ export default function AlgoBots() {
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground">Click to upload</span>
+                          <span className="text-sm text-muted-foreground">Click or drag and drop to upload</span>
                         )}
                       </label>
 
@@ -880,7 +1036,13 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" placeholder="Enter detailed bot description" {...register("description")} className={`scroll-notvisible ${errors.description ? "border-red-500" : ""}`} rows={12} />
+                      <RichTextEditor
+                        // id="description"
+                        value={watch("description") || ""}
+                        onChange={(value) => setValue("description", value)}
+                        placeholder="Enter detailed bot description"
+                        className={errors.description ? "border-red-500" : ""}
+                      />
                       {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
                     </div>
                     <div className="flex justify-end space-x-2 py-4">
@@ -1029,7 +1191,7 @@ export default function AlgoBots() {
                     )}
 
                     <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                      <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
                         Cancel
                       </Button>
                       <Button type="submit" disabled={isLoading}>
@@ -1080,6 +1242,10 @@ export default function AlgoBots() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewDetails(bot)}>
+                            <Eye className="mr-2 h-4 w-4 text-blacktheme" />
+                            <span>View Details</span>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(bot)}>
                             <Edit className="mr-2 h-4 w-4 text-blacktheme" />
                             <span>Edit</span>
@@ -1094,8 +1260,8 @@ export default function AlgoBots() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">{bot.description}</p>
+                      <div className="min-h-[40px] flex items-start">
+                        <p className="text-sm text-muted-foreground line-clamp-2">{bot.shortDescription}</p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 pt-2">
@@ -1159,6 +1325,8 @@ export default function AlgoBots() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <BotDetailsDialog />
     </div>
   );
 }

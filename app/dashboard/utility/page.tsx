@@ -21,6 +21,7 @@ type UtilitySettings = {
   location: string;
   twitter: string;
   chatNumber: string;
+  days: string;
 };
 
 export default function Utility() {
@@ -33,6 +34,7 @@ export default function Utility() {
     location: "",
     twitter: "",
     chatNumber: "",
+    days: "",
   });
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentField, setCurrentField] = useState<keyof UtilitySettings | null>(null);
@@ -105,11 +107,12 @@ export default function Utility() {
     location: "Location",
     twitter: "Twitter Link",
     chatNumber: "Chat Number",
+    days: "Days",
   };
 
   // Filter and prepare table data
   const tableData = Object.entries(utilitySettings)
-    .filter(([key]) => !['_id', 'deletedAt', 'updatedAt'].includes(key))
+    .filter(([key]) => !['_id', 'deletedAt', 'updatedAt', 'lastEmailSentDate'].includes(key))
     .map(([key, value], index) => ({
       id: key,
       serial: index + 1,

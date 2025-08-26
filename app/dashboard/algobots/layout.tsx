@@ -26,11 +26,11 @@ const subNavItems = [
     href: "/dashboard/algobots/category",
     icon: Tag,
   },
-  {
-    title: "Coupons",
-    href: "/dashboard/algobots/coupons",
-    icon: Gift,
-  },
+  // {
+  //   title: "Coupons",
+  //   href: "/dashboard/algobots/coupons",
+  //   icon: Gift,
+  // },
 ];
 
 export default function AlgoBotsLayout({ children }: { children: React.ReactNode }) {

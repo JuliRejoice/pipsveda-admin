@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Calendar as CalendarIcon, ArrowLeft, MoreVertical, CalendarPlus } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar as CalendarIcon, ArrowLeft, MoreVertical, CalendarPlus, Upload, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -29,6 +29,7 @@ interface Session {
 }
 
 import { getCourses } from "@/components/api/course";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CourseSessionsProps {
   params: { courseId: string };
@@ -39,6 +40,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isCreateMode, setIsCreateMode] = useState(true);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const router = useRouter();
@@ -46,12 +48,78 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
   const [formData, setFormData] = useState({
     sessionName: "",
     description: "",
-    date: new Date().toISOString().split("T")[0],
-    time: "09:00 - 10:00",
+    date: "",
+    time: "",
     meetingLink: "",
     image: null as File | null,
     courseId: params.courseId,
   });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.sessionName.trim()) {
+      newErrors.sessionName = "Session name is required";
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = "Description is required";
+    }
+
+    if (!formData.date) {
+      newErrors.date = "Date is required";
+    }
+
+    // Time format validation (HH:MM - HH:MM)
+    if (!formData.time) {
+      newErrors.time = "Time is required";
+    } else {
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]\s*-\s*([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(formData.time)) {
+        newErrors.time = "Please enter time in format HH:MM - HH:MM (e.g., 09:00 - 10:00)";
+      } else {
+        // Additional validation to ensure end time is after start time
+        const [startTime, endTime] = formData.time.split(' - ');
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
+        const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+        const startTotal = startHours * 60 + startMinutes;
+        const endTotal = endHours * 60 + endMinutes;
+
+        if (endTotal <= startTotal) {
+          newErrors.time = "End time must be after start time";
+        }
+      }
+    }
+
+    // URL validation
+    if (!formData.meetingLink) {
+      newErrors.meetingLink = "Meeting link is required";
+    } else {
+      try {
+        const url = new URL(formData.meetingLink);
+        if (!['http:', 'https:'].includes(url.protocol)) {
+          newErrors.meetingLink = "URL must start with http:// or https://";
+        }
+        if (!url.hostname.includes('.')) {
+          newErrors.meetingLink = "Please enter a valid domain name";
+        }
+      } catch (e) {
+        newErrors.meetingLink = "Please enter a valid URL (e.g., https://meet.google.com/abc-xyz)";
+      }
+    }
+
+    if (!selectedSession && !formData.image && !imagePreview) {
+      newErrors.image = "Image is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -96,11 +164,22 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!validateForm() || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const formDataToSend = new FormData();
 
+      // Always use the courseId from params to ensure it's a string
+      const currentCourseId = typeof params.courseId === 'string' ? params.courseId : '';
+
       // Add all form fields to FormData
-      Object.entries(formData).forEach(([key, value]) => {
+      Object.entries({
+        ...formData,
+        courseId: currentCourseId // Ensure courseId is always a string
+      }).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           formDataToSend.append(key, value);
         }
@@ -112,7 +191,10 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
 
         if (response.success) {
           toast.success("Session updated successfully");
-          await fetchSessions(); // Reload sessions after update
+          await fetchSessions();
+          setIsAddDialogOpen(false);
+          setSelectedSession(null); // Clear the selected session after update
+          return; // Exit early after update
         } else {
           throw new Error(response.message || "Failed to update session");
         }
@@ -122,56 +204,84 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
 
         if (response.success) {
           toast.success("Session created successfully");
-          await fetchSessions(); // Reload sessions after create
+          await fetchSessions();
+          setIsAddDialogOpen(false); // Close the dialog after successful create
+          return; // Exit early after create
         } else {
           throw new Error(response.message || "Failed to create session");
         }
       }
 
       // Reset form
-      setIsAddDialogOpen(false);
-      setSelectedSession(null);
       setFormData({
         sessionName: "",
         description: "",
-        date: new Date().toISOString().split("T")[0],
+        date: "",
         time: "",
         meetingLink: "",
         image: null,
         courseId: params.courseId,
       });
       setImagePreview(null);
+      setSelectedSession(null);
+      setErrors({});
     } catch (error) {
       console.error("Error saving session:", error);
       toast.error(error instanceof Error ? error.message : "Failed to save session");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!selectedSession) return;
+    if (!selectedSession || isDeleting) return;
 
     try {
+      setIsDeleting(true);
       const response = await deleteSession(selectedSession._id);
 
       if (response.success) {
         toast.success("Session deleted successfully");
         await fetchSessions(); // Reload sessions after delete
+        setIsDeleteDialogOpen(false);
+        setSelectedSession(null);
       } else {
         throw new Error(response.message || "Failed to delete session");
       }
-
-      setIsDeleteDialogOpen(false);
-      setSelectedSession(null);
     } catch (error) {
       console.error("Error deleting session:", error);
       toast.error(error instanceof Error ? error.message : "Failed to delete session");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        setErrors(prev => ({
+          ...prev,
+          image: 'Please upload a valid image (JPEG, PNG, or WebP)'
+        }));
+        return;
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        setErrors(prev => ({
+          ...prev,
+          image: 'Image size should be less than 5MB'
+        }));
+        return;
+      }
+
       setFormData((prev) => ({ ...prev, image: file }));
+      setErrors(prev => ({ ...prev, image: '' }));
 
       // Create image preview
       const reader = new FileReader();
@@ -182,24 +292,39 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
     }
   };
 
-  const openEditDialog = (session: Session) => {
+  const handleAddNew = () => {
+    setSelectedSession(null);
+    setIsCreateMode(true);
+    // Reset form data with proper courseId
+    setFormData({
+      sessionName: "",
+      description: "",
+      date: "",
+      time: "",
+      meetingLink: "",
+      image: null,
+      courseId: typeof params.courseId === 'string' ? params.courseId : '',
+    });
+    setImagePreview(null);
+    setErrors({});
+    setIsAddDialogOpen(true);
+  };
+
+  const handleEdit = (session: Session) => {
     setSelectedSession(session);
+    setIsCreateMode(false);
     setFormData({
       sessionName: session.sessionName,
       description: session.description,
-      date: session.date,
+      date: session.date.split('T')[0],
       time: session.time,
       meetingLink: session.meetingLink,
       image: null,
-      courseId: params.courseId, // Use courseId from URL params instead of session object
+      courseId: session.courseId,
     });
-
     if (session.image) {
       setImagePreview(session.image);
-    } else {
-      setImagePreview(null);
     }
-
     setIsAddDialogOpen(true);
   };
 
@@ -238,7 +363,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
             Back to Courses
           </Button>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
+        <Button onClick={handleAddNew}>
           <CalendarPlus className="mr-2 h-4 w-4" /> Add Session
         </Button>
       </div>
@@ -271,7 +396,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                               </button>
                             </PopoverTrigger>
                             <PopoverContent align="end" className="w-32 p-1">
-                              <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded" onClick={() => openEditDialog(session)}>
+                              <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded" onClick={() => handleEdit(session)}>
                                 Edit
                               </button>
                               <button
@@ -315,15 +440,30 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
       </Card>
 
       {/* Add/Edit Session Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedSession(null);
+          setIsCreateMode(true);
+        }
+        setIsAddDialogOpen(open);
+      }}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{selectedSession ? "Edit Session" : "Add New Session"}</DialogTitle>
+            <DialogTitle>{isCreateMode ? "Add New Session" : "Edit Session"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Session Name</label>
-              <Input value={formData.sessionName} onChange={(e) => setFormData({ ...formData, sessionName: e.target.value })} placeholder="Session name" required />
+              <Input
+                value={formData.sessionName}
+                onChange={(e) => {
+                  setFormData({ ...formData, sessionName: e.target.value });
+                  if (errors.sessionName) setErrors(prev => ({ ...prev, sessionName: '' }));
+                }}
+                placeholder="Session name"
+                className={errors.sessionName ? 'border-red-500' : ''}
+              />
+              {errors.sessionName && <p className="text-sm text-red-500 mt-1">{errors.sessionName}</p>}
             </div>
 
             <div className="space-y-2">
@@ -334,35 +474,89 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                   <img src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-md" />
                 </div>
               )}
+              {errors.image && <p className="text-sm text-red-500 mt-1">{errors.image}</p>}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Description</label>
-              <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Session description" />
+              <textarea
+                value={formData.description}
+                onChange={(e) => {
+                  setFormData({ ...formData, description: e.target.value });
+                  if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
+                }}
+                placeholder="Session description"
+                className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.description ? 'border-red-500' : ''
+                  }`}
+                rows={4}
+              />
+              {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
-                <Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required />
+                <Input
+                  type="date"
+                  value={formData.date || ""}
+                  onChange={(e) => {
+                    setFormData({ ...formData, date: e.target.value });
+                    if (errors.date) setErrors(prev => ({ ...prev, date: '' }));
+                  }}
+                  className={errors.date ? 'border-red-500' : ''}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date}</p>}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Time Range</label>
-                <Input type="text" value={formData.time} onChange={(e) => setFormData({ ...formData, time: e.target.value })} placeholder="e.g., 09:00 - 10:00" required />
+                <label className="text-sm font-medium">Time (HH:MM - HH:MM)</label>
+                <Input
+                  type="text"
+                  value={formData.time}
+                  onChange={(e) => {
+                    setFormData({ ...formData, time: e.target.value });
+                    if (errors.time) setErrors(prev => ({ ...prev, time: '' }));
+                  }}
+                  placeholder="e.g., 09:00 - 10:00"
+                  className={errors.time ? 'border-red-500' : ''}
+                />
+                {errors.time && <p className="text-sm text-red-500 mt-1">{errors.time}</p>}
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Meeting Link</label>
-              <Input value={formData.meetingLink} onChange={(e) => setFormData({ ...formData, meetingLink: e.target.value })} placeholder="https://meet.google.com/..." type="url" required />
+              <Input
+                value={formData.meetingLink}
+                onChange={(e) => {
+                  setFormData({ ...formData, meetingLink: e.target.value });
+                  if (errors.meetingLink) setErrors(prev => ({ ...prev, meetingLink: '' }));
+                }}
+                placeholder="https://meet.google.com/..."
+                type="url"
+                className={errors.meetingLink ? 'border-red-500' : ''}
+              />
+              {errors.meetingLink && <p className="text-sm text-red-500 mt-1">{errors.meetingLink}</p>}
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">{selectedSession ? "Update Session" : "Create Session"}</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {isCreateMode ? "Creating..." : "Updating..."}
+                  </>
+                ) : (
+                  isCreateMode ? "Create Session" : "Update Session"
+                )}
+              </Button>
             </div>
           </form>
         </DialogContent>
@@ -374,14 +568,19 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
           <DialogHeader>
             <DialogTitle>Delete Session</DialogTitle>
           </DialogHeader>
-          <p>Are you sure you want to delete this session? This action cannot be undone.</p>
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
+          <div className="space-y-4">
+            <Alert variant="destructive" className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 mt-0.5" />
+              <AlertDescription>Are you sure you want to delete this session? This action cannot be undone.</AlertDescription>
+            </Alert>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
