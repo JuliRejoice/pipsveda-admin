@@ -937,7 +937,7 @@ export default function AlgoBots() {
             </div>
 
             {/* RIGHT: Form Step Content */}
-            <div className="space-y-4 h-[60vh] overflow-y-auto px-1 scroll-thin">
+            <div className="space-y-4 h-[60vh] overflow-y-auto ps-1 pe-2 scroll-thin">
               {step === 1 && (
                 <>
                   <div className="space-y-4">
@@ -993,7 +993,7 @@ export default function AlgoBots() {
                     <div className="space-y-2">
                       <Label htmlFor="categoryId">Category</Label>
                       <select id="categoryId" {...register("categoryId")} className={`w-full bg-background rounded-md border px-3 py-2 text-sm shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.categoryId ? "border-red-500" : ""}`} disabled={isFetchingCategories}>
-                        <option value="">Select a categoryId</option>
+                        <option value="">Select a category</option>
                         {categories.map((categoryId) => (
                           <option key={categoryId._id} value={categoryId._id}>
                             {categoryId.title}
@@ -1227,7 +1227,7 @@ export default function AlgoBots() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-4 laptop:grid-cols-3 tab:grid-cols-2 mobile:grid-cols-1 gap-6">
               {algobots.map((bot) => (
                 <Card key={bot._id} className="hover:shadow-lg transition-shadow overflow-hidden">
                   <img src={bot.imageUrl || "/images/logo.svg"} alt={bot.title} className="w-full h-[210px] object-cover" />

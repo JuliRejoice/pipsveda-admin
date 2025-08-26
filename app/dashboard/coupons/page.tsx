@@ -239,12 +239,12 @@ export default function CouponPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Sr. No</TableHead>
-                  <TableHead>Created Date</TableHead>
-                  <TableHead>Expiry Date</TableHead>
                   <TableHead>Coupon Code</TableHead>
                   <TableHead>Discount</TableHead>
                   <TableHead>Usage Limit</TableHead>
                   <TableHead>Usage Count</TableHead>
+                  <TableHead>Created Date</TableHead>
+                  <TableHead>Expiry Date</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -265,8 +265,6 @@ export default function CouponPage() {
                   filteredCoupons.map((coupon, index) => (
                     <TableRow key={coupon._id}>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell>{format(new Date(coupon.createdAt), "M/d/yyyy, h:mm:ss a")}</TableCell>
-                      <TableCell>{format(new Date(coupon.expiryDate), "M/d/yyyy, h:mm:ss a")}</TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center">
                           <Gift className="mr-2 h-4 w-4" />
@@ -276,6 +274,8 @@ export default function CouponPage() {
                       <TableCell>{coupon.discount}</TableCell>
                       <TableCell> {coupon.usageLimit}</TableCell>
                       <TableCell>{coupon.usageCount}</TableCell>
+                      <TableCell>{format(new Date(coupon.createdAt), "M/d/yyyy, h:mm:ss a")}</TableCell>
+                      <TableCell>{format(new Date(coupon.expiryDate), "M/d/yyyy, h:mm:ss a")}</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

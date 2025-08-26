@@ -19,6 +19,11 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      screens: {
+        laptop: { max: '1536px' },
+        tab: { max: '1024px' },
+        mobile: { max: '576px' },
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

@@ -49,7 +49,7 @@ export default function Utility() {
     try {
       // Replace with actual API call
       const res = await getUtility();
-      console.log(res,"res");
+      console.log(res, "res");
       setUtilitySettings(res?.payload || {});
     } catch (err) {
       console.error("Failed to fetch utility settings:", err);
@@ -62,10 +62,10 @@ export default function Utility() {
       const updateData = { [field]: value };
       const utilityId = utilitySettings?._id || "";
 
-      console.log(utilityId,"id");
-      
+      console.log(utilityId, "id");
+
       const response = await updateUtility(utilityId, updateData);
-      
+
       setUtilitySettings(prev => ({
         ...prev,
         ...response.payload  // Assuming the API returns the updated settings
@@ -92,7 +92,7 @@ export default function Utility() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentField) return;
-    
+
     const formData = new FormData(e.target as HTMLFormElement);
     const value = formData.get(currentField) as string;
     updateUtilitySetting(currentField, value);
@@ -107,7 +107,7 @@ export default function Utility() {
     location: "Location",
     twitter: "Twitter Link",
     chatNumber: "Chat Number",
-    days: "Days",
+    days: "Newsletter Email Sent Days",
   };
 
   // Filter and prepare table data
@@ -123,10 +123,10 @@ export default function Utility() {
 
   // Apply search filter
   const filteredData = searchTerm
-    ? tableData.filter(item => 
-        item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(item.value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? tableData.filter(item =>
+      item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(item.value).toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : tableData;
 
   // Apply pagination
@@ -137,23 +137,25 @@ export default function Utility() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
+
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-color">Utility Settings</h1>
-          <p className="text-sm text-muted-foreground">Manage your application's utility settings</p>
+          <h1 className="text-3xl font-bold tracking-tight">Utility Settings</h1>
+          <p className="text-muted-foreground">Manage your application's utility settings</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search settings..."
-              className="pl-8 w-[200px] lg:w-[300px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
+      </div>
+
+      {/* Search */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search settings..."
+            className="pl-8 w-[200px] lg:w-[300px]"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          /></div>
       </div>
 
       <div className="rounded-md border">
@@ -202,7 +204,7 @@ export default function Utility() {
           </TableBody>
         </Table>
       </div>
-      
+
       {/* <DataTablePagination
         currentPage={currentPage}
         totalPages={Math.ceil(filteredData.length / itemsPerPage)}
