@@ -319,7 +319,7 @@ export default function AlgoBots() {
       const formData = new FormData();
       formData.append("image", file);
       const url = await uploadAlgoBotImage(formData);
-      setImagePreview(url.payload.url);
+      setImagePreview(url.payload.showUrl);
       setStep1((prev) => ({ ...prev, image: url.payload.url }));
       clearErrors("imageUrl");
     } catch (error) {
