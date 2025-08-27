@@ -653,13 +653,6 @@ export default function AlgoBots() {
     setCurrentPage(1); // Reset to first page when searching
   };
 
-  if (isFetching) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   const handleAddPlan = async () => {
     const { plan, price, botProviderId, botId, discount } = getValues();
