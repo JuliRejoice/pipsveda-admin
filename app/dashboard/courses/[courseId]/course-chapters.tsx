@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Plus, Edit, Trash2, ArrowLeft, Video, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, Video as VideoIcon, AlertTriangle, Loader2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { createChapter, updateChapter, deleteChapter, getChapters } from '@/components/api/course';
@@ -51,11 +51,13 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
     const [isDeleting, setIsDeleting] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [formData, setFormData] = useState<{
         chapterName: string;
         description: string;
         duration: string;
         videoUrl: string;
+        videoFile: File | null;
         chapterNo: string;
         image: File | null;
     }>({
@@ -63,6 +65,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
         description: '',
         duration: '',
         videoUrl: '',
+        videoFile: null,
         chapterNo: '',
         image: null,
     });
@@ -72,6 +75,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
         description?: string;
         duration?: string;
         videoUrl?: string;
+        videoFile?: string;
         chapterNo?: string;
     }>({});
 
@@ -104,13 +108,19 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
             isValid = false;
         }
 
-        // Video URL validation
-        if (!formData.videoUrl.trim()) {
-            newErrors.videoUrl = 'Video URL is required';
+        // Video file validation
+        if (!selectedChapter && !formData.videoFile) {
+            newErrors.videoFile = 'Video file is required';
             isValid = false;
-        } else if (!/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/.test(formData.videoUrl)) {
-            newErrors.videoUrl = 'Please enter a valid URL';
-            isValid = false;
+        } else if (formData.videoFile) {
+            const validTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+            if (!validTypes.includes(formData.videoFile.type)) {
+                newErrors.videoFile = 'Please upload a valid video file (MP4, WebM, or QuickTime)';
+                isValid = false;
+            } else if (formData.videoFile.size > 100 * 1024 * 1024) { // 100MB limit
+                newErrors.videoFile = 'Video file size should be less than 100MB';
+                isValid = false;
+            }
         }
 
         // Chapter number validation
@@ -160,10 +170,26 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
             }));
         }
 
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === 'file' ? (e.target as HTMLInputElement).files?.[0] || null : value,
-        }));
+        if (type === 'file') {
+            const file = (e.target as HTMLInputElement).files?.[0] || null;
+            if (name === 'videoFile') {
+                setFormData(prev => ({
+                    ...prev,
+                    videoFile: file,
+                    videoUrl: file ? file.name : ''
+                }));
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: file
+                }));
+            }
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -174,13 +200,17 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
         }
         
         try {
-            const data = new FormData();            
+            const data = new FormData();                        
             data.append('chapterName', formData.chapterName);
             data.append('description', formData.description);
             const durationValue = formData.duration ? String(Number(formData.duration)) : '';
             data.append('duration', durationValue);
-            data.append('videoUrl', formData.videoUrl);
-            data.append('chapterVideo', formData.videoUrl);
+            if (formData.videoFile) {
+                data.append('image', formData.videoFile);
+            } else if (formData.videoUrl) {
+                data.append('image', formData.videoUrl);
+                data.append('chapterVideo', formData.videoUrl);
+            }
             data.append('chapterNo', formData.chapterNo);
             data.append('courseId', courseId);
 
@@ -207,7 +237,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
             }
             setIsAddDialogOpen(false);
             setSelectedChapter(null);
-            setFormData({ chapterName: '', description: '', duration: '', videoUrl: '', chapterNo: '', image: null });
+            setFormData({ chapterName: '', description: '', duration: '', videoUrl: '', videoFile: null, chapterNo: '', image: null });
         } catch (error) {
             console.error('Error saving chapter:', error);
             toast.error('Failed to save chapter');
@@ -238,12 +268,12 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
 
     const openEditDialog = (chapter: Chapter) => {
         setSelectedChapter(chapter);
-                   
         setFormData({
             chapterName: chapter.chapterName || chapter.title || '',
             description: chapter.description,
             duration: typeof chapter.courseId === 'string' ? '' : chapter.courseId.hours.toString(),
             videoUrl: chapter.videoUrl || chapter.chapterVideo || '',
+            videoFile: null,
             chapterNo: String(chapter.chapterNo || chapter.order || ''),
             image: null,
         });
@@ -278,6 +308,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                     duration: '',
                     videoUrl: '',
                     chapterNo: '',
+                    videoFile: null,
                     image: null,
                 });
                 setErrors({});
@@ -358,17 +389,72 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                                 </Popover>
                                             </div>
                                             <div className="flex items-start space-x-4">
-                                                <div className="p-2 bg-primary/10 rounded-lg min-w-[25%] min-h-[56px] flex items-center justify-center">
+                                                <div className="p-2 bg-primary/10 rounded-lg w-[120px] min-w-[120px] h-[120px] flex items-center justify-center relative group overflow-hidden">
                                                     {videoId ? (
-                                                        <a href={url} target="_blank" rel="noopener noreferrer">
-                                                            <img
-                                                                src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-                                                                alt="Video Thumbnail"
-                                                                className="w-24 h-24 object-cover rounded-md border border-gray-200 hover:opacity-80 transition"
-                                                            />
+                                                        <a href={url} target="_blank" rel="noopener noreferrer" className="w-full h-full block">
+                                                            <div className="relative w-full h-full">
+                                                                <img
+                                                                    src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                                                                    alt="YouTube Video"
+                                                                    className="w-full h-full object-cover rounded-md border border-gray-200"
+                                                                />
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <div className="bg-white/80 p-2 rounded-full transform transition-transform group-hover:scale-110">
+                                                                        <VideoIcon className="h-5 w-5 text-primary" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </a>
+                                                    ) : url ? (
+                                                        <div className="w-full h-full relative group/video">
+                                                            <a 
+                                                                href={url} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="w-full h-full block"
+                                                                onClick={(e) => {
+                                                                    // If clicking the play button, let the default link behavior happen
+                                                                    const target = e.target as HTMLElement;
+                                                                    if (target.closest('.play-button')) {
+                                                                        return; // Allow default link behavior
+                                                                    }
+                                                                    
+                                                                    // If clicking the video, prevent default and toggle play/pause
+                                                                    e.preventDefault();
+                                                                    const video = e.currentTarget.querySelector('video');
+                                                                    if (video) {
+                                                                        if (video.paused) {
+                                                                            video.play();
+                                                                            video.controls = true;
+                                                                        } else {
+                                                                            video.pause();
+                                                                            video.controls = false;
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <video 
+                                                                    src={url}
+                                                                    className="w-full h-full object-cover rounded-md border border-gray-200"
+                                                                    poster=""
+                                                                    onEnded={(e) => {
+                                                                        const video = e.currentTarget;
+                                                                        video.controls = false;
+                                                                        setIsPlaying(false);
+                                                                    }}
+                                                                />
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover/video:opacity-100 transition-opacity">
+                                                                    <div className="bg-white/80 p-2 rounded-full transform transition-transform group-hover/video:scale-110 play-button">
+                                                                        <VideoIcon className="h-5 w-5 text-primary" />
+                                                                    </div>
+                                                                </div>
+                                                            </a>
+                                                        </div>
                                                     ) : (
-                                                        <Video className="h-6 w-6 text-primary" />
+                                                        <div className="flex flex-col items-center justify-center text-center p-2">
+                                                            <VideoIcon className="h-6 w-6 text-primary mb-1" />
+                                                            <span className="text-xs text-muted-foreground">No video</span>
+                                                        </div>
                                                     )}
                                                 </div>
                                                 <div>
@@ -489,18 +575,52 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Video URL</label>
-                            <div className="w-full">
-                                <Input
-                                    name="videoUrl"
-                                    value={formData.videoUrl}
-                                    onChange={handleInputChange}
-                                    placeholder="Video URL"
-                                    className="w-full"
-                                />
-                                {errors.videoUrl && (
-                                    <p className="text-sm text-red-500 mt-1">{errors.videoUrl}</p>
-                                )}
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Video File</label>
+                                <div className="w-full">
+                                    <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
+                                        <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                                        <p className="text-sm text-gray-600 mb-2">
+                                            {formData.videoFile 
+                                                ? formData.videoFile.name 
+                                                : formData.videoUrl 
+                                                    ? 'Video file selected' 
+                                                    : 'No video file selected'}
+                                        </p>
+                                        <Input
+                                            type="file"
+                                            name="videoFile"
+                                            accept="video/mp4,video/webm,video/quicktime"
+                                            onChange={handleInputChange}
+                                            className="hidden"
+                                            id="video-upload"
+                                        />
+                                        <label 
+                                            htmlFor="video-upload" 
+                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                                        >
+                                            {formData.videoFile || formData.videoUrl ? 'Change Video' : 'Upload Video'}
+                                        </label>
+                                        {(formData.videoFile || formData.videoUrl) && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        videoFile: null,
+                                                        videoUrl: ''
+                                                    }));
+                                                }}
+                                                className="ml-2 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
+                                    </div>
+                                    {errors.videoFile && (
+                                        <p className="text-sm text-red-500 mt-1">{errors.videoFile}</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <DialogFooter>
