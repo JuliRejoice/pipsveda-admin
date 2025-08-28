@@ -359,7 +359,6 @@ export default function Customers() {
                     <TableHead>Contact</TableHead>
                     <TableHead>Gender</TableHead>
                     <TableHead>Birthday</TableHead>
-                    <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Joined Date</TableHead>
                     <TableHead>Actions</TableHead>
@@ -401,11 +400,6 @@ export default function Customers() {
                                 day: "numeric",
                               })
                             : "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="capitalize">
-                            {customer.roleId.name}
-                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant={customer.isActive ? "default" : "secondary"} className="outline-hide">
