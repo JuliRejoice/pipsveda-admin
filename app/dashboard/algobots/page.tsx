@@ -158,6 +158,7 @@ export default function AlgoBots() {
   const [isFetchingBotsList, setIsFetchingBotsList] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [botPlanId, setBotPlanId] = useState<string | null>(null);
   const [planEdit, setPlanEdit] = useState(false);
@@ -320,6 +321,7 @@ export default function AlgoBots() {
       formData.append("image", file);
       const url = await uploadAlgoBotImage(formData);
       setImagePreview(url.payload.showUrl);
+      setImageFile(url.payload.url);
       setStep1((prev) => ({ ...prev, image: url.payload.url }));
       clearErrors("imageUrl");
     } catch (error) {
@@ -386,7 +388,7 @@ export default function AlgoBots() {
         categoryId: data.categoryId,
         shortDescription: data.shortDescription,
         description: data.description,
-        imageUrl: imagePreview,
+        imageUrl: imageFile,
         link: (data.links || [])
           .filter((link) => link.url && link.url.trim() !== "")
           .map((link) => ({
