@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Loader2 } from 'lucide-react';
 import { SignIn } from '@/components/api/login';
 
 interface FormErrors {
@@ -29,6 +30,7 @@ export default function LoginForm() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [touched, setTouched] = useState({
     email: false,
@@ -223,15 +225,27 @@ export default function LoginForm() {
               <Input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`pl-10 ${touched.password && errors.password ? 'border-red-500' : ''}`}
+                className={`pl-10 pr-10 ${touched.password && errors.password ? 'border-red-500' : ''}`}
                 disabled={isLoading}
                 required
               />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1} 
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
               {touched.password && errors.password && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <AlertCircle className="h-4 w-4 text-red-500" />
