@@ -106,7 +106,7 @@ export default function Referrals() {
                   </div>
                   <div>
                     <h3 className="font-medium">{referrer.referrer}</h3>
-                    <p className="text-sm text-gray-500">{referrer.email}</p>
+                    <p className="text-base font-semibold text-gray-500">{referrer.email}</p>
                   </div>
                 </div>
                 

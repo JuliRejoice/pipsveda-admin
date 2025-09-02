@@ -498,10 +498,10 @@ export default function AlgoBots() {
     const botLinks =
       Array.isArray(rawLinks) && rawLinks.length > 0
         ? rawLinks.map((l: any) => ({
-            url: l.url || "",
-            language: l.language || "",
-            _id: l._id,
-          }))
+          url: l.url || "",
+          language: l.language || "",
+          _id: l._id,
+        }))
         : [{ url: "", language: "" }];
 
     setStep1({ links: botLinks });
@@ -720,17 +720,17 @@ export default function AlgoBots() {
               prev.map((p) =>
                 p._id === editingPlanId
                   ? {
-                      ...p,
-                      ...newPlan,
-                      botId: {
-                        _id: newPlan.botId,
-                        botProviderId: {
-                          _id: newPlan.botProviderId,
-                          companyName: "",
-                        },
-                        name: "",
+                    ...p,
+                    ...newPlan,
+                    botId: {
+                      _id: newPlan.botId,
+                      botProviderId: {
+                        _id: newPlan.botProviderId,
+                        companyName: "",
                       },
-                    }
+                      name: "",
+                    },
+                  }
                   : p
               )
             );
@@ -742,17 +742,17 @@ export default function AlgoBots() {
               prev.map((p) =>
                 p._id === editingPlanId
                   ? {
-                      ...p,
-                      ...newPlan,
-                      botId: {
-                        _id: newPlan.botId,
-                        botProviderId: {
-                          _id: newPlan.botProviderId,
-                          companyName: "",
-                        },
-                        name: "",
+                    ...p,
+                    ...newPlan,
+                    botId: {
+                      _id: newPlan.botId,
+                      botProviderId: {
+                        _id: newPlan.botProviderId,
+                        companyName: "",
                       },
-                    }
+                      name: "",
+                    },
+                  }
                   : p
               )
             );
@@ -987,7 +987,7 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="categoryId">Category</Label>
-                      <select id="categoryId" {...register("categoryId")} className={`w-full bg-background rounded-md border px-3 py-2 text-sm shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.categoryId ? "border-red-500" : ""}`} disabled={isFetchingCategories}>
+                      <select id="categoryId" {...register("categoryId")} className={`w-full bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.categoryId ? "border-red-500" : ""}`} disabled={isFetchingCategories}>
                         <option value="">Select a category</option>
                         {categories.map((categoryId) => (
                           <option key={categoryId._id} value={categoryId._id}>
@@ -1088,7 +1088,7 @@ export default function AlgoBots() {
                             setPlans((prev) => prev.map((plan) => (plan._id === editingPlanId ? { ...plan, planType: e.target.value } : plan)));
                           }
                         }}
-                        className={`w-full bg-background rounded-md border px-3 py-2 text-sm shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.plan ? "border-red-500" : ""}`}
+                        className={`w-full bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.plan ? "border-red-500" : ""}`}
                       >
                         <option value="">Select a plan</option>
                         {[
@@ -1126,7 +1126,7 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="botProviderId">Bot Provider Company</Label>
-                      <select id="botProviderId" {...register("botProviderId")} className={`w-full bg-background rounded-md border px-3 py-2 text-sm shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.botProviderId ? "border-red-500" : ""}`} disabled={isFetchingProviders}>
+                      <select id="botProviderId" {...register("botProviderId")} className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.botProviderId ? "border-red-500" : ""}`} disabled={isFetchingProviders}>
                         <option value="">Select a provider</option>
                         {providers.map((prov) => (
                           <option key={prov._id} value={prov._id}>
@@ -1140,7 +1140,7 @@ export default function AlgoBots() {
 
                     <div className="space-y-2">
                       <Label htmlFor="botId">Bot Name</Label>
-                      <select id="botId" {...register("botId")} className={`w-full bg-background rounded-md border px-3 py-2 text-sm shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.botId ? "border-red-500" : ""}`} disabled={!getValues().botProviderId || isFetchingBotsList}>
+                      <select id="botId" {...register("botId")} className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.botId ? "border-red-500" : ""}`} disabled={!getValues().botProviderId || isFetchingBotsList}>
                         <option value="">{getValues().botProviderId ? "Select a bot" : "Select a provider first"}</option>
                         {filteredBots.map((b) => (
                           <option key={b._id} value={b._id}>
@@ -1203,7 +1203,7 @@ export default function AlgoBots() {
       </div>
 
       <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
         <Input type="search" placeholder="Search bots..." className="w-full bg-background pl-8 md:w-[300px]" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
 
@@ -1256,7 +1256,7 @@ export default function AlgoBots() {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="min-h-[40px] flex items-start">
-                        <p className="text-sm text-muted-foreground line-clamp-2">{bot.shortDescription}</p>
+                        <p className="text-base text-muted-foreground line-clamp-2">{bot.shortDescription}</p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 pt-2">

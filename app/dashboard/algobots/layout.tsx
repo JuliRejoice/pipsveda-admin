@@ -48,8 +48,8 @@ export default function AlgoBotsLayout({ children }: { children: React.ReactNode
 
               return (
                 <Link key={item.href} href={item.href}>
-                  <div className={cn("relative flex items-center gap-2 px-2 pb-3 text-sm font-medium whitespace-nowrap transition-colors", isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                    <Icon className="h-4 w-4" />
+                  <div className={cn("relative flex items-center gap-2 px-2 pb-3 text-base font-semibold whitespace-nowrap transition-colors", isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                    <Icon className="h-5 w-5" />
                     <span>{item.title}</span>
                     {isActive && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />}
                   </div>

@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useTheme } from 'next-themes';
+// import { useTheme } from 'next-themes';
 import { useToast } from '@/hooks/use-toast';
 import { signOut } from '../api/login';
 
@@ -27,7 +27,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  // const { theme, setTheme } = useTheme();
   const { toast } = useToast();
 
   const routes = [
@@ -103,7 +103,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <span>Settings</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+            {/* <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
               {theme === "dark" ? (
                 <>
                   <Sun className="mr-2 h-4 w-4" />
@@ -115,7 +115,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <span>Dark Theme</span>
                 </>
               )}
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sign out</span>
@@ -174,7 +174,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+              {/* <Button variant="outline" size="sm" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
                 {theme === "dark" ? (
                   <>
                     <Sun className="mr-1 h-4 w-4" />
@@ -186,7 +186,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <span className="text-xs">Dark</span>
                   </>
                 )}
-              </Button>
+              </Button> */}
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="mr-1 h-4 w-4" />
                 <span className="text-xs">Sign out</span>

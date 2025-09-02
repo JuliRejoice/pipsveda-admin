@@ -181,7 +181,7 @@ export default function LoginForm() {
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
-        <CardDescription>
+        <CardDescription className='text-base font-semibold'>
           Enter your credentials to access the dashboard
         </CardDescription>
       </CardHeader>

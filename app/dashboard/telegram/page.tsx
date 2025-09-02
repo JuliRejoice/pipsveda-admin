@@ -185,11 +185,11 @@ export default function TelegramManagement() {
             price: parseFloat(plan.price),
             discount: parseFloat(plan.discount) || 0
           };
-          
+
           // If plan has an _id, it's an existing plan that needs updating
           if (plan._id && !plan._id.startsWith('temp_')) {
             return updateChannelPlan(plan._id, planData);
-          } 
+          }
           // Otherwise, it's a new plan that needs to be created
           return createChannelPlan(planData);
         });
@@ -197,7 +197,7 @@ export default function TelegramManagement() {
         // Wait for all plan updates/creations to complete
         const results = await Promise.all(updatePlanPromises);
         const allSuccessful = results.every(result => result?.success);
-        
+
         if (allSuccessful) {
           toast.success("All plans updated successfully");
         } else {
@@ -219,7 +219,7 @@ export default function TelegramManagement() {
         // Wait for all plan creations to complete
         const results = await Promise.all(createPlanPromises);
         const allSuccessful = results.every(result => result?.success);
-        
+
         if (allSuccessful) {
           toast.success("All plans created successfully");
         } else {
@@ -246,7 +246,7 @@ export default function TelegramManagement() {
   const handleEdit = async (channel: TelegramChannel) => {
     setCurrentChannelId(channel._id);
     setIsEditMode(true);
-    
+
     // Reset form with channel data
     reset({
       channelName: channel.channelName,
@@ -262,7 +262,7 @@ export default function TelegramManagement() {
     try {
       // Fetch existing plans for this channel
       const response = await getAllTelegramPlan(channel._id);
-      
+
       if (response.success && response.payload?.data) {
         // Map the response to match our Plan type
         const existingPlans = response.payload.data.map((plan: any) => ({
@@ -290,7 +290,7 @@ export default function TelegramManagement() {
 
   const confirmDelete = async () => {
     if (!channelToDelete) return;
-    
+
     try {
       setIsDeleting(true);
       const response = await deleteChannel(channelToDelete);
@@ -403,12 +403,12 @@ export default function TelegramManagement() {
 
   const handleEditPlan = (index: number) => {
     const plan = plans[index];
-    
+
     if (!plan) return;
-    
+
     setPlanEdit(true);
     setEditingPlanId(plan._id || null);
-    
+
     // Reset the form first to clear any existing values
     reset({
       ...getValues(),
@@ -428,7 +428,7 @@ export default function TelegramManagement() {
 
   const handleRemovePlan = async (indexToRemove: number) => {
     const planToDelete = plans[indexToRemove];
-    
+
     try {
       if (planToDelete._id && !planToDelete._id.startsWith("temp_")) {
         // This is an existing plan, delete via API
@@ -545,7 +545,7 @@ export default function TelegramManagement() {
                             setPlans((prev) => prev.map((plan) => (plan._id === editingPlanId ? { ...plan, planType: e.target.value } : plan)));
                           }
                         }}
-                        className={`w-full bg-background rounded-md border px-3 py-2 text-sm shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.plan ? "border-red-500" : ""}`}
+                        className={`w-full bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.plan ? "border-red-500" : ""}`}
                       >
                         <option value="">Select a plan</option>
                         {[
@@ -632,29 +632,29 @@ export default function TelegramManagement() {
           </DialogContent>
         </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete Telegram Channel</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Alert variant="destructive" className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 mt-0.5" />
-              <AlertDescription>Are you sure you want to delete this channel? This action cannot be undone.</AlertDescription>
-            </Alert>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
-                {isDeleting ? "Deleting..." : "Delete"}
-              </Button>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Delete Telegram Channel</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Alert variant="destructive" className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 mt-0.5" />
+                <AlertDescription>Are you sure you want to delete this channel? This action cannot be undone.</AlertDescription>
+              </Alert>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {channels.length === 0 ? (
         <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
@@ -673,23 +673,23 @@ export default function TelegramManagement() {
                   <div className="flex items-center space-x-3">
                     <div>
                       <CardTitle className="text-lg">{channel.channelName}</CardTitle>
-                      <p className="text-sm text-gray-500">{channel.description}</p>
+                      <p className="text-base text-gray-500 mt-2.5">{channel.description}</p>
                     </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreVertical className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleEdit(channel)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
+                        <Edit className="mr-2 h-5 w-5" />
+                        <span className="text-base font-semibold">Edit</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(channel._id)}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
+                        <Trash2 className="mr-2 h-5 w-5" />
+                        <span className="text-base font-semibold">Delete</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -698,7 +698,7 @@ export default function TelegramManagement() {
               <CardContent>
                 <div className="space-y-3">
                   {channel.link && (
-                    <a href={channel.link} target="_blank" rel="noopener noreferrer" className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-xs font-medium transition">
+                    <a href={channel.link} target="_blank" rel="noopener noreferrer" className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-base font-medium transition">
                       ▶ Join Channel
                     </a>
                   )}

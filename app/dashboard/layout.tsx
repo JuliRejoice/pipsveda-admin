@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
-import { ThemeProvider } from '@/components/theme-provider';
+// import { ThemeProvider } from '@/components/theme-provider';
 
 
 const getPageTitle = (pathname: string): string => {
@@ -42,7 +42,7 @@ export default function DashboardLayout({
   }, [router]);
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    // <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <div className="flex h-screen bg-background">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -52,6 +52,6 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
-    </ThemeProvider>
+    // </ThemeProvider>
   );
 }

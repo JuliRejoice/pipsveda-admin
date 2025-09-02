@@ -76,11 +76,11 @@ export default function Dashboard() {
     }
 
     getTotalRevenueData().then((data) => {
-      setTotalRevenueData(data.payload);
+      setTotalRevenueData(data?.payload);
     });
 
     getDashboardReportData().then((data) => {
-      setDashboardReportData(data.payload);
+      setDashboardReportData(data?.payload);
     });
 
     // Initial fetch for the default tab
@@ -114,13 +114,13 @@ export default function Dashboard() {
           return (
             <Card key={stat.title}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                <CardTitle className="text-base font-medium">{stat.title}</CardTitle>
                 <Icon className="h-4 w-4 text-blacktheme" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blacktheme">{stat.value}</div>
-                <p className="text-xs text-muted-foreground flex items-center">
-                  {Number(stat.change) > 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                <div className="text-xl font-semibold text-blacktheme">{stat.value}</div>
+                <p className="text-base text-muted-foreground flex items-center">
+                  {Number(stat.change) > 0 ? <TrendingUp className="h-5 w-5 mr-1 text-green-500" /> : <TrendingDown className="h-4 w-4 mr-1 text-red-500" />}
                   {stat.change}% from last month
                 </p>
               </CardContent>
@@ -151,9 +151,9 @@ export default function Dashboard() {
 
       <Tabs defaultValue="weekly" value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
-          <TabsTrigger value="yearly">Yearly</TabsTrigger>
+          <TabsTrigger className="text-base" value="weekly">Weekly</TabsTrigger>
+          <TabsTrigger className="text-base" value="monthly">Monthly</TabsTrigger>
+          <TabsTrigger className="text-base" value="yearly">Yearly</TabsTrigger>
         </TabsList>
 
         <TabsContent value="weekly" className="space-y-4">
