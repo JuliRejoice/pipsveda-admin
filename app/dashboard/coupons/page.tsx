@@ -229,7 +229,7 @@ export default function CouponPage() {
       {/* Search */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search coupons..." value={searchTerm} onChange={handleSearchInputChange} className="pl-8" />
         </div>
       </div>
@@ -248,14 +248,14 @@ export default function CouponPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Sr. No</TableHead>
-                  <TableHead>Coupon Code</TableHead>
-                  <TableHead>Discount</TableHead>
-                  <TableHead>Usage Limit</TableHead>
-                  <TableHead>Usage Count</TableHead>
-                  <TableHead>Created Date</TableHead>
-                  <TableHead>Expiry Date</TableHead>
-                  <TableHead>Action</TableHead>
+                  <TableHead className="text-base">Sr. No</TableHead>
+                  <TableHead className="text-base">Coupon Code</TableHead>
+                  <TableHead className="text-base">Discount</TableHead>
+                  <TableHead className="text-base">Usage Limit</TableHead>
+                  <TableHead className="text-base">Usage Count</TableHead>
+                  <TableHead className="text-base">Created Date</TableHead>
+                  <TableHead className="text-base">Expiry Date</TableHead>
+                  <TableHead className="text-base">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -295,13 +295,13 @@ export default function CouponPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="text-blacktheme">
                             <DropdownMenuItem onClick={() => handleEdit(coupon)}>
-                              <Edit className="mr-2 h-4 w-4 text-blacktheme" />
-                              Edit
+                              <Edit className="mr-2 h-5 w-5 text-blacktheme" />
+                              <span className="text-base font-semibold">Edit</span>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(coupon)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
+                              <Trash2 className="mr-2 h-5 w-5" />
+                              <span className="text-base font-semibold">Delete</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -384,17 +384,17 @@ export default function CouponPage() {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar 
-                            mode="single" 
-                            selected={field.value} 
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
                             onSelect={(date) => {
                               field.onChange(date);
                               // Close the popover after selection
                               const popoverTrigger = document.querySelector('[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])') as HTMLElement;
                               if (popoverTrigger) popoverTrigger.click();
-                            }} 
-                            disabled={(date) => date < new Date()} 
-                            initialFocus 
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
                           />
                         </PopoverContent>
                       </Popover>
@@ -421,7 +421,7 @@ export default function CouponPage() {
                   Cancel
                 </Button>
                 <Button type="submit">
-                  {isEditMode ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  {isEditMode ? <Edit className="h-5 w-5 mr-2" /> : <Plus className="h-5 w-5 mr-2" />}
                   {isEditMode ? "Save Changes" : "Add Coupon"}
                 </Button>
               </DialogFooter>

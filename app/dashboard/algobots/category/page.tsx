@@ -97,7 +97,7 @@ export default function Category() {
     }
 
     const searchLower = search.toLowerCase();
-    const filtered = categories.filter(category => 
+    const filtered = categories.filter(category =>
       category.title.toLowerCase().includes(searchLower)
     );
 
@@ -120,16 +120,16 @@ export default function Category() {
 
       if (isEditMode && currentCategoryId) {
         const response = await updateCategory(currentCategoryId, data);
-        if(response.success){
+        if (response.success) {
           toast.success("Category updated successfully!");
-        }else{
+        } else {
           toast.error(response.message);
         }
       } else {
         const response = await createCategory(data);
-        if(response.success){
+        if (response.success) {
           toast.success("Category created successfully!");
-        }else{
+        } else {
           toast.error(response.message);
         }
       }
@@ -234,7 +234,7 @@ export default function Category() {
       {/* Search */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search category..." value={searchTerm} onChange={handleSearch} className="pl-8" />
         </div>
       </div>
@@ -262,23 +262,23 @@ export default function Category() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                  <TableHead>Sr. No</TableHead>
-                    <TableHead>Category Name</TableHead>
-                    <TableHead>Edit</TableHead>
-                    <TableHead>Delete</TableHead>
+                    <TableHead className="text-base">Sr. No</TableHead>
+                    <TableHead className="text-base">Category Name</TableHead>
+                    <TableHead className="text-base">Edit</TableHead>
+                    <TableHead className="text-base">Delete</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredCategories
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((category,index) => (
-                    <TableRow key={category._id}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell className="font-medium">{category.title}</TableCell>
-                      <TableCell className="font-medium"><button onClick={() => handleEdit(category)}><Edit className="mr-2 h-4 w-4" /></button></TableCell>
-                      <TableCell className="font-medium"><button onClick={() => handleDeleteClick(category._id)}><Trash2 className="mr-2 h-4 w-4" /></button></TableCell>
-                    </TableRow>
-                  ))}
+                    .map((category, index) => (
+                      <TableRow key={category._id}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell className="font-medium">{category.title}</TableCell>
+                        <TableCell className="font-medium"><button onClick={() => handleEdit(category)}><Edit className="mr-2 h-4 w-4" /></button></TableCell>
+                        <TableCell className="font-medium"><button onClick={() => handleDeleteClick(category._id)}><Trash2 className="mr-2 h-4 w-4" /></button></TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>

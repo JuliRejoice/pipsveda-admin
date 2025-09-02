@@ -354,14 +354,14 @@ export default function Customers() {
               <Table>
                 <TableHeader className="bg-background">
                   <TableRow>
-                    <TableHead>Sr. No</TableHead>
-                    <TableHead className="w-[250px]">Customer</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Gender</TableHead>
-                    <TableHead>Birthday</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Joined Date</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-base">Sr. No</TableHead>
+                    <TableHead className="text-base w-[250px]">Customer</TableHead>
+                    <TableHead className="text-base">Contact</TableHead>
+                    <TableHead className="text-base">Gender</TableHead>
+                    <TableHead className="text-base">Birthday</TableHead>
+                    <TableHead className="text-base">Status</TableHead>
+                    <TableHead className="text-base">Joined Date</TableHead>
+                    <TableHead className="text-base">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -395,10 +395,10 @@ export default function Customers() {
                         <TableCell>
                           {customer.birthday && !isNaN(new Date(customer.birthday).getTime())
                             ? new Date(customer.birthday).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              })
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })
                             : "N/A"}
                         </TableCell>
                         <TableCell>
@@ -409,10 +409,10 @@ export default function Customers() {
                         <TableCell>
                           {customer.createdAt && !isNaN(new Date(customer.createdAt).getTime())
                             ? new Date(customer.createdAt).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              })
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })
                             : "N/A"}
                         </TableCell>
                         <TableCell>
@@ -425,8 +425,8 @@ export default function Customers() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleEdit(customer)}>
-                                <Edit className="mr-2 h-4 w-4 text-blacktheme" />
-                                <span>Edit</span>
+                                <Edit className="mr-2 h-5 w-5 text-blacktheme" />
+                                <span className="text-base font-semibold text-gray-500">Edit</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={(e) => {
@@ -437,13 +437,13 @@ export default function Customers() {
                               >
                                 {customer.isActive ? (
                                   <>
-                                    <UserX className="mr-2 h-4 w-4" />
-                                    <span>Deactivate</span>
+                                    <UserX className="mr-2 h-5 w-5" />
+                                    <span className="text-base font-semibold text-red-600">Deactivate</span>
                                   </>
                                 ) : (
                                   <>
-                                    <UserCheck className="mr-2 h-4 w-4" />
-                                    <span>Activate</span>
+                                    <UserCheck className="mr-2 h-5 w-5" />
+                                    <span className="text-base font-semibold text-gray-500">Activate</span>
                                   </>
                                 )}
                               </DropdownMenuItem>
@@ -455,8 +455,8 @@ export default function Customers() {
                                 }}
                                 className="text-red-600"
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
+                                <Trash2 className="mr-2 h-5 w-5" />
+                                <span className="text-base font-semibold text-red-600">Delete</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -476,7 +476,7 @@ export default function Customers() {
                             </svg>
                           </div>
                           <h3 className="text-lg font-medium text-gray-900">No customers found</h3>
-                          <p className="text-sm text-gray-500">{searchTerm ? "Try adjusting your search or filter to find what you're looking for." : "Get started by adding a new customer."}</p>
+                          <p className="text-base font-semibold text-gray-500">{searchTerm ? "Try adjusting your search or filter to find what you're looking for." : "Get started by adding a new customer."}</p>
                           {!searchTerm && (
                             <Button className="mt-4">
                               <Plus className="h-4 w-4 mr-2" />
@@ -570,10 +570,10 @@ export default function Customers() {
           setIsAddCustomerOpen(open);
         }}
       >
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[750px]">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? "Edit Customer" : "Add New Customer"}</DialogTitle>
-            <DialogDescription>Fill in the details below to {isEditMode ? "edit" : "add"} a new customer.</DialogDescription>
+            <DialogTitle className="text-2xl font-semibold">{isEditMode ? "Edit Customer" : "Add New Customer"}</DialogTitle>
+            <DialogDescription className="text-base">Fill in the details below to {isEditMode ? "edit" : "add"} a new customer.</DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -652,8 +652,8 @@ export default function Customers() {
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
-                              <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <Button variant={"outline"} className={cn("w-full h-[55px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                <span className="text-base font-semibold">{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}</span>
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
@@ -704,10 +704,10 @@ export default function Customers() {
                 </div>
               </div>
               <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => setIsAddCustomerOpen(false)}>
+                <Button type="button" className="text-base font-semibold" variant="outline" onClick={() => setIsAddCustomerOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" className="text-base font-semibold">
                   {isEditMode ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
                   {isEditMode ? "Save Changes" : "Add Customer"}
                 </Button>

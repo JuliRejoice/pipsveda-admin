@@ -159,7 +159,7 @@ export default function CompanyPage() {
 
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search company..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8" />
         </div>
       </div>
@@ -168,10 +168,10 @@ export default function CompanyPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Sr. No</TableHead>
-              <TableHead>Company Name</TableHead>
-              <TableHead>Edit</TableHead>
-              <TableHead>Delete</TableHead>
+              <TableHead className="text-base">`Sr. No</TableHead>
+              <TableHead className="text-base">`Company Name</TableHead>
+              <TableHead className="text-base">`Edit</TableHead>
+              <TableHead className="text-base">`Delete</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -1,39 +1,33 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud, Image, CalendarPlus, BookPlus, AlertTriangle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle as DialogTitleUI, DialogFooter } from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { toast } from 'sonner';
-import { createCourse, getCourses, updateCourse, deleteCourse } from '@/components/api/course';
-import React from 'react';
-import {
-  Dialog as ConfirmDialog,
-  DialogContent as ConfirmDialogContent,
-  DialogHeader as ConfirmDialogHeader,
-  DialogTitle as ConfirmDialogTitle,
-  DialogFooter as ConfirmDialogFooter,
-} from '@/components/ui/dialog';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud, Image, CalendarPlus, BookPlus, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle as DialogTitleUI, DialogFooter } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { toast } from "sonner";
+import { createCourse, getCourses, updateCourse, deleteCourse } from "@/components/api/course";
+import React from "react";
+import { Dialog as ConfirmDialog, DialogContent as ConfirmDialogContent, DialogHeader as ConfirmDialogHeader, DialogTitle as ConfirmDialogTitle, DialogFooter as ConfirmDialogFooter } from "@/components/ui/dialog";
+import Link from "next/link";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
-import { Course } from '@/components/api/course';
-import { DialogTitle } from '@radix-ui/react-dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Course } from "@/components/api/course";
+import { DialogTitle } from "@radix-ui/react-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Courses() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('recorded');
-  const [formActiveTab, setFormActiveTab] = useState('recorded');
+  const [activeTab, setActiveTab] = useState("recorded");
+  const [formActiveTab, setFormActiveTab] = useState("recorded");
   const [isTabSwitching, setIsTabSwitching] = useState(false);
 
   // Pagination state
@@ -319,14 +313,11 @@ export default function Courses() {
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-medium text-lg line-clamp-2">
-                <Link 
-                  href={activeTab === 'live' ? `/dashboard/courses/${course._id}/sessions` : `/dashboard/courses/${course._id}`} 
-                  className="hover:underline cursor-pointer"
-                >
+                <Link href={activeTab === "live" ? `/dashboard/courses/${course._id}/sessions` : `/dashboard/courses/${course._id}`} className="hover:underline cursor-pointer">
                   {course.CourseName}
                 </Link>
               </h3>
-              <div className="text-sm text-muted-foreground line-clamp-2 h-10 overflow-hidden text-ellipsis">{course.description}</div>
+              <div className="text-base text-muted-foreground line-clamp-2 h-12 overflow-hidden text-ellipsis">{course.description}</div>
             </div>
             <DropdownMenu open={popoverOpen} onOpenChange={setPopoverOpen}>
               <DropdownMenuTrigger asChild>
@@ -336,7 +327,7 @@ export default function Courses() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {activeTab === 'live' ? (
+                {activeTab === "live" ? (
                   <Link href={`/dashboard/courses/${course._id}/sessions`} className="w-full">
                     <DropdownMenuItem
                       onSelect={(e) => {
@@ -345,8 +336,8 @@ export default function Courses() {
                       }}
                       className="cursor-pointer"
                     >
-                      <CalendarPlus className="mr-2 h-4 w-4" />
-                      <span>Add Session</span>
+                      <CalendarPlus className="mr-2 h-5 w-5" />
+                      <span className="text-base font-semibold text-gray-500">Add Session</span>
                     </DropdownMenuItem>
                   </Link>
                 ) : (
@@ -358,8 +349,8 @@ export default function Courses() {
                       }}
                       className="cursor-pointer"
                     >
-                      <BookPlus className="mr-2 h-4 w-4" />
-                      <span>Add Chapters</span>
+                      <BookPlus className="mr-2 h-5 w-5" />
+                      <span className="text-base font-semibold text-gray-500">Add Chapters</span>
                     </DropdownMenuItem>
                   </Link>
                 )}
@@ -371,8 +362,8 @@ export default function Courses() {
                     setPopoverOpen(false);
                   }}
                 >
-                  <Edit className="mr-2 h-4 w-4" />
-                  <span>Edit</span>
+                  <Edit className="mr-2 h-5 w-5" />
+                  <span className="text-base font-semibold text-gray-500">Edit</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
@@ -381,8 +372,8 @@ export default function Courses() {
                     setDeleteDialogOpen(true);
                   }}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
+                  <Trash2 className="mr-2 h-5 w-5" />
+                  <span className="text-base font-semibold text-red-600">Delete</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -391,9 +382,7 @@ export default function Courses() {
           <div className="flex justify-between items-center">
             <span className="text-lg font-semibold">${course.price || "0"}</span>
             <Badge variant="outline" className="capitalize">
-              <span className="text-blacktheme">
-                {course.courseType}
-              </span>
+              <span className="text-blacktheme">{course.courseType}</span>
             </Badge>
           </div>
 
@@ -482,6 +471,7 @@ export default function Courses() {
       apiFormData.append("courseEnd", endDate);
       apiFormData.append("instructor", formData.get("instructor") || "");
       apiFormData.append("language", formData.get("language") || "english");
+      apiFormData.append("isDefineCourse", formData.get("defineCourse") || "");
 
       // Add course type specific fields
       if (courseType === "live") {
@@ -729,6 +719,14 @@ export default function Courses() {
                     {formErrors.hours && <div className="text-red-500">{formErrors.hours}</div>}
                   </div>
                 </div>
+                <div>
+                  <label className="block font-medium mb-1">Define Course</label>
+                  <select name="defineCourse" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                    <option value="">Choose Option</option>
+                    <option value="popular">Popular</option>
+                    <option value="trending">Trending</option>
+                  </select>
+                </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : editCourse ? "Update Course" : "Create Recorded Course"}
@@ -797,13 +795,7 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={liveStartDate}
-                          onSelect={setLiveStartDate}
-                          initialFocus
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                        />
+                        <Calendar mode="single" selected={liveStartDate} onSelect={setLiveStartDate} initialFocus disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
                       </PopoverContent>
                     </Popover>
                     {formErrors.startDate && <div className="text-red-500">{formErrors.startDate}</div>}
@@ -818,13 +810,7 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={liveEndDate}
-                          onSelect={setLiveEndDate}
-                          initialFocus
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                        />
+                        <Calendar mode="single" selected={liveEndDate} onSelect={setLiveEndDate} initialFocus disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
                       </PopoverContent>
                     </Popover>
                     {formErrors.endDate && <div className="text-red-500">{formErrors.endDate}</div>}
@@ -835,6 +821,14 @@ export default function Courses() {
                   <label className="block font-medium mb-1">Zoom Meeting Link</label>
                   <Input placeholder="Zoom Meeting Link" name="zoomLink" defaultValue={editCourse?.meetingLink || ""} />
                   {formErrors.zoomLink && <div className="text-red-500">{formErrors.zoomLink}</div>}
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Define Course</label>
+                  <select name="defineCourse" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                    <option value="">Choose Option</option>
+                    <option value="popular">Popular</option>
+                    <option value="trending">Trending</option>
+                  </select>
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
@@ -903,13 +897,7 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={physicalStartDate}
-                          onSelect={setPhysicalStartDate}
-                          initialFocus
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                        />
+                        <Calendar mode="single" selected={physicalStartDate} onSelect={setPhysicalStartDate} initialFocus disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
                       </PopoverContent>
                     </Popover>
                     {formErrors.startDate && <div className="text-red-500">{formErrors.startDate}</div>}
@@ -924,13 +912,7 @@ export default function Courses() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={physicalEndDate}
-                          onSelect={setPhysicalEndDate}
-                          initialFocus
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                        />
+                        <Calendar mode="single" selected={physicalEndDate} onSelect={setPhysicalEndDate} initialFocus disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
                       </PopoverContent>
                     </Popover>
                     {formErrors.endDate && <div className="text-red-500">{formErrors.endDate}</div>}
@@ -944,24 +926,12 @@ export default function Courses() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="block font-medium">Email</label>
-                    <Input
-                      type="email"
-                      placeholder="Email"
-                      name="email"
-                      defaultValue={editCourse?.email || ""}
-                      className="w-full"
-                    />
+                    <Input type="email" placeholder="Email" name="email" defaultValue={editCourse?.email || ""} className="w-full" />
                     {formErrors.email && <p className="text-red-500">{formErrors.email}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="block font-medium">Phone No.</label>
-                    <Input
-                      type="tel"
-                      placeholder="Phone Number"
-                      name="phone"
-                      defaultValue={editCourse?.phone || ""}
-                      className="w-full"
-                    />
+                    <Input type="tel" placeholder="Phone Number" name="phone" defaultValue={editCourse?.phone || ""} className="w-full" />
                     {formErrors.phone && <p className="text-red-500">{formErrors.phone}</p>}
                   </div>
                   {/* <div className="space-y-1">
@@ -981,6 +951,14 @@ export default function Courses() {
                   <label className="block font-medium">Location</label>
                   <Input placeholder="Location" name="location" defaultValue={editCourse?.location || ""} className="w-full" />
                   {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Define Course</label>
+                  <select name="defineCourse" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                    <option value="">Choose Option</option>
+                    <option value="popular">Popular</option>
+                    <option value="trending">Trending</option>
+                  </select>
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
@@ -1026,6 +1004,7 @@ export default function Courses() {
             setOpen(true);
             setFormActiveTab(activeTab);
           }}
+          className="text-base font-semibold"
         >
           <Plus className="h-4 w-4 mr-2" />
           Create Course
@@ -1034,13 +1013,13 @@ export default function Courses() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-4 px-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="recorded" className="w-full">
+          <TabsTrigger value="recorded" className="text-base font-semibold w-full">
             Recorded
           </TabsTrigger>
-          <TabsTrigger value="live" className="w-full">
+          <TabsTrigger value="live" className="text-base font-semibold w-full">
             Live
           </TabsTrigger>
-          <TabsTrigger value="physical" className="w-full">
+          <TabsTrigger value="physical" className="text-base font-semibold w-full">
             In-Person
           </TabsTrigger>
         </TabsList>

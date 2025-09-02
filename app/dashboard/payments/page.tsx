@@ -84,7 +84,7 @@ export default function Payments() {
       try {
         setIsLoading(true);
         const response = await getPaymentHistory();
-        
+
         if (response.success) {
           const paymentsData = response.payload.data || [];
           setPayments(paymentsData);
@@ -123,19 +123,19 @@ export default function Payments() {
 
   const searchPayments = (payments: Payment[], term: string) => {
     if (!term.trim()) return payments;
-    
+
     const searchTerm = term.toLowerCase();
     return payments.filter(payment => {
       return (
         (payment.userName?.toLowerCase().includes(searchTerm) ||
-        payment.itemName?.toLowerCase().includes(searchTerm) ||
-        payment.paymentId?.toLowerCase().includes(searchTerm) ||
-        payment.orderId?.toLowerCase().includes(searchTerm) ||
-        payment.userEmail?.toLowerCase().includes(searchTerm) ||
-        payment.courseId?.CourseName?.toLowerCase().includes(searchTerm) ||
-        payment.botId?.strategyId?.title?.toLowerCase().includes(searchTerm) ||
-        payment.telegramId?.telegramId?.channelName?.toLowerCase().includes(searchTerm) ||
-        payment.planType?.toLowerCase().includes(searchTerm))
+          payment.itemName?.toLowerCase().includes(searchTerm) ||
+          payment.paymentId?.toLowerCase().includes(searchTerm) ||
+          payment.orderId?.toLowerCase().includes(searchTerm) ||
+          payment.userEmail?.toLowerCase().includes(searchTerm) ||
+          payment.courseId?.CourseName?.toLowerCase().includes(searchTerm) ||
+          payment.botId?.strategyId?.title?.toLowerCase().includes(searchTerm) ||
+          payment.telegramId?.telegramId?.channelName?.toLowerCase().includes(searchTerm) ||
+          payment.planType?.toLowerCase().includes(searchTerm))
       );
     });
   };
@@ -252,17 +252,17 @@ export default function Payments() {
               ) : (
                 filteredPayments.map((payment, index) => (
                   <tr key={payment._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{index + 1}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
                       {payment.courseId?.CourseName || "-"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500 capitalize">
                       {payment.courseId?.courseType || "-"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
                       ${payment.price || '0.00'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
                       {payment.orderId || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -329,16 +329,16 @@ export default function Payments() {
               ) : (
                 filteredPayments.map((payment, index) => (
                   <tr key={payment._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment?.botId?.strategyId?.title || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment?.botId?.planType || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${payment?.price || '0.00'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment.orderId || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{index + 1}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{payment?.botId?.strategyId?.title || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{payment?.botId?.planType || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">${payment?.price || '0.00'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{payment.orderId || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{renderStatusBadge(payment.status)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <div 
+                          <div
                             className="cursor-pointer"
                             onClick={() => setSelectedPayment(payment)}
                           >
@@ -427,11 +427,11 @@ export default function Payments() {
               ) : (
                 filteredPayments.map((payment, index) => (
                   <tr key={payment._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment?.telegramId?.telegramId?.channelName || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment?.planType || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${payment?.price || '0.00'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment?.orderId || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{index + 1}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{payment?.telegramId?.telegramId?.channelName || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{payment?.planType || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">${payment?.price || '0.00'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{payment?.orderId || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{renderStatusBadge(payment?.status)}</td>
                   </tr>
                 ))
@@ -447,18 +447,18 @@ export default function Payments() {
       <div className="overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sr. No</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purchase Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Strategy Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telegram Channel</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meta Account No</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <tr className="bg-gray-50 whitespace-nowrap">
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Sr. No</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Purchase Date</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Course Name</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Strategy Name</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Telegram Channel</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Course Type</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Plan</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Amount</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Transaction ID</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Meta Account No</th>
+              <th className="px-6 py-3 text-left text-base font-semibold text-gray-500 capitalize tracking-wider">Status</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -496,68 +496,70 @@ export default function Payments() {
                 </td>
               </tr>
             ) : (
-            filteredPayments.map((payment, index) => (
-              <tr key={payment._id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {payment.createdAt ? formatDate(payment.createdAt) : 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {payment?.courseId?.CourseName ? payment.courseId.CourseName : '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {payment?.botId?.strategyId?.title ? payment?.botId?.strategyId?.title : '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {payment?.telegramId?.telegramId?.channelName ? payment?.telegramId?.telegramId?.channelName : '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {payment?.courseId?.courseType ? payment?.courseId?.courseType : '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {payment?.botId?.planType ? payment?.botId?.planType : payment?.telegramId?.planType ? payment?.telegramId?.planType : '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  ${payment?.price || '0.00'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {payment?.orderId || 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <div 
-                        className="cursor-pointer"
-                        onClick={() => setSelectedPayment(payment)}
-                      >
-                        {payment?.botId ? renderStatusBadge("View More") : "-"}
-                      </div>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Meta Account Numbers</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        {payment?.metaAccountNo?.length > 0 ? (
-                          <div className="space-y-2">
-                            {payment.metaAccountNo.map((account, idx) => (
-                              <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-md">
-                                <span className="font-medium">Account {idx + 1}:</span>
-                                <span className="font-mono px-3">{account}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-gray-500 text-center py-4">No meta account numbers found</p>
-                        )}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {renderStatusBadge(payment.status)}
-                </td>
-              </tr>
+              filteredPayments.map((payment, index) => (
+                <tr key={payment._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">{index + 1}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
+                    {payment.createdAt ? formatDate(payment.createdAt) : 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
+                    {payment?.courseId?.CourseName ? payment.courseId.CourseName : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
+                    {payment?.botId?.strategyId?.title ? payment?.botId?.strategyId?.title : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
+                    {payment?.telegramId?.telegramId?.channelName ? payment?.telegramId?.telegramId?.channelName : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
+                    {payment?.courseId?.courseType ? payment?.courseId?.courseType : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
+                    {payment?.botId?.planType ? payment?.botId?.planType : payment?.telegramId?.planType ? payment?.telegramId?.planType : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
+                    ${payment?.price || '0.00'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-base font-semibold text-gray-500">
+                    {payment?.orderId || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => setSelectedPayment(payment)}
+                        >
+                          <span className='text-base font-semibold'>
+                            {payment?.botId ? renderStatusBadge("View More") : "-"}
+                          </span>
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Meta Account Numbers</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          {payment?.metaAccountNo?.length > 0 ? (
+                            <div className="space-y-2">
+                              {payment.metaAccountNo.map((account, idx) => (
+                                <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-md">
+                                  <span className="font-medium">Account {idx + 1}:</span>
+                                  <span className="font-mono px-3">{account}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-500 text-center py-4">No meta account numbers found</p>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {renderStatusBadge(payment.status)}
+                  </td>
+                </tr>
               ))
             )}
           </tbody>
@@ -575,8 +577,8 @@ export default function Payments() {
         </div>
       </div>
 
-      <Tabs 
-        value={activeTab} 
+      <Tabs
+        value={activeTab}
         onValueChange={setActiveTab}
         className="w-full"
       >
@@ -586,24 +588,24 @@ export default function Payments() {
           <TabsTrigger value="algobots">AlgoBot Sales</TabsTrigger>
           <TabsTrigger value="telegram">Telegram</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="payments" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>All Payments</CardTitle>
             </CardHeader>
             <CardContent>
-            {isLoading ? (
+              {isLoading ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : error ? (
                 <div className="text-center py-12 text-gray-500">
-                <p className="text-lg font-medium">No data found</p>
-                <p className="text-sm mt-1">
-                No payment records available at the moment.
-                </p>
-              </div>
+                  <p className="text-lg font-medium">No data found</p>
+                  <p className="text-sm mt-1">
+                    No payment records available at the moment.
+                  </p>
+                </div>
               ) : (
                 <>
                   {renderSearchInput("Search payments...")}
@@ -613,7 +615,7 @@ export default function Payments() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="courses" className="space-y-4">
           <Card>
             <CardHeader>
@@ -626,11 +628,11 @@ export default function Payments() {
                 </div>
               ) : error ? (
                 <div className="text-center py-12 text-gray-500">
-                <p className="text-lg font-medium">No data found</p>
-                <p className="text-sm mt-1">
-                No payment records available at the moment.
-                </p>
-              </div>
+                  <p className="text-lg font-medium">No data found</p>
+                  <p className="text-sm mt-1">
+                    No payment records available at the moment.
+                  </p>
+                </div>
               ) : (
                 <>
                   {renderSearchInput("Search courses...")}
@@ -640,7 +642,7 @@ export default function Payments() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="algobots" className="space-y-4">
           <Card>
             <CardHeader>
@@ -653,11 +655,11 @@ export default function Payments() {
                 </div>
               ) : error ? (
                 <div className="text-center py-12 text-gray-500">
-                <p className="text-lg font-medium">No data found</p>
-                <p className="text-sm mt-1">
-                No payment records available at the moment.
-                </p>
-              </div>
+                  <p className="text-lg font-medium">No data found</p>
+                  <p className="text-sm mt-1">
+                    No payment records available at the moment.
+                  </p>
+                </div>
               ) : (
                 <>
                   {renderSearchInput("Search algobots...")}
@@ -667,7 +669,7 @@ export default function Payments() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="telegram" className="space-y-4">
           <Card>
             <CardHeader>
@@ -680,11 +682,11 @@ export default function Payments() {
                 </div>
               ) : error ? (
                 <div className="text-center py-12 text-gray-500">
-                <p className="text-lg font-medium">No data found</p>
-                <p className="text-sm mt-1">
-                No payment records available at the moment.
-                </p>
-              </div>
+                  <p className="text-lg font-medium">No data found</p>
+                  <p className="text-sm mt-1">
+                    No payment records available at the moment.
+                  </p>
+                </div>
               ) : (
                 <>
                   {renderSearchInput("Search telegram subscriptions...")}

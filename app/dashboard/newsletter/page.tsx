@@ -96,9 +96,9 @@ export default function NewsletterPage() {
             {/* <TableHeader className="bg-muted/50"> */}
             <TableHeader>
               <TableRow>
-                <TableHead>Sr. No</TableHead>
-                <TableHead>Subscription Email</TableHead>
-                <TableHead>Subscribed</TableHead>
+                <TableHead className="text-base">Sr. No</TableHead>
+                <TableHead className="text-base">Subscription Email</TableHead>
+                <TableHead className="text-base">Subscribed</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

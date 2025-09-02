@@ -34,9 +34,9 @@ const sidebarItems = [
     icon: Bot,
   },
   {
-    title: 'Telegram',
-    href: '/dashboard/telegram',
-    icon: MessageCircle
+    title: "Telegram",
+    href: "/dashboard/telegram",
+    icon: MessageCircle,
   },
   {
     title: "Coupons",
@@ -44,9 +44,9 @@ const sidebarItems = [
     icon: Gift,
   },
   {
-    title: 'Payments',
-    href: '/dashboard/payments',
-    icon: CreditCard
+    title: "Payments",
+    href: "/dashboard/payments",
+    icon: CreditCard,
   },
   // {
   //   title: 'Notifications',
@@ -110,7 +110,7 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <div className={cn("bg-background border-r transition-all duration-300 flex flex-col h-screen relative", isCollapsed ? "w-16" : "w-64")}>
+    <div className={cn("bg-background border-r transition-all duration-300 flex flex-col h-screen relative", isCollapsed ? "w-16" : "w-[280px]")}>
       {/* Toggle Button - Fixed at the top right */}
       <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn("absolute -right-5 top-14 z-10 rounded-lg border bg-background p-0", "flex items-center justify-center hover:bg-muted w-8 h-8")}>
         {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -144,36 +144,36 @@ export default function Sidebar() {
             return (
               <Link key={item.href} href={item.href}>
                 <Button variant={isActive ? "default" : "ghost"} className={cn(`w-full justify-start group ${isCollapsed ? "!px-0 flex items-center justify-center" : ""} ${isActive && !isCollapsed ? "px-0" : "px-4"}`, isCollapsed ? "h-10" : "h-12")}>
-                  <Icon className={cn("h-4 w-4", !isCollapsed && "mr-3")} />
-                  {!isCollapsed && item.title}
-                </Button>
+                  <Icon className={cn("h-6 w-6", !isCollapsed && "mr-3")} />
+                  <span className={`text-base font-medium ${!isActive ? "text-gray-900" : "text-white"}`}>{!isCollapsed && item.title}</span>
+              </Button>
               </Link>
-            );
+        );
           })}
-        </nav>
-      </ScrollArea>
+      </nav>
+    </ScrollArea>
 
-      {/* Profile Section */}
-      <div className={cn("border-t border-muted p-4 mt-auto", isCollapsed ? "px-2 py-4" : "p-4")}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className={cn("w-full justify-between h-auto p-2", isCollapsed ? "flex-col items-center justify-center space-y-1" : "flex items-center")}>
-              <div className="flex items-center">
-                <Avatar className={cn("h-8 w-8", isCollapsed ? "mx-auto" : "mr-2")}>
-                  <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : "A"}</AvatarFallback>
-                </Avatar>
-                {!isCollapsed && (
-                  <div className="text-left">
-                    <p className="text-sm font-medium">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                  </div>
-                )}
+      {/* Profile Section */ }
+  <div className={cn("border-t border-muted p-4 mt-auto", isCollapsed ? "px-2 py-4" : "p-4")}>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className={cn("w-full justify-between h-auto p-2", isCollapsed ? "flex-col items-center justify-center space-y-1" : "flex items-center")}>
+          <div className="flex items-center">
+            <Avatar className={cn("h-8 w-8", isCollapsed ? "mx-auto" : "mr-2")}>
+              <AvatarFallback className="text-base font-semibold">{user?.name ? user.name.charAt(0).toUpperCase() : "A"}</AvatarFallback>
+            </Avatar>
+            {!isCollapsed && (
+              <div className="text-left">
+                <p className="text-base font-medium">{user?.name}</p>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
-              {!isCollapsed && <ChevronDown className="h-4 w-4 ml-auto opacity-50" />}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align={isCollapsed ? "start" : "end"} side={isCollapsed ? "right" : "top"}>
-            {/* <DropdownMenuItem>
+            )}
+          </div>
+          {!isCollapsed && <ChevronDown className="h-4 w-4 ml-auto opacity-50" />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align={isCollapsed ? "start" : "end"} side={isCollapsed ? "right" : "top"}>
+        {/* <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
@@ -181,13 +181,13 @@ export default function Sidebar() {
               <SettingsIcon className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem> */}
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4 text-blacktheme" />
-              <span>Logout</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOut className="mr-2 h-5 w-5 text-blacktheme" />
+          <span className="text-base font-medium">Logout</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+    </div >
   );
 }

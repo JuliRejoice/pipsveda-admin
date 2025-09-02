@@ -27,15 +27,15 @@ export function ThemeToggle() {
     );
   }
 
-  return (
-    <button
-      aria-label="Toggle theme"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="p-2"
-    >
-      {theme === 'dark' ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-    </button>
-  );
+  // return (
+  //   <button
+  //     aria-label="Toggle theme"
+  //     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+  //     className="p-2"
+  //   >
+  //     {theme === 'dark' ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+  //   </button>
+  // );
 }
 
 interface HeaderProps {

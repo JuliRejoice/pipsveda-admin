@@ -361,8 +361,8 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={() => router.back()} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Courses
+            <ArrowLeft className="h-5 w-5" />
+            <span className="text-base font-semibold">Back to Courses</span>
           </Button>
         </div>
         <Button onClick={handleAddNew}>
@@ -420,10 +420,10 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                           <div>
                             <h3 className="font-semibold text-lg mb-1">{session.sessionName}</h3>
                             <div className="flex flex-wrap gap-2 items-center text-xs text-muted-foreground mb-1">
-                              <span className="bg-gray-100 px-2 py-0.5 rounded">{new Date(session.date).toLocaleDateString("en-GB")}</span>
-                              <span className="bg-gray-100 px-2 py-0.5 rounded">{session.time}</span>
+                              <span className="bg-gray-100 px-2 py-0.5 rounded text-sm">{new Date(session.date).toLocaleDateString("en-GB")}</span>
+                              <span className="bg-gray-100 px-2 py-0.5 rounded text-sm">{session.time}</span>
                             </div>
-                            <p className="text-sm text-gray-700 mb-2 line-clamp-2 overflow-hidden text-ellipsis">{session.description}</p>
+                            <p className="text-base font-semibold text-gray-700 mb-2 line-clamp-2 overflow-hidden text-ellipsis">{session.description}</p>
                             {session.meetingLink && (
                               <a href={session.meetingLink} target="_blank" rel="noopener noreferrer" className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-xs font-medium transition">
                                 ▶ Join Meeting
@@ -488,7 +488,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                   if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
                 }}
                 placeholder="Session description"
-                className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.description ? 'border-red-500' : ''
+                className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.description ? 'border-red-500' : ''
                   }`}
                 rows={4}
               />

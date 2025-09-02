@@ -148,7 +148,7 @@ export default function Utility() {
       {/* Search */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search settings..."
@@ -162,10 +162,10 @@ export default function Utility() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">Sr. No</TableHead>
-              <TableHead>Setting</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead>Edit</TableHead>
+              <TableHead className="text-base w-[80px]">Sr. No</TableHead>
+              <TableHead className="text-base">Setting</TableHead>
+              <TableHead className="text-base">Value</TableHead>
+              <TableHead className="text-base">Edit</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -161,7 +161,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target as HTMLInputElement;
-        
+
         // Clear error when user types
         if (errors[name as keyof typeof errors]) {
             setErrors(prev => ({
@@ -194,13 +194,13 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
-        
+
         try {
-            const data = new FormData();                        
+            const data = new FormData();
             data.append('chapterName', formData.chapterName);
             data.append('description', formData.description);
             const durationValue = formData.duration ? String(Number(formData.duration)) : '';
@@ -296,198 +296,198 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                     <Button variant="ghost" onClick={() => router.back()} className="gap-2">
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Courses
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="text-base font-semibold">Back to Courses</span>
                     </Button>
                 </div>
-            <Button onClick={() => {
-                setSelectedChapter(null);
-                setFormData({
-                    chapterName: '',
-                    description: '',
-                    duration: '',
-                    videoUrl: '',
-                    chapterNo: '',
-                    videoFile: null,
-                    image: null,
-                });
-                setErrors({});
-                setIsAddDialogOpen(true);
-            }}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Chapter
-            </Button>
-        </div>
+                <Button onClick={() => {
+                    setSelectedChapter(null);
+                    setFormData({
+                        chapterName: '',
+                        description: '',
+                        duration: '',
+                        videoUrl: '',
+                        chapterNo: '',
+                        videoFile: null,
+                        image: null,
+                    });
+                    setErrors({});
+                    setIsAddDialogOpen(true);
+                }}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Chapter
+                </Button>
+            </div>
 
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-2xl font-bold tracking-tight">
-                    {courseName || (initialChapters[0]?.courseId && typeof initialChapters[0].courseId === 'object'
-                        ? initialChapters[0].courseId.CourseName
-                        : 'Course Chapters')}
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                {isTabSwitching ? (
-                    <div className="flex justify-center items-center h-32">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                    </div>
-                ) : initialChapters.length === 0 && !loading ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                        <p>No chapters found for this course.</p>
-                        <p className="mt-2">Click the "Add Chapter" button to get started.</p>
-                    </div>
-                ) : (
-                    <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                        {initialChapters
-                            .sort((a, b) => {
-                                const aNo = typeof a.chapterNo === 'number' ? a.chapterNo : typeof a.order === 'number' ? a.order : 0;
-                                const bNo = typeof b.chapterNo === 'number' ? b.chapterNo : typeof b.order === 'number' ? b.order : 0;
-                                return aNo - bNo;
-                            })
-                            .map((chapter) => {
-                                // Helper for YouTube thumbnail
-                                const url =
-                                    typeof chapter.chapterVideo === 'string' && chapter.chapterVideo.length > 0
-                                        ? chapter.chapterVideo
-                                        : typeof chapter.videoUrl === 'string'
-                                            ? chapter.videoUrl
-                                            : '';
-                                let videoId: string | null = null;
-                                if (typeof url === 'string' && (url.includes('youtube.com') || url.includes('youtu.be'))) {
-                                    const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-                                    videoId = match ? match[1] : null;
-                                }
-                                return (
-                                    <Card key={chapter._id} className="flex flex-col h-full relative">
-                                        <CardContent className="p-4 flex flex-col flex-1">
-                                            {/* Popover for Edit/Delete */}
-                                            <div className="absolute top-2 right-2 z-10">
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <button className="p-1 rounded-full hover:bg-gray-200 focus:outline-none">
-                                                            <MoreVertical className="h-5 w-5 text-gray-500" />
-                                                        </button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent align="end" className="w-32 p-1">
-                                                        <button
-                                                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
-                                                            onClick={() => openEditDialog(chapter)}
-                                                        >
-                                                            Edit
-                                                        </button>
-                                                        <button
-                                                            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded"
-                                                            onClick={() => {
-                                                                setSelectedChapter(chapter);
-                                                                setIsDeleteDialogOpen(true);
-                                                            }}
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </div>
-                                            <div className="flex items-start space-x-4">
-                                                <div className="p-2 bg-primary/10 rounded-lg w-[120px] min-w-[120px] h-[120px] flex items-center justify-center relative group overflow-hidden">
-                                                    {videoId ? (
-                                                        <a href={url} target="_blank" rel="noopener noreferrer" className="w-full h-full block">
-                                                            <div className="relative w-full h-full">
-                                                                <img
-                                                                    src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-                                                                    alt="YouTube Video"
-                                                                    className="w-full h-full object-cover rounded-md border border-gray-200"
-                                                                />
-                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    <div className="bg-white/80 p-2 rounded-full transform transition-transform group-hover:scale-110">
-                                                                        <VideoIcon className="h-5 w-5 text-primary" />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </a>
-                                                    ) : url ? (
-                                                        <div className="w-full h-full relative group/video">
-                                                            <a 
-                                                                href={url} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer"
-                                                                className="w-full h-full block"
-                                                                onClick={(e) => {
-                                                                    // If clicking the play button, let the default link behavior happen
-                                                                    const target = e.target as HTMLElement;
-                                                                    if (target.closest('.play-button')) {
-                                                                        return; // Allow default link behavior
-                                                                    }
-                                                                    
-                                                                    // If clicking the video, prevent default and toggle play/pause
-                                                                    e.preventDefault();
-                                                                    const video = e.currentTarget.querySelector('video');
-                                                                    if (video) {
-                                                                        if (video.paused) {
-                                                                            video.play();
-                                                                            video.controls = true;
-                                                                        } else {
-                                                                            video.pause();
-                                                                            video.controls = false;
-                                                                        }
-                                                                    }
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-2xl font-bold tracking-tight">
+                        {courseName || (initialChapters[0]?.courseId && typeof initialChapters[0].courseId === 'object'
+                            ? initialChapters[0].courseId.CourseName
+                            : 'Course Chapters')}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isTabSwitching ? (
+                        <div className="flex justify-center items-center h-32">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                        </div>
+                    ) : initialChapters.length === 0 && !loading ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            <p>No chapters found for this course.</p>
+                            <p className="mt-2">Click the "Add Chapter" button to get started.</p>
+                        </div>
+                    ) : (
+                        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                            {initialChapters
+                                .sort((a, b) => {
+                                    const aNo = typeof a.chapterNo === 'number' ? a.chapterNo : typeof a.order === 'number' ? a.order : 0;
+                                    const bNo = typeof b.chapterNo === 'number' ? b.chapterNo : typeof b.order === 'number' ? b.order : 0;
+                                    return aNo - bNo;
+                                })
+                                .map((chapter) => {
+                                    // Helper for YouTube thumbnail
+                                    const url =
+                                        typeof chapter.chapterVideo === 'string' && chapter.chapterVideo.length > 0
+                                            ? chapter.chapterVideo
+                                            : typeof chapter.videoUrl === 'string'
+                                                ? chapter.videoUrl
+                                                : '';
+                                    let videoId: string | null = null;
+                                    if (typeof url === 'string' && (url.includes('youtube.com') || url.includes('youtu.be'))) {
+                                        const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                        videoId = match ? match[1] : null;
+                                    }
+                                    return (
+                                        <Card key={chapter._id} className="flex flex-col h-full relative">
+                                            <CardContent className="p-4 flex flex-col flex-1">
+                                                {/* Popover for Edit/Delete */}
+                                                <div className="absolute top-2 right-2 z-10">
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <button className="p-1 rounded-full hover:bg-gray-200 focus:outline-none">
+                                                                <MoreVertical className="h-5 w-5 text-gray-500" />
+                                                            </button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent align="end" className="h-auto w-32 p-1">
+                                                            <button
+                                                                className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded"
+                                                                onClick={() => openEditDialog(chapter)}
+                                                            >
+                                                                <span className='text-base font-semibold'>Edit</span>
+                                                            </button>
+                                                            <button
+                                                                className="w-full text-left px-3 py-2 hover:bg-red-50 rounded"
+                                                                onClick={() => {
+                                                                    setSelectedChapter(chapter);
+                                                                    setIsDeleteDialogOpen(true);
                                                                 }}
                                                             >
-                                                                <video 
-                                                                    src={url}
-                                                                    className="w-full h-full object-cover rounded-md border border-gray-200"
-                                                                    poster=""
-                                                                    onEnded={(e) => {
-                                                                        const video = e.currentTarget;
-                                                                        video.controls = false;
-                                                                        setIsPlaying(false);
-                                                                    }}
-                                                                />
-                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover/video:opacity-100 transition-opacity">
-                                                                    <div className="bg-white/80 p-2 rounded-full transform transition-transform group-hover/video:scale-110 play-button">
-                                                                        <VideoIcon className="h-5 w-5 text-primary" />
+                                                                <span className='text-base font-semibold text-red-600'>Delete</span>
+                                                            </button>
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </div>
+                                                <div className="flex items-start space-x-4">
+                                                    <div className="p-2 bg-primary/10 rounded-lg w-[120px] min-w-[120px] h-[120px] flex items-center justify-center relative group overflow-hidden">
+                                                        {videoId ? (
+                                                            <a href={url} target="_blank" rel="noopener noreferrer" className="w-full h-full block">
+                                                                <div className="relative w-full h-full">
+                                                                    <img
+                                                                        src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                                                                        alt="YouTube Video"
+                                                                        className="w-full h-full object-cover rounded-md border border-gray-200"
+                                                                    />
+                                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <div className="bg-white/80 p-2 rounded-full transform transition-transform group-hover:scale-110">
+                                                                            <VideoIcon className="h-5 w-5 text-primary" />
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </a>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex flex-col items-center justify-center text-center p-2">
-                                                            <VideoIcon className="h-6 w-6 text-primary mb-1" />
-                                                            <span className="text-xs text-muted-foreground">No video</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-lg mb-1 line-clamp-1 max-w-[95%]">{chapter.chapterName}</h3>
-                                                    <div className="flex flex-wrap gap-2 items-center text-xs text-muted-foreground mb-1">
-                                                        <span className="bg-gray-100 px-2 py-0.5 rounded">Chapter {chapter.chapterNo}</span>
-                                                        <span className="bg-gray-100 px-2 py-0.5 rounded">
-                                                            {new Date(chapter.createdAt).toLocaleDateString('en-GB', {
-                                                                year: 'numeric',
-                                                                month: '2-digit',
-                                                                day: '2-digit',
-                                                            })}
-                                                        </span>
+                                                        ) : url ? (
+                                                            <div className="w-full h-full relative group/video">
+                                                                <a
+                                                                    href={url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="w-full h-full block"
+                                                                    onClick={(e) => {
+                                                                        // If clicking the play button, let the default link behavior happen
+                                                                        const target = e.target as HTMLElement;
+                                                                        if (target.closest('.play-button')) {
+                                                                            return; // Allow default link behavior
+                                                                        }
+
+                                                                        // If clicking the video, prevent default and toggle play/pause
+                                                                        e.preventDefault();
+                                                                        const video = e.currentTarget.querySelector('video');
+                                                                        if (video) {
+                                                                            if (video.paused) {
+                                                                                video.play();
+                                                                                video.controls = true;
+                                                                            } else {
+                                                                                video.pause();
+                                                                                video.controls = false;
+                                                                            }
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <video
+                                                                        src={url}
+                                                                        className="w-full h-full object-cover rounded-md border border-gray-200"
+                                                                        poster=""
+                                                                        onEnded={(e) => {
+                                                                            const video = e.currentTarget;
+                                                                            video.controls = false;
+                                                                            setIsPlaying(false);
+                                                                        }}
+                                                                    />
+                                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover/video:opacity-100 transition-opacity">
+                                                                        <div className="bg-white/80 p-2 rounded-full transform transition-transform group-hover/video:scale-110 play-button">
+                                                                            <VideoIcon className="h-5 w-5 text-primary" />
+                                                                        </div>
+                                                                    </div>
+                                                                </a>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center justify-center text-center p-2">
+                                                                <VideoIcon className="h-6 w-6 text-primary mb-1" />
+                                                                <span className="text-xs text-muted-foreground">No video</span>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <p className="text-sm text-gray-700 mb-2 line-clamp-2 overflow-hidden text-ellipsis">
-                                                        {chapter.description}
-                                                    </p>
-                                                    {url && (
-                                                        <a
-                                                            href={url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-xs font-medium transition"
-                                                        >
-                                                            ▶ Watch Video
-                                                        </a>
-                                                    )}
+                                                    <div>
+                                                        <h3 className="font-semibold text-lg mb-1 line-clamp-1 max-w-[95%]">{chapter.chapterName}</h3>
+                                                        <div className="flex flex-wrap gap-2 items-center text-xs text-muted-foreground mb-1">
+                                                            <span className="bg-gray-100 px-2 py-0.5 rounded text-sm">Chapter {chapter.chapterNo}</span>
+                                                            <span className="bg-gray-100 px-2 py-0.5 rounded text-sm">
+                                                                {new Date(chapter.createdAt).toLocaleDateString('en-GB', {
+                                                                    year: 'numeric',
+                                                                    month: '2-digit',
+                                                                    day: '2-digit',
+                                                                })}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-base font-semibold text-gray-700 mb-2 line-clamp-2 my-2.5 overflow-hidden text-ellipsis">
+                                                            {chapter.description}
+                                                        </p>
+                                                        {url && (
+                                                            <a
+                                                                href={url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-base font-medium transition"
+                                                            >
+                                                                ▶ Watch Video
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                );
-                            })}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
                         </div>
                     )}
                 </CardContent>
@@ -523,7 +523,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                     value={formData.description}
                                     onChange={handleInputChange}
                                     placeholder="Chapter description"
-                                    className="w-full p-2 border rounded-md min-h-[100px]"
+                                    className="w-full p-2 border rounded-md min-h-[100px] resize-none"
                                 />
                                 {errors.description && (
                                     <p className="text-sm text-red-500 mt-1">{errors.description}</p>
@@ -581,10 +581,10 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                     <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
                                         <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
                                         <p className="text-sm text-gray-600 mb-2">
-                                            {formData.videoFile 
-                                                ? formData.videoFile.name 
-                                                : formData.videoUrl 
-                                                    ? 'Video file selected' 
+                                            {formData.videoFile
+                                                ? formData.videoFile.name
+                                                : formData.videoUrl
+                                                    ? 'Video file selected'
                                                     : 'No video file selected'}
                                         </p>
                                         <Input
@@ -595,8 +595,8 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                             className="hidden"
                                             id="video-upload"
                                         />
-                                        <label 
-                                            htmlFor="video-upload" 
+                                        <label
+                                            htmlFor="video-upload"
                                             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                                         >
                                             {formData.videoFile || formData.videoUrl ? 'Change Video' : 'Upload Video'}
@@ -652,15 +652,15 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                             <AlertDescription>Are you sure you want to delete this chapter? This action cannot be undone.</AlertDescription>
                         </Alert>
                         <div className="flex justify-end space-x-2">
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 onClick={() => setIsDeleteDialogOpen(false)}
                                 disabled={isDeleting}
                             >
                                 Cancel
                             </Button>
-                            <Button 
-                                variant="destructive" 
+                            <Button
+                                variant="destructive"
                                 onClick={handleDelete}
                                 disabled={isDeleting}
                             >
