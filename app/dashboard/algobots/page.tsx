@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { marked } from "marked";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,8 +60,20 @@ const formSchema = z.object({
         url: z
           .string()
           .min(1, "Video link URL is required")
-          .refine((val) => /^https?:\/\/.+\..+/.test(val), { message: "Please enter a valid HTTP/HTTPS URL" }),
-        language: z.string().min(1, "Language is required"),
+          .refine((val) => {
+            const videoPlatforms = [
+              /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/,    
+              /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/,                
+              /^(https?:\/\/)?(www\.)?dailymotion\.com\/.+$/,            
+              /^(https?:\/\/)?(www\.)?facebook\.com\/.*\/videos\/.+$/,    
+              /^(https?:\/\/)?(www\.)?drive\.google\.com\/file\/.+$/,  
+              /^(https?:\/\/)?(www\.)?streamable\.com\/.+$/,           
+            ];
+            return videoPlatforms.some((regex) => regex.test(val));
+          }, {
+            message: "Please enter a valid video link.",
+          }),
+        language: z.string().optional(),
       })
     )
     .min(1, "At least one video link is required"),
@@ -149,6 +161,7 @@ export default function AlgoBots() {
   const [step, setStep] = useState(1);
   const [step1, setStep1] = useState({ links: [{ url: "", language: "" }] });
   const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isFetchingCategories, setIsFetchingCategories] = useState(false);
   const [providers, setProviders] = useState<BotProvider[]>([]);
@@ -164,6 +177,21 @@ export default function AlgoBots() {
   const [planEdit, setPlanEdit] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdownIndex(null);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const [languages, setLanguages] = useState<{ _id: string; languageName: string }[]>([]);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedBot, setSelectedBot] = useState<AlgoBot | null>(null);
@@ -383,18 +411,21 @@ export default function AlgoBots() {
   const onSubmitStep1 = async (data: FormValues) => {
     try {
       setIsLoading(true);
+      // Ensure each link has a default language of 'English' if none is selected
+      const processedLinks = (data.links || [])
+        .filter((link) => link.url && link.url.trim() !== "")
+        .map((link) => ({
+          language: link.language || 'English',
+          url: link.url,
+        }));
+
       const step1Data = {
         title: data.title,
         categoryId: data.categoryId,
         shortDescription: data.shortDescription,
         description: data.description,
-        ...(isEditMode && !imageFile ? "" : { imageUrl: imageFile }),
-        link: (data.links || [])
-          .filter((link) => link.url && link.url.trim() !== "")
-          .map((link) => ({
-            language: link.language,
-            url: link.url,
-          })),
+        ...(isEditMode && !imageFile ? {} : { imageUrl: imageFile }),
+        link: processedLinks,
       };
 
       if (isEditMode && currentBotId) {
@@ -879,7 +910,7 @@ export default function AlgoBots() {
 
   const handleLanguageChange = (index: number, language: string) => {
     const updatedLinks = [...step1.links];
-    updatedLinks[index].language = language;
+    updatedLinks[index].language = language || 'English';
     setStep1({ ...step1, links: updatedLinks });
     setValue("links", updatedLinks);
     setOpenDropdownIndex(null);
@@ -949,8 +980,14 @@ export default function AlgoBots() {
                             <div key={link._id || index} className="flex gap-2 items-start">
                               <div className="flex-1 flex gap-2 items-start">
                                 <Input value={link?.url || ""} onChange={(e) => handleLinkChange(index, e.target.value)} placeholder="Enter Tutorial Video Links... " className="w-full h-10" />
-                                <div className="relative h-[40px]">
-                                  <div className="py-1 px-3 border shadow-sm h-[40px] rounded-lg w-36 flex justify-between items-center cursor-pointer" onClick={() => setOpenDropdownIndex(openDropdownIndex === index ? null : index)}>
+                                <div className="relative h-[40px]" ref={dropdownRef}>
+                                  <div 
+                                    className="py-1 px-3 border shadow-sm h-[40px] rounded-lg w-36 flex justify-between items-center cursor-pointer" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenDropdownIndex(openDropdownIndex === index ? null : index);
+                                    }}
+                                  >
                                     <span className="text-sm font-medium text-muted-foreground">{languages.find((opt) => opt.languageName === link?.language)?.languageName || "English"}</span>
                                     <ChevronDown className={`h-4 w-4 transition-all duration-500 ease-in-out ${openDropdownIndex === index ? "rotate-180" : ""}`} />
                                   </div>
