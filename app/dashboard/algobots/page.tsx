@@ -397,9 +397,6 @@ export default function AlgoBots() {
           })),
       };
 
-      console.log(step1Data,"step1Data");
-      
-
       if (isEditMode && currentBotId) {
         const response = await updateAlgoBot(currentBotId, step1Data);
         if (response?.payload?._id) {
