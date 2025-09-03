@@ -1204,7 +1204,7 @@ export default function AlgoBots() {
 
       <div className="relative">
         <Search className="absolute left-2.5 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-        <Input type="search" placeholder="Search bots..." className="w-full bg-background pl-8 md:w-[300px]" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        <Input type="search" placeholder="Search bots..." className="w-full bg-background pl-8 md:w-[300px] font-normal" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
 
       {isFetching ? (

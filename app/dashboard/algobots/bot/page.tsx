@@ -278,7 +278,7 @@ export default function BotPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search bots..." value={searchTerm} onChange={handleSearch} className="pl-8" />
+          <Input placeholder="Search bots..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
         </div>
       </div>
 
@@ -318,8 +318,8 @@ export default function BotPage() {
                     const provider = providers?.find(p => p._id === bot.botProviderId);
                     return (
                       <TableRow key={bot._id}>
-                        <TableCell className="font-medium">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{bot.name}</TableCell>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{bot.name}</TableCell>
                         <TableCell className="font-medium"><button onClick={() => handleEdit(bot)}><Edit className="mr-2 h-4 w-4" /></button></TableCell>
                         <TableCell className="font-medium"><button onClick={() => handleDeleteClick(bot._id)}><Trash2 className="mr-2 h-4 w-4" /></button></TableCell>
                       </TableRow>

@@ -316,7 +316,7 @@ export default function Customers() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[70vh] items-center">
+      <div className="flex justify-center items-center min-h-[70vh]">
         <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
@@ -334,7 +334,7 @@ export default function Customers() {
             {/* <CardTitle>All Customers</CardTitle> */}
             <div className="relative w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input placeholder="Search by name, email, or phone..." value={searchInput} onChange={handleSearchInputChange} className="pl-10" />
+              <Input placeholder="Search by name, email, or phone..." value={searchInput} onChange={handleSearchInputChange} className="pl-10 font-normal" />
               {isSearching && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary"></div>
@@ -369,7 +369,7 @@ export default function Customers() {
                     filteredCustomers.map((customer, index) => (
                       <TableRow key={customer._id}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell className="font-medium">
+                        <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-9 w-9">
                               <AvatarFallback>
@@ -380,7 +380,7 @@ export default function Customers() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{customer.name}</div>
+                              <div>{customer.name}</div>
                               <div className="text-xs text-muted-foreground">{customer.location}</div>
                             </div>
                           </div>

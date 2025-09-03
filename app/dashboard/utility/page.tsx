@@ -152,7 +152,7 @@ export default function Utility() {
           <Input
             type="search"
             placeholder="Search settings..."
-            className="pl-8 w-[200px] lg:w-[300px]"
+            className="pl-8 w-[200px] lg:w-[300px] font-normal"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           /></div>
@@ -172,7 +172,7 @@ export default function Utility() {
             {paginatedData.length > 0 ? (
               paginatedData.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.serial}</TableCell>
+                  <TableCell>{item.serial}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       <span>{item.label}</span>
