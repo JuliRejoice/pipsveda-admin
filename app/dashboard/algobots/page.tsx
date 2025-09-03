@@ -388,7 +388,7 @@ export default function AlgoBots() {
         categoryId: data.categoryId,
         shortDescription: data.shortDescription,
         description: data.description,
-        imageUrl: imageFile,
+        ...(isEditMode && !imageFile ? "" : { imageUrl: imageFile }),
         link: (data.links || [])
           .filter((link) => link.url && link.url.trim() !== "")
           .map((link) => ({
@@ -396,6 +396,9 @@ export default function AlgoBots() {
             url: link.url,
           })),
       };
+
+      console.log(step1Data,"step1Data");
+      
 
       if (isEditMode && currentBotId) {
         const response = await updateAlgoBot(currentBotId, step1Data);
