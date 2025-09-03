@@ -230,7 +230,7 @@ export default function CouponPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search coupons..." value={searchTerm} onChange={handleSearchInputChange} className="pl-8" />
+          <Input placeholder="Search coupons..." value={searchTerm} onChange={handleSearchInputChange} className="pl-8 font-normal" />
         </div>
       </div>
 
@@ -275,7 +275,7 @@ export default function CouponPage() {
                   filteredCoupons.map((coupon, index) => (
                     <TableRow key={coupon._id}>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell>
                         <div className="flex items-center">
                           <Gift className="mr-2 h-4 w-4" />
                           {coupon.couponCode}

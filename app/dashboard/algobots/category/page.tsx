@@ -235,7 +235,7 @@ export default function Category() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search category..." value={searchTerm} onChange={handleSearch} className="pl-8" />
+          <Input placeholder="Search category..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
         </div>
       </div>
 
@@ -273,8 +273,8 @@ export default function Category() {
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                     .map((category, index) => (
                       <TableRow key={category._id}>
-                        <TableCell className="font-medium">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{category.title}</TableCell>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{category.title}</TableCell>
                         <TableCell className="font-medium"><button onClick={() => handleEdit(category)}><Edit className="mr-2 h-4 w-4" /></button></TableCell>
                         <TableCell className="font-medium"><button onClick={() => handleDeleteClick(category._id)}><Trash2 className="mr-2 h-4 w-4" /></button></TableCell>
                       </TableRow>

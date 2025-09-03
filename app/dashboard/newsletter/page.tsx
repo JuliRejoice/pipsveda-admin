@@ -105,11 +105,11 @@ export default function NewsletterPage() {
               {subscribers.map((subscriber, index) => (
                 <TableRow key={subscriber._id} className="hover:bg-muted/50">
                   <TableCell>{index + 1}</TableCell>
-                  <TableCell className="py-3">
-                    <div className="text-sm truncate">{subscriber.email}</div>
+                  <TableCell className="py-3">{subscriber.email}
+                    {/* <div className="text-sm truncate">{subscriber.email}</div> */}
                   </TableCell>
-                  <TableCell className="py-3">
-                    <div className="text-sm">{formatDate(subscriber.createdAt)}</div>
+                  <TableCell className="py-3">{formatDate(subscriber.createdAt)}
+                    {/* <div className="text-sm">{formatDate(subscriber.createdAt)}</div> */}
                   </TableCell>
                 </TableRow>
               ))}

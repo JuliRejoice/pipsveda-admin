@@ -94,8 +94,8 @@ export default function ContactPage() {
               <TableBody>
                 {contactData.map((submission, index) => (
                   <TableRow key={submission.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
                       {submission.firstName} {submission.lastName}
                     </TableCell>
                     <TableCell>
