@@ -138,6 +138,7 @@ export default function Customers() {
   const [itemsPerPage, setItemsPerPage] = useState(8);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
@@ -248,20 +249,33 @@ export default function Customers() {
   };
 
   const confirmStatusToggle = async () => {
-    if (!selectedCustomer) return;
+    if (!selectedCustomer || statusLoading) return;
 
     try {
+      setStatusLoading(true);
       const newStatus = !selectedCustomer.currentStatus;
 
       await setCustomerStatus(selectedCustomer.id, newStatus);
 
-      setCustomers(customers.map((customer) => (customer._id === selectedCustomer.id ? { ...customer, isActive: newStatus } : customer)));
+      // Update the customers list with the new status
+      setCustomers(prevCustomers => 
+        prevCustomers.map(customer => 
+          customer._id === selectedCustomer.id 
+            ? { ...customer, isActive: newStatus } 
+            : customer
+        )
+      );
 
-      setStatusDialogOpen(false);
+      // Update the selected customer status for the dialog
+      setSelectedCustomer(prev => prev ? { ...prev, currentStatus: newStatus } : null);
+      
       toast.success(`Customer "${selectedCustomer.name}" has been ${newStatus ? "activated" : "deactivated"}.`);
     } catch (error) {
       console.error("Error updating customer status:", error);
       toast.error("Failed to update customer status. Please try again.");
+    } finally {
+      setStatusLoading(false);
+      setStatusDialogOpen(false);
     }
   };
 
@@ -438,7 +452,7 @@ export default function Customers() {
                                 {customer.isActive ? (
                                   <>
                                     <UserX className="mr-2 h-5 w-5" />
-                                    <span className="text-base font-semibold text-red-600">Deactivate</span>
+                                    <span className="text-base font-semibold text-red-600">Inactive</span>
                                   </>
                                 ) : (
                                   <>
@@ -512,9 +526,9 @@ export default function Customers() {
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedCustomer?.currentStatus ? "Deactivate Customer" : "Activate Customer"}</DialogTitle>
+            <DialogTitle>{selectedCustomer?.currentStatus ? "Inactive Customer" : "Activate Customer"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to {selectedCustomer?.currentStatus ? "deactivate" : "activate"}
+              Are you sure you want to {selectedCustomer?.currentStatus ? "inactive" : "activate"}
               <span className="font-semibold"> {selectedCustomer?.name}</span>?{selectedCustomer?.currentStatus ? " They will no longer be able to access their account." : " They will regain access to their account."}
             </DialogDescription>
           </DialogHeader>
@@ -522,8 +536,21 @@ export default function Customers() {
             <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant={selectedCustomer?.currentStatus ? "destructive" : "default"} onClick={confirmStatusToggle}>
-              {selectedCustomer?.currentStatus ? "Deactivate" : "Activate"}
+            <Button 
+              variant={selectedCustomer?.currentStatus ? "destructive" : "default"} 
+              onClick={confirmStatusToggle}
+              disabled={statusLoading}
+              className="min-w-[100px]"
+            >
+              {statusLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {selectedCustomer?.currentStatus ? 'Inactivating...' : 'Activating...'}
+                </>
+              ) : selectedCustomer?.currentStatus ? 'Inactive' : 'Activate'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -599,7 +626,7 @@ export default function Customers() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="john@example.com" {...field} />
+                          <Input disabled={isEditMode} type="email" placeholder="john@example.com" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

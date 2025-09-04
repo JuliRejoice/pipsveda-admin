@@ -411,6 +411,13 @@ export default function AlgoBots() {
   const onSubmitStep1 = async (data: FormValues) => {
     try {
       setIsLoading(true);
+      
+      // If we already have a botPlanId and we're not in edit mode, just move to step 2
+      if (botPlanId && !isEditMode) {
+        setStep(2);
+        return;
+      }
+      
       // Ensure each link has a default language of 'English' if none is selected
       const processedLinks = (data.links || [])
         .filter((link) => link.url && link.url.trim() !== "")
@@ -435,20 +442,27 @@ export default function AlgoBots() {
           toast.success("AlgoBot updated successfully");
         }
       } else {
-        const response = await createAlgoBot(step1Data);
-        if (response?.payload?._id) {
-          setBotPlanId(response.payload._id);
-          toast.success("AlgoBot created successfully");
+        // Only create a new bot if we don't have a botPlanId yet
+        if (!botPlanId) {
+          const response = await createAlgoBot(step1Data);
+          if (response?.payload?._id) {
+            setBotPlanId(response.payload._id);
+            toast.success("AlgoBot created successfully");
+          }
         }
       }
 
       setCurrentPage(1);
       setStep(2);
-      // await fetchBots();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in step 1:", error);
-      toast.error("Failed to proceed to next step");
-      return false;
+      if (error.response?.data?.message?.includes('already exists')) {
+        // If bot already exists, just move to step 2
+        setStep(2);
+      } else {
+        toast.error(error.response?.data?.message || "Failed to proceed to next step");
+        return false;
+      }
     } finally {
       setIsLoading(false);
     }
@@ -710,6 +724,10 @@ export default function AlgoBots() {
       setPriceError("Price must be less than 1,000,000");
       setError("price" as any, { type: "manual", message: "Price must be less than 1,000,000" } as any);
       hasError = true;
+    } else if ((price as string).includes('.') && (price as string).split('.')[1].length > 2) {
+      setPriceError("Price can have maximum 2 decimal places");
+      setError("price" as any, { type: "manual", message: "Price can have maximum 2 decimal places" } as any);
+      hasError = true;
     }
 
     if (!botProviderId || String(botProviderId).trim() === "") {
@@ -722,28 +740,62 @@ export default function AlgoBots() {
       hasError = true;
     }
 
+    // Validate discount
+    if (discount && String(discount).trim() !== "") {
+      const discountValue = parseFloat(discount as any);
+    
+      if (isNaN(discountValue) || discountValue < 0) {
+        setError("discount" as any, {
+          type: "manual",
+          message: "Discount must be a valid non-negative number"
+        } as any);
+        hasError = true;
+      } else if (discountValue >= 100) {
+        setError("discount" as any, {
+          type: "manual",
+          message: "Discount must be less than 100"
+        } as any);
+        hasError = true;
+      } else if (price && parseFloat(price as any) > 0 && discountValue > parseFloat(price as any)) {
+        setError("discount" as any, {
+          type: "manual",
+          message: "Discount cannot be greater than price"
+        } as any);
+        hasError = true;
+      }
+    }
+    
+
     if (hasError) return;
 
-    const newPlan = {
+    const newPlan: any = {
       _id: planEdit && editingPlanId ? editingPlanId : `temp_${Date.now()}_${Math.random()}`, // Generate temp ID for new plans
       planType: plan || "",
       price: String(price),
-      discount: String(discount),
       botProviderId: botProviderId || "",
       botId: botId || "",
       initialPrice: parseFloat(price as any),
     };
 
+    // Only include discount if it has a value
+    if (discount && String(discount).trim() !== "") {
+      newPlan.discount = String(discount);
+    }
+
     try {
       setIsLoading(true);
 
       if (botPlanId) {
-        const step2Data = {
+        const step2Data: any = {
           planType: newPlan.planType,
           price: newPlan.price,
           botId: newPlan.botId,
-          discount: newPlan.discount,
         };
+        
+        // Only include discount in API data if it exists
+        if (newPlan.discount) {
+          step2Data.discount = newPlan.discount;
+        }
 
         if (planEdit && editingPlanId) {
           if (editingPlanId.startsWith("temp_")) {
@@ -1160,6 +1212,7 @@ export default function AlgoBots() {
                     <div className="space-y-2">
                       <Label htmlFor="discount">Discount</Label>
                       <Input id="discount" type="number" placeholder="0" {...register("discount")} />
+                      {errors.discount && <p className="text-sm text-red-500">{String(errors.discount.message || '')}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="botProviderId">Bot Provider Company</Label>
