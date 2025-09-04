@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { MoreVertical } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from "@/components/ui/label";
 
 export interface Chapter {
     _id: string;
@@ -501,7 +502,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Title</label>
+                            <Label className="block text-sm font-medium mb-1">Title</Label>
                             <div className="w-full">
                                 <Input
                                     name="chapterName"
@@ -516,7 +517,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <Label className="block text-sm font-medium mb-1">Description</Label>
                             <div className="w-full">
                                 <textarea
                                     name="description"
@@ -532,7 +533,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Chapter No</label>
+                                <Label className="block text-sm font-medium mb-1">Chapter No</Label>
                                 <div className="w-full">
                                     <Input
                                         name="chapterNo"
@@ -553,7 +554,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Duration (hours)</label>
+                                <Label className="block text-sm font-medium mb-1">Duration (hours)</Label>
                                 <div className="w-full">
                                     <Input
                                         name="duration"
@@ -576,7 +577,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                         </div>
                         <div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Video File</label>
+                                <Label className="block text-sm font-medium mb-1">Video File</Label>
                                 <div className="w-full">
                                     <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
                                         <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
@@ -595,12 +596,12 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                             className="hidden"
                                             id="video-upload"
                                         />
-                                        <label
+                                        <Label
                                             htmlFor="video-upload"
                                             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                                         >
                                             {formData.videoFile || formData.videoUrl ? 'Change Video' : 'Upload Video'}
-                                        </label>
+                                        </Label>
                                         {(formData.videoFile || formData.videoUrl) && (
                                             <button
                                                 type="button"

@@ -40,10 +40,10 @@ interface Customer {
   birthday: string;
   gender: string;
   createdAt: string;
-  roleId: {
-    _id: string;
-    name: string;
-  };
+  // roleId: {
+  //   _id: string;
+  //   name: string;
+  // };
 }
 
 interface CustomerApiResponse {
@@ -112,7 +112,7 @@ const customerFormSchema = z.object({
     .max(100, "Location must be at most 100 characters")
     .regex(/^[a-zA-Z\s,-]+$/, "Location can only contain letters, spaces, commas, and hyphens"),
 
-  roleId: z.string().min(1, "Please select a role"),
+  // roleId: z.string().min(1, "Please select a role"),
 });
 
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
@@ -126,6 +126,7 @@ export default function Customers() {
   const [error, setError] = useState<string | null>(null);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<{
     id: string;
     name: string;
@@ -149,7 +150,7 @@ export default function Customers() {
       gender: "male",
       birthday: undefined,
       location: "",
-      roleId: "",
+      // roleId: "",
     },
   });
 
@@ -209,7 +210,7 @@ export default function Customers() {
       gender: customer.gender as "male" | "female" | "other",
       birthday: customer.birthday && !isNaN(new Date(customer.birthday).getTime()) ? new Date(customer.birthday) : undefined,
       location: customer.location,
-      roleId: customer.roleId._id,
+      // roleId: customer.roleId._id,
     });
     setIsEditMode(true);
     setIsAddCustomerOpen(true);
@@ -226,16 +227,18 @@ export default function Customers() {
 
   const confirmDelete = async () => {
     if (!selectedCustomer) return;
-
+    
     try {
+      setDeletingId(selectedCustomer.id);
       await deleteCustomer(selectedCustomer.id);
       await fetchCustomersData();
       setDeleteDialogOpen(false);
-
       toast.success(`Customer "${selectedCustomer.name}" has been deleted.`);
     } catch (error) {
       console.error("Error deleting customer:", error);
       toast.error("Failed to delete customer. Please try again.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -298,7 +301,7 @@ export default function Customers() {
           gender: data.gender,
           birthday: data.birthday.toISOString(),
           location: data.location,
-          roleId: data.roleId,
+          // roleId: data.roleId,
           password: "defaultPassword123!",
           confirmPassword: "defaultPassword123!",
         };
@@ -468,9 +471,19 @@ export default function Customers() {
                                   handleDeleteClick(customer);
                                 }}
                                 className="text-red-600"
+                                disabled={deletingId === customer._id}
                               >
-                                <Trash2 className="mr-2 h-5 w-5" />
-                                <span className="text-base font-semibold text-red-600">Delete</span>
+                                {deletingId === customer._id ? (
+                                  <>
+                                    <div className="mr-2 h-5 w-5 animate-spin border-2 border-red-600 border-t-transparent rounded-full"></div>
+                                    <span className="text-base font-semibold text-red-600">Deleting...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="mr-2 h-5 w-5" />
+                                    <span className="text-base font-semibold text-red-600">Delete</span>
+                                  </>
+                                )}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -567,11 +580,25 @@ export default function Customers() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={!!deletingId}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete Permanently
+            <Button 
+              variant="destructive" 
+              onClick={confirmDelete}
+              disabled={!!deletingId}
+              className="min-w-[120px]"
+            >
+              {deletingId ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                  Deleting...
+                </>
+              ) : 'Delete Permanently'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -589,7 +616,7 @@ export default function Customers() {
               gender: "male",
               birthday: undefined,
               location: "",
-              roleId: "",
+              // roleId: "",
             });
             setEditingCustomer(null);
             setIsEditMode(false);
@@ -706,7 +733,7 @@ export default function Customers() {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="roleId"
                     render={({ field }) => (
@@ -727,14 +754,14 @@ export default function Customers() {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
                 </div>
               </div>
               <DialogFooter className="mt-6">
-                <Button type="button" className="text-base font-semibold" variant="outline" onClick={() => setIsAddCustomerOpen(false)}>
+                <Button type="button" className="text-base font-semibold mt-3" variant="outline" onClick={() => setIsAddCustomerOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" className="text-base font-semibold">
+                <Button type="submit" className="text-base font-semibold mt-3">
                   {isEditMode ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
                   {isEditMode ? "Save Changes" : "Add Customer"}
                 </Button>
