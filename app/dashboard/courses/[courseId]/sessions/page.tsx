@@ -397,9 +397,9 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                                 <MoreVertical className="h-5 w-5 text-gray-500" />
                               </button>
                             </PopoverTrigger>
-                            <PopoverContent align="end" className="w-32 p-1">
+                            <PopoverContent align="end" className="h-auto w-32 p-1">
                               <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded" onClick={() => handleEdit(session)}>
-                                Edit
+                              <span className='text-base font-semibold'>Edit</span>
                               </button>
                               <button
                                 className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded"
@@ -408,7 +408,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                                   setIsDeleteDialogOpen(true);
                                 }}
                               >
-                                Delete
+                                <span className='text-base font-semibold text-red-600'>Delete</span>
                               </button>
                             </PopoverContent>
                           </Popover>
@@ -425,7 +425,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                             </div>
                             <p className="text-base font-semibold text-gray-700 mb-2 line-clamp-2 overflow-hidden text-ellipsis">{session.description}</p>
                             {session.meetingLink && (
-                              <a href={session.meetingLink} target="_blank" rel="noopener noreferrer" className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-xs font-medium transition">
+                              <a href={session.meetingLink} target="_blank" rel="noopener noreferrer" className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-base font-medium transition">
                                 ▶ Join Meeting
                               </a>
                             )}
@@ -455,7 +455,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Session Name</label>
+              <Label className="text-sm font-medium">Session Name</Label>
               <Input
                 value={formData.sessionName}
                 onChange={(e) => {
@@ -469,8 +469,8 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Image</label>
-              <Input type="file" accept="image/*" onChange={handleImageChange} />
+              <Label className="text-sm font-medium">Image</Label>
+              <Input type="file" accept="image/*" onChange={handleImageChange} className="p-3" />
               {imagePreview && (
                 <div className="mt-2">
                   <img src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-md" />
@@ -480,7 +480,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
+              <Label className="text-sm font-medium">Description</Label>
               <textarea
                 value={formData.description}
                 onChange={(e) => {
@@ -497,7 +497,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date</label>
+                <Label className="text-sm font-medium">Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -526,7 +526,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Time (HH:MM - HH:MM)</label>
+                <Label className="text-sm font-medium">Time (HH:MM - HH:MM)</Label>
                 <Input
                   type="text"
                   value={formData.time}
@@ -542,7 +542,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Meeting Link</label>
+              <Label className="text-sm font-medium">Meeting Link</Label>
               <Input
                 value={formData.meetingLink}
                 onChange={(e) => {

@@ -152,7 +152,7 @@ export const createCustomer = async (payload: any) => {
     }
 
     const res = await axios.post(
-      `${BaseUrl}/user/createUser`,
+      `${BaseUrl}/user/signup`,
       payload,
       { headers }
     );
