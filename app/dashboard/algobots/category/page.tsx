@@ -214,7 +214,20 @@ export default function Category() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Category Name</Label>
-                <Input id="title" placeholder="Enter category name" {...register("title")} />
+                <Input 
+                  id="title" 
+                  placeholder="Enter category name" 
+                  {...register("title")}
+                  onBlur={(e) => {
+                    const value = e.target.value.trim();
+                    setValue("title", value, { shouldValidate: true });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                      e.preventDefault();
+                    }
+                  }}
+                />
                 {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
               </div>
 

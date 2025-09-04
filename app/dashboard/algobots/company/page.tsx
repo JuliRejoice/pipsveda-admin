@@ -141,7 +141,19 @@ export default function CompanyPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label>Company Name</Label>
-                <Input {...register("companyName")} className={errors.companyName ? "border-red-500" : ""} />
+                <Input 
+                  {...register("companyName")} 
+                  onBlur={(e) => {
+                    const value = e.target.value.trim();
+                    setValue("companyName", value, { shouldValidate: true });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className={errors.companyName ? "border-red-500" : ""} 
+                />
                 {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
               </div>
               <DialogFooter>

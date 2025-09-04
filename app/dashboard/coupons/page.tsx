@@ -85,6 +85,7 @@ export default function CouponPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [couponToDelete, setCouponToDelete] = useState<Coupon | null>(null);
   const [currentCouponId, setCurrentCouponId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponFormSchema),
@@ -144,6 +145,7 @@ export default function CouponPage() {
     if (!couponToDelete) return;
 
     try {
+      setIsDeleting(true);
       await deleteCoupon(couponToDelete._id);
       console.log("Deleting coupon:", couponToDelete._id);
       setCoupons(coupons.filter((c) => c._id !== couponToDelete._id));
@@ -153,6 +155,8 @@ export default function CouponPage() {
     } catch (error) {
       console.error("Error deleting coupon:", error);
       toast.error("Failed to delete coupon");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -349,7 +353,27 @@ export default function CouponPage() {
                     <FormItem>
                       <FormLabel>Coupon Code</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter Coupon code..." {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} />
+                        <Input 
+                          placeholder="Enter Coupon code..." 
+                          {...field} 
+                          value={field.value || ''}
+                          onChange={(e) => {
+                            // Convert to uppercase and trim
+                            const value = e.target.value.trim().toUpperCase();
+                            field.onChange(value);
+                          }}
+                          onBlur={(e) => {
+                            // Final trim on blur
+                            const value = e.target.value.trim().toUpperCase();
+                            field.onChange(value);
+                          }}
+                          onKeyDown={(e) => {
+                            // Prevent leading spaces
+                            if (e.key === ' ' && !field.value) {
+                              e.preventDefault();
+                            }
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -441,9 +465,18 @@ export default function CouponPage() {
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+            <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

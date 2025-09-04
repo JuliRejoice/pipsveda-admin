@@ -61,6 +61,16 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const handleTrimInput = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (value && typeof value === 'string') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value.trim()
+      }));
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -457,10 +467,17 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Session Name</Label>
               <Input
+                name="sessionName"
                 value={formData.sessionName}
                 onChange={(e) => {
                   setFormData({ ...formData, sessionName: e.target.value });
                   if (errors.sessionName) setErrors(prev => ({ ...prev, sessionName: '' }));
+                }}
+                onBlur={handleTrimInput}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                    e.preventDefault();
+                  }
                 }}
                 placeholder="Session name"
                 className={errors.sessionName ? 'border-red-500' : ''}
@@ -482,10 +499,17 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Description</Label>
               <textarea
+                name="description"
                 value={formData.description}
                 onChange={(e) => {
                   setFormData({ ...formData, description: e.target.value });
                   if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
+                }}
+                onBlur={handleTrimInput}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' && !(e.target as HTMLTextAreaElement).value.trim()) {
+                    e.preventDefault();
+                  }
                 }}
                 placeholder="Session description"
                 className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.description ? 'border-red-500' : ''
@@ -528,11 +552,18 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Time (HH:MM - HH:MM)</Label>
                 <Input
+                  name="time"
                   type="text"
                   value={formData.time}
                   onChange={(e) => {
                     setFormData({ ...formData, time: e.target.value });
                     if (errors.time) setErrors(prev => ({ ...prev, time: '' }));
+                  }}
+                  onBlur={handleTrimInput}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                      e.preventDefault();
+                    }
                   }}
                   placeholder="e.g., 09:00 - 10:00"
                   className={errors.time ? 'border-red-500' : ''}
@@ -544,10 +575,17 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Meeting Link</Label>
               <Input
+                name="meetingLink"
                 value={formData.meetingLink}
                 onChange={(e) => {
                   setFormData({ ...formData, meetingLink: e.target.value });
                   if (errors.meetingLink) setErrors(prev => ({ ...prev, meetingLink: '' }));
+                }}
+                onBlur={handleTrimInput}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                    e.preventDefault();
+                  }
                 }}
                 placeholder="https://meet.google.com/..."
                 type="url"
