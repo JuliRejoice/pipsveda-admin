@@ -471,7 +471,12 @@ export default function Courses() {
       apiFormData.append("courseEnd", endDate);
       apiFormData.append("instructor", formData.get("instructor") || "");
       apiFormData.append("language", formData.get("language") || "english");
-      apiFormData.append("isDefineCourse", formData.get("defineCourse") || "");
+      
+      // Only add isDefineCourse if defineCourse has a value
+      const defineCourse = formData.get("defineCourse");
+      if (defineCourse) {
+        apiFormData.append("isDefineCourse", defineCourse.toString());
+      }
 
       // Add course type specific fields
       if (courseType === "live") {
@@ -554,7 +559,16 @@ export default function Courses() {
     }, 500);
   };
 
+  const isTabDisabled = (tabType: string) => {
+    if (!editCourse) return false;
+    return editCourse.courseType !== tabType;
+  };
+
   const handleFormTabChange = (value: string) => {
+    if (editCourse && editCourse.courseType !== value) {
+      // Don't allow changing tabs when editing a course
+      return;
+    }
     setFormActiveTab(value);
   };
 
@@ -611,9 +625,27 @@ export default function Courses() {
           </DialogHeader>
           <Tabs value={formActiveTab} onValueChange={handleFormTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="recorded">Recorded</TabsTrigger>
-              <TabsTrigger value="live">Live</TabsTrigger>
-              <TabsTrigger value="physical">In-Person</TabsTrigger>
+              <TabsTrigger 
+                value="recorded" 
+                disabled={isTabDisabled('recorded')}
+                className={isTabDisabled('recorded') ? 'opacity-50 cursor-not-allowed' : ''}
+              >
+                Recorded
+              </TabsTrigger>
+              <TabsTrigger 
+                value="live" 
+                disabled={isTabDisabled('live')}
+                className={isTabDisabled('live') ? 'opacity-50 cursor-not-allowed' : ''}
+              >
+                Live
+              </TabsTrigger>
+              <TabsTrigger 
+                value="physical" 
+                disabled={isTabDisabled('physical')}
+                className={isTabDisabled('physical') ? 'opacity-50 cursor-not-allowed' : ''}
+              >
+                In-Person
+              </TabsTrigger>
             </TabsList>
             {/* Recorded Course Form */}
             <TabsContent value="recorded">
@@ -621,7 +653,7 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="recorded" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" />
+                  <Input type="file" accept="image/*" name="image" className="p-3" />
                   {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>
@@ -721,7 +753,7 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Define Course</label>
-                  <select name="defineCourse" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                  <select name="defineCourse" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || "english"}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
@@ -740,7 +772,7 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="live" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" />
+                  <Input type="file" accept="image/*" name="image" className="p-3" />
                   {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>
@@ -843,7 +875,7 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="physical" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" />
+                  <Input type="file" accept="image/*" name="image" className="p-3" />
                   {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>

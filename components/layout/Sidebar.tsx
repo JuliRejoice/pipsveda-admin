@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell, UserPlus, Settings, ChevronLeft, ChevronRight, Mail, MessageSquare, User, LogOut, ChevronDown, Settings as SettingsIcon, Waves, Gift } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const sidebarItems = [
   {
@@ -83,8 +84,13 @@ const sidebarItems = [
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [user, setUser] = useState<{ name?: string; email?: string }>({});
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  const handleLogoutClick = () => {
+    setShowLogoutDialog(true);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -181,13 +187,33 @@ export default function Sidebar() {
               <SettingsIcon className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem> */}
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onClick={handleLogoutClick}>
               <LogOut className="mr-2 h-5 w-5 text-blacktheme" />
               <span className="text-base font-medium">Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to logout?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
