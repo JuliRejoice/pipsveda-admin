@@ -193,6 +193,16 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
         }
     };
 
+    const handleTrimInput = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        if (value && typeof value === 'string') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value.trim()
+            }));
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -508,6 +518,12 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                     name="chapterName"
                                     value={formData.chapterName}
                                     onChange={handleInputChange}
+                                    onBlur={handleTrimInput}
+                                    onKeyDown={(e) => {
+                                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     placeholder="Chapter title"
                                     className="w-full"
                                 />
@@ -521,6 +537,12 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                             <div className="w-full">
                                 <textarea
                                     name="description"
+                                    onBlur={handleTrimInput}
+                                    onKeyDown={(e) => {
+                                        if (e.key === ' ' && !(e.target as HTMLTextAreaElement).value.trim()) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     value={formData.description}
                                     onChange={handleInputChange}
                                     placeholder="Chapter description"

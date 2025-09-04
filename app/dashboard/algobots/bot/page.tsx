@@ -73,6 +73,7 @@ export default function BotPage() {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = form;
 
@@ -257,7 +258,20 @@ export default function BotPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="name">Bot Name</Label>
-                <Input id="name" placeholder="Enter bot name" {...register("name")} />
+                <Input 
+                  id="name" 
+                  placeholder="Enter bot name" 
+                  {...register("name")} 
+                  onBlur={(e) => {
+                    const value = e.target.value.trim();
+                    setValue("name", value, { shouldValidate: true });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                      e.preventDefault();
+                    }
+                  }}
+                />
                 {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
               </div>
 

@@ -359,10 +359,10 @@ export default function Customers() {
               )}
             </div>
 
-            <Button onClick={() => setIsAddCustomerOpen(true)}>
+            {/* <Button onClick={() => setIsAddCustomerOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Customer
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
         <CardContent>
@@ -640,7 +640,14 @@ export default function Customers() {
                       <FormItem>
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="John Doe" {...field} />
+                          <Input 
+                            placeholder="John Doe" 
+                            {...field} 
+                            onBlur={(e) => {
+                              const trimmedValue = e.target.value.trim();
+                              field.onChange(trimmedValue);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

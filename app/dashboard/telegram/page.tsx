@@ -343,21 +343,37 @@ export default function TelegramManagement() {
     }
 
     const priceValue = String(price || '').trim();
+    // Price validation
+    const priceNum = parseFloat(priceValue);
+    const priceParts = priceValue.split('.');
+    
     if (!priceValue) {
       setPriceError("Price is required");
       setError("price" as any, { type: "manual", message: "Price is required" } as any);
       hasError = true;
-    } else if (isNaN(parseFloat(priceValue)) || parseFloat(priceValue) <= 0) {
+    } else if (isNaN(priceNum) || priceNum <= 0) {
       setPriceError("Price must be a valid positive number");
       setError("price" as any, { type: "manual", message: "Price must be a valid positive number" } as any);
       hasError = true;
-    } else if (isNaN(parseFloat(price as any)) || parseFloat(price as any) <= 0) {
-      setPriceError("Price must be a valid positive number");
-      setError("price" as any, { type: "manual", message: "Price must be a valid positive number" } as any);
-      hasError = true;
-    } else if (parseFloat(price as any) > 1000000) {
+    } else if (priceNum > 1000000) {
       setPriceError("Price must be less than 1,000,000");
       setError("price" as any, { type: "manual", message: "Price must be less than 1,000,000" } as any);
+      hasError = true;
+    } else if (priceParts[1] && priceParts[1].length !== 2) {
+      setPriceError("Price must have exactly 2 decimal places");
+      setError("price" as any, { type: "manual", message: "Price must have exactly 2 decimal places" } as any);
+      hasError = true;
+    }
+    
+    // Discount validation
+    const discountValue = String(discount || '0').trim();
+    const discountNum = parseInt(discountValue, 10);
+    
+    if (discountValue && !/^\d+$/.test(discountValue)) {
+      setError("discount" as any, { type: "manual", message: "Discount must be a whole number" } as any);
+      hasError = true;
+    } else if (discountValue && (discountNum < 0 || discountNum > 99)) {
+      setError("discount" as any, { type: "manual", message: "Discount must be between 0 and 99" } as any);
       hasError = true;
     }
 
@@ -493,19 +509,62 @@ export default function TelegramManagement() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="channelName">Channel Name</Label>
-                      <Input id="channelName" placeholder="Enter channel name" {...register("channelName")} className={errors.channelName ? "border-red-500" : ""} />
+                      <Input 
+                        id="channelName" 
+                        placeholder="Enter channel name" 
+                        {...register("channelName")}
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          setValue("channelName", value, { shouldValidate: true });
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={errors.channelName ? "border-red-500" : ""} 
+                      />
                       {errors.channelName && <p className="text-sm text-red-500">{errors.channelName.message}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" placeholder="Enter channel description" {...register("description")} className={errors.description ? "border-red-500" : ""} rows={4} />
+                      <Textarea 
+                        id="description" 
+                        placeholder="Enter channel description" 
+                        {...register("description")}
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          setValue("description", value, { shouldValidate: true });
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={errors.description ? "border-red-500" : ""} 
+                        rows={4} 
+                      />
                       {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="link">Telegram Link</Label>
-                      <Input id="link" placeholder="https://t.me/yourchannel" {...register("link")} className={errors.link ? "border-red-500" : ""} />
+                      <Input 
+                        id="link" 
+                        placeholder="https://t.me/yourchannel" 
+                        {...register("link")}
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          setValue("link", value, { shouldValidate: true });
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={errors.link ? "border-red-500" : ""} 
+                      />
                       {errors.link && <p className="text-sm text-red-500">{errors.link.message}</p>}
                     </div>
 
@@ -580,8 +639,15 @@ export default function TelegramManagement() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="discount">Discount</Label>
-                      <Input id="discount" type="number" placeholder="0" {...register("discount")} />
+                      <Label htmlFor="discount">Discount (%)</Label>
+                      <Input 
+                        id="discount" 
+                        type="number" 
+                        placeholder="0" 
+                        {...register("discount")} 
+                        className={errors.discount ? "border-red-500" : ""} 
+                      />
+                      {errors.discount && <p className="text-sm text-red-500">{String((errors as any).discount?.message || "")}</p>}
                     </div>
 
                     <div className="pt-2">

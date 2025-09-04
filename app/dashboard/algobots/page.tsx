@@ -1021,7 +1021,21 @@ export default function AlgoBots() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="title">Strategy Name</Label>
-                      <Input id="title" placeholder="Enter strategy name" {...register("title")} className={errors.title ? "border-red-500" : ""} />
+                      <Input 
+                        id="title" 
+                        placeholder="Enter strategy name" 
+                        {...register("title")} 
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          setValue("title", value, { shouldValidate: true });
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={errors.title ? "border-red-500" : ""} 
+                      />
                       {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
                     </div>
                     <div className="space-y-4">
@@ -1031,7 +1045,21 @@ export default function AlgoBots() {
                           <>
                             <div key={link._id || index} className="flex gap-2 items-start">
                               <div className="flex-1 flex gap-2 items-start">
-                                <Input value={link?.url || ""} onChange={(e) => handleLinkChange(index, e.target.value)} placeholder="Enter Tutorial Video Links... " className="w-full h-10" />
+                                <Input 
+                                  value={link?.url || ""} 
+                                  onChange={(e) => handleLinkChange(index, e.target.value)} 
+                                  onBlur={(e) => {
+                                    const value = e.target.value.trim();
+                                    handleLinkChange(index, value);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                  placeholder="Enter Tutorial Video Links..." 
+                                  className="w-full h-10" 
+                                />
                                 <div className="relative h-[40px]" ref={dropdownRef}>
                                   <div 
                                     className="py-1 px-3 border shadow-sm h-[40px] rounded-lg w-36 flex justify-between items-center cursor-pointer" 
@@ -1115,7 +1143,22 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="shortDescription">Short Description</Label>
-                      <Textarea id="shortDescription" placeholder="Enter a brief description (10-50 characters)" {...register("shortDescription")} className={errors.shortDescription ? "border-red-500" : ""} rows={2} />
+                      <Textarea 
+                        id="shortDescription" 
+                        placeholder="Enter a brief description (10-50 characters)" 
+                        {...register("shortDescription")} 
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          setValue("shortDescription", value, { shouldValidate: true });
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={errors.shortDescription ? "border-red-500" : ""} 
+                        rows={2} 
+                      />
                       {errors.shortDescription && <p className="text-sm text-red-500">{errors.shortDescription.message}</p>}
                     </div>
                     <div className="space-y-2">
@@ -1123,7 +1166,10 @@ export default function AlgoBots() {
                       <RichTextEditor
                         // id="description"
                         value={watch("description") || ""}
-                        onChange={(value) => setValue("description", value)}
+                        onChange={(value) => {
+                          // For RichTextEditor, we'll handle trimming before submission
+                          setValue("description", value);
+                        }}
                         placeholder="Enter detailed bot description"
                         className={errors.description ? "border-red-500" : ""}
                       />

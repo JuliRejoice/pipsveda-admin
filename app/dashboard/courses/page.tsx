@@ -57,6 +57,17 @@ export default function Courses() {
   // Add loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Function to trim input values on blur
+  const handleTrimInput = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const trimmedValue = e.target.value.trim();
+    if (trimmedValue !== e.target.value) {
+      e.target.value = trimmedValue;
+      // Trigger change event to update form state
+      const event = new Event('input', { bubbles: true });
+      e.target.dispatchEvent(event);
+    }
+  };
+
   // Add this validation function at the top level of the component
   const validateForm = (formData: FormData, courseType: string) => {
     const errors: Record<string, string> = {};
@@ -471,7 +482,7 @@ export default function Courses() {
       apiFormData.append("courseEnd", endDate);
       apiFormData.append("instructor", formData.get("instructor") || "");
       apiFormData.append("language", formData.get("language") || "english");
-      
+
       // Only add isDefineCourse if defineCourse has a value
       const defineCourse = formData.get("defineCourse");
       if (defineCourse) {
@@ -625,22 +636,22 @@ export default function Courses() {
           </DialogHeader>
           <Tabs value={formActiveTab} onValueChange={handleFormTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger 
-                value="recorded" 
+              <TabsTrigger
+                value="recorded"
                 disabled={isTabDisabled('recorded')}
                 className={isTabDisabled('recorded') ? 'opacity-50 cursor-not-allowed' : ''}
               >
                 Recorded
               </TabsTrigger>
-              <TabsTrigger 
-                value="live" 
+              <TabsTrigger
+                value="live"
                 disabled={isTabDisabled('live')}
                 className={isTabDisabled('live') ? 'opacity-50 cursor-not-allowed' : ''}
               >
                 Live
               </TabsTrigger>
-              <TabsTrigger 
-                value="physical" 
+              <TabsTrigger
+                value="physical"
                 disabled={isTabDisabled('physical')}
                 className={isTabDisabled('physical') ? 'opacity-50 cursor-not-allowed' : ''}
               >
@@ -658,18 +669,48 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
-                  <Input placeholder="Course Name" name="name" defaultValue={editCourse?.CourseName || ""} />
+                  <Input
+                    placeholder="Course Name"
+                    name="name"
+                    defaultValue={editCourse?.CourseName || ""}
+                    onBlur={handleTrimInput}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                   {formErrors.name && <div className="text-red-500">{formErrors.name}</div>}
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Description</label>
-                  <Input placeholder="Course Description" name="description" defaultValue={editCourse?.description || ""} />
+                  <Input
+                    placeholder="Course Description"
+                    name="description"
+                    defaultValue={editCourse?.description || ""}
+                    onBlur={handleTrimInput}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                   {formErrors.description && <div className="text-red-500">{formErrors.description}</div>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block font-medium mb-1">Instructor Name</label>
-                    <Input placeholder="Instructor Name" name="instructor" defaultValue={editCourse?.instructor || ""} />
+                    <Input
+                      placeholder="Instructor Name"
+                      name="instructor"
+                      defaultValue={editCourse?.instructor || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     {formErrors.instructor && <div className="text-red-500">{formErrors.instructor}</div>}
                   </div>
                   <div>
@@ -747,7 +788,18 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">Hours</label>
-                    <Input placeholder="Hours" type="text" name="hours" defaultValue={editCourse?.hours || ""} />
+                    <Input
+                      placeholder="Hours"
+                      type="text"
+                      name="hours"
+                      defaultValue={editCourse?.hours || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     {formErrors.hours && <div className="text-red-500">{formErrors.hours}</div>}
                   </div>
                 </div>
@@ -777,18 +829,48 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
-                  <Input placeholder="Course Name" name="name" defaultValue={editCourse?.CourseName || ""} />
+                  <Input
+                    placeholder="Course Name"
+                    name="name"
+                    defaultValue={editCourse?.CourseName || ""}
+                    onBlur={handleTrimInput}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                   {formErrors.name && <div className="text-red-500">{formErrors.name}</div>}
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Description</label>
-                  <Input placeholder="Course Description" name="description" defaultValue={editCourse?.description || ""} />
+                  <Input
+                    placeholder="Course Description"
+                    name="description"
+                    defaultValue={editCourse?.description || ""}
+                    onBlur={handleTrimInput}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                   {formErrors.description && <div className="text-red-500">{formErrors.description}</div>}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-medium mb-1">Instructor Name</label>
-                    <Input placeholder="Instructor Name" name="instructor" defaultValue={editCourse?.instructor || ""} />
+                    <Input
+                      placeholder="Instructor Name"
+                      name="instructor"
+                      defaultValue={editCourse?.instructor || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     {formErrors.instructor && <div className="text-red-500">{formErrors.instructor}</div>}
                   </div>
                   <div>
@@ -811,7 +893,18 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">Hours</label>
-                    <Input placeholder="Hours" type="number" name="hours" defaultValue={editCourse?.hours || ""} />
+                    <Input
+                      placeholder="Hours"
+                      type="number"
+                      name="hours"
+                      defaultValue={editCourse?.hours || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     {formErrors.hours && <div className="text-red-500">{formErrors.hours}</div>}
                   </div>
                 </div>
@@ -851,7 +944,17 @@ export default function Courses() {
                 {formErrors.dateRange && <div className="text-red-500">{formErrors.dateRange}</div>}
                 <div>
                   <label className="block font-medium mb-1">Zoom Meeting Link</label>
-                  <Input placeholder="Zoom Meeting Link" name="zoomLink" defaultValue={editCourse?.meetingLink || ""} />
+                  <Input
+                    placeholder="Zoom Meeting Link"
+                    name="zoomLink"
+                    defaultValue={editCourse?.meetingLink || ""}
+                    onBlur={handleTrimInput}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                   {formErrors.zoomLink && <div className="text-red-500">{formErrors.zoomLink}</div>}
                 </div>
                 <div>
@@ -880,18 +983,48 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
-                  <Input placeholder="Course Name" name="name" defaultValue={editCourse?.CourseName || ""} />
+                  <Input
+                    placeholder="Course Name"
+                    name="name"
+                    defaultValue={editCourse?.CourseName || ""}
+                    onBlur={handleTrimInput}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                   {formErrors.name && <div className="text-red-500">{formErrors.name}</div>}
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Description</label>
-                  <Input placeholder="Course Description" name="description" defaultValue={editCourse?.description || ""} />
+                  <Input
+                    placeholder="Course Description"
+                    name="description"
+                    defaultValue={editCourse?.description || ""}
+                    onBlur={handleTrimInput}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                   {formErrors.description && <div className="text-red-500">{formErrors.description}</div>}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-medium mb-1">Instructor Name</label>
-                    <Input placeholder="Instructor Name" name="instructor" defaultValue={editCourse?.instructor || ""} />
+                    <Input
+                      placeholder="Instructor Name"
+                      name="instructor"
+                      defaultValue={editCourse?.instructor || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     {formErrors.instructor && <div className="text-red-500">{formErrors.instructor}</div>}
                   </div>
                   <div>
@@ -913,7 +1046,18 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">Hours</label>
-                    <Input placeholder="Hours" type="text" name="hours" defaultValue={editCourse?.hours || ""} />
+                    <Input
+                      placeholder="Hours"
+                      type="text"
+                      name="hours"
+                      defaultValue={editCourse?.hours || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     {formErrors.hours && <div className="text-red-500">{formErrors.hours}</div>}
                   </div>
                 </div>
@@ -958,12 +1102,36 @@ export default function Courses() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="block font-medium">Email</label>
-                    <Input type="email" placeholder="Email" name="email" defaultValue={editCourse?.email || ""} className="w-full" />
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      name="email"
+                      defaultValue={editCourse?.email || ""}
+                      className="w-full"
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     {formErrors.email && <p className="text-red-500">{formErrors.email}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="block font-medium">Phone No.</label>
-                    <Input type="tel" placeholder="Phone Number" name="phone" defaultValue={editCourse?.phone || ""} className="w-full" />
+                    <Input
+                      type="tel"
+                      placeholder="Phone Number"
+                      name="phone"
+                      defaultValue={editCourse?.phone || ""}
+                      className="w-full"
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     {formErrors.phone && <p className="text-red-500">{formErrors.phone}</p>}
                   </div>
                   {/* <div className="space-y-1">
@@ -981,7 +1149,18 @@ export default function Courses() {
                 </div>
                 <div className="space-y-1">
                   <label className="block font-medium">Location</label>
-                  <Input placeholder="Location" name="location" defaultValue={editCourse?.location || ""} className="w-full" />
+                  <Input
+                    placeholder="Location"
+                    name="location"
+                    defaultValue={editCourse?.location || ""}
+                    className="w-full"
+                    onBlur={handleTrimInput}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                   {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
                 </div>
                 <div>
