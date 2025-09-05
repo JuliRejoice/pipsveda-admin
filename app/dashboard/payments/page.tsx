@@ -423,7 +423,7 @@ export default function Payments() {
                       <TableHead className="text-base">Sr. No</TableHead>
                       <TableHead className="text-base">User Name</TableHead>
                       <TableHead className="text-base">Purchase Date</TableHead>
-                      <TableHead className="text-base">Telegram Account Number</TableHead>
+                      <TableHead className="text-base">Telegram User Name</TableHead>
                       <TableHead className="text-base">Telegram Channel</TableHead>
                       <TableHead className="text-base">Plan Type</TableHead>
                       <TableHead className="text-base">Amount</TableHead>
