@@ -524,7 +524,7 @@ export default function TelegramManagement() {
                         }}
                         className={errors.channelName ? "border-red-500" : ""} 
                       />
-                      {errors.channelName && <p className="text-sm text-red-500">{errors.channelName.message}</p>}
+                      {errors.channelName && <p className="text-sm font-semibold text-red-500">{errors.channelName.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -545,7 +545,7 @@ export default function TelegramManagement() {
                         className={errors.description ? "border-red-500" : ""} 
                         rows={4} 
                       />
-                      {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+                      {errors.description && <p className="text-sm font-semibold text-red-500">{errors.description.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -565,7 +565,7 @@ export default function TelegramManagement() {
                         }}
                         className={errors.link ? "border-red-500" : ""} 
                       />
-                      {errors.link && <p className="text-sm text-red-500">{errors.link.message}</p>}
+                      {errors.link && <p className="text-sm font-semibold text-red-500">{errors.link.message}</p>}
                     </div>
 
                     <div className="flex justify-end space-x-2 py-4">
@@ -604,7 +604,7 @@ export default function TelegramManagement() {
                             setPlans((prev) => prev.map((plan) => (plan._id === editingPlanId ? { ...plan, planType: e.target.value } : plan)));
                           }
                         }}
-                        className={`w-full bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.plan ? "border-red-500" : ""}`}
+                        className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.plan ? "border-red-500" : ""}`}
                       >
                         <option value="">Select a plan</option>
                         {[
@@ -629,13 +629,13 @@ export default function TelegramManagement() {
                             </option>
                           ))}
                       </select>
-                      {errors.plan && <p className="text-sm text-red-500">{String((errors as any).plan?.message || "")}</p>}
+                      {errors.plan && <p className="text-sm font-semibold text-red-500">{String((errors as any).plan?.message || "")}</p>}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="price">Price</Label>
                       <Input id="price" type="number" placeholder="0.00" {...register("price")} className={errors.price ? "border-red-500" : ""} />
-                      {errors.price && <p className="text-sm text-red-500">{String((errors as any).price?.message || "")}</p>}
+                      {errors.price && <p className="text-sm font-semibold text-red-500">{String((errors as any).price?.message || "")}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -647,7 +647,7 @@ export default function TelegramManagement() {
                         {...register("discount")} 
                         className={errors.discount ? "border-red-500" : ""} 
                       />
-                      {errors.discount && <p className="text-sm text-red-500">{String((errors as any).discount?.message || "")}</p>}
+                      {errors.discount && <p className="text-sm font-semibold text-red-500">{String((errors as any).discount?.message || "")}</p>}
                     </div>
 
                     <div className="pt-2">
@@ -727,7 +727,7 @@ export default function TelegramManagement() {
           <MessageCircle className="h-12 w-12 text-muted-foreground" />
           <div>
             <h3 className="text-lg font-medium">No channels found</h3>
-            <p className="text-sm text-muted-foreground">Get started by creating a new channel</p>
+            <p className="text-sm text-muted-foreground font-lexend">Get started by creating a new channel</p>
           </div>
         </div>
       ) : (
@@ -773,7 +773,7 @@ export default function TelegramManagement() {
                       <Card className="p-3">
                         <CardContent className="p-0">
                           <div key={idx} className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">{plan.planType}</p>
+                            <p className="text-sm text-muted-foreground font-lexend">{plan.planType}</p>
                             <p className="text-sm font-medium">${plan.initialPrice}</p>
                           </div>
                         </CardContent>

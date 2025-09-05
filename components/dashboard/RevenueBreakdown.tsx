@@ -70,9 +70,9 @@ export default function RevenueBreakdown({ period, data, isLoading = false }:Rev
                     className="w-4 h-4 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className="font-medium">{item.name}</span>
+                  <span className="font-medium font-lexend">{item.name}</span>
                 </div>
-                <span className="text-xl font-bold">${item.value.toLocaleString()}</span>
+                <span className="text-xl font-bold font-lexend">${item.value.toLocaleString()}</span>
               </div>
             ))}
           </div>

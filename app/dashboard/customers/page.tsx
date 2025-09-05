@@ -366,8 +366,8 @@ export default function Customers() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border overflow-hidden min-h-[71vh]">
-            <div className="overflow-y-auto thin-scrollbar">
+          <div className="rounded-md border overflow-hidden min-h-[66vh]">
+            <div className="overflow-y-auto thin-scrollbar whitespace-nowrap">
               <Table>
                 <TableHeader className="bg-background">
                   <TableRow>
@@ -397,17 +397,17 @@ export default function Customers() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div>{customer.name}</div>
-                              <div className="text-xs text-muted-foreground">{customer.location}</div>
+                              <div className="font-lexend">{customer.name}</div>
+                              <div className="text-xs text-muted-foreground font-lexend">{customer.location}</div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">{customer.email}</div>
-                          {customer.phone && <div className="text-xs text-muted-foreground flex items-center gap-1">{customer.phone}</div>}
+                          <div className="text-sm font-lexend">{customer.email}</div>
+                          {customer.phone && <div className="text-xs text-muted-foreground flex items-center gap-1 font-lexend">{customer.phone}</div>}
                         </TableCell>
                         <TableCell>
-                          <span className="capitalize">{customer.gender?.toLowerCase() || "N/A"}</span>
+                          <span className="capitalize font-lexend">{customer.gender?.toLowerCase() || "N/A"}</span>
                         </TableCell>
                         <TableCell>
                           {customer.birthday && !isNaN(new Date(customer.birthday).getTime())
@@ -443,7 +443,7 @@ export default function Customers() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleEdit(customer)}>
                                 <Edit className="mr-2 h-5 w-5 text-blacktheme" />
-                                <span className="text-base font-semibold text-gray-500">Edit</span>
+                                <span className="text-base font-semibold text-gray-500 font-lexend">Edit</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={(e) => {
@@ -460,7 +460,7 @@ export default function Customers() {
                                 ) : (
                                   <>
                                     <UserCheck className="mr-2 h-5 w-5" />
-                                    <span className="text-base font-semibold text-gray-500">Activate</span>
+                                    <span className="text-base font-semibold text-gray-500 font-lexend">Activate</span>
                                   </>
                                 )}
                               </DropdownMenuItem>
@@ -503,7 +503,7 @@ export default function Customers() {
                             </svg>
                           </div>
                           <h3 className="text-lg font-medium text-gray-900">No customers found</h3>
-                          <p className="text-base font-semibold text-gray-500">{searchTerm ? "Try adjusting your search or filter to find what you're looking for." : "Get started by adding a new customer."}</p>
+                          <p className="text-base font-semibold text-gray-500 font-lexend">{searchTerm ? "Try adjusting your search or filter to find what you're looking for." : "Get started by adding a new customer."}</p>
                           {!searchTerm && (
                             <Button className="mt-4">
                               <Plus className="h-4 w-4 mr-2" />

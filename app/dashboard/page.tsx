@@ -118,8 +118,8 @@ export default function Dashboard() {
                 <Icon className="h-4 w-4 text-blacktheme" />
               </CardHeader>
               <CardContent>
-                <div className="text-xl font-semibold text-blacktheme">{stat.value}</div>
-                <p className="text-base text-muted-foreground flex items-center">
+                <div className="text-xl font-semibold text-blacktheme font-lexend">{stat.value}</div>
+                <p className="text-base text-muted-foreground flex items-center gap-2 font-lexend">
                   {Number(stat.change) > 0 ? <TrendingUp className="h-5 w-5 mr-1 text-green-500" /> : <TrendingDown className="h-4 w-4 mr-1 text-red-500" />}
                   {stat.change}% from last month
                 </p>

@@ -228,7 +228,7 @@ export default function Category() {
                     }
                   }}
                 />
-                {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
+                {errors.title && <p className="text-sm font-semibold text-red-500">{errors.title.message}</p>}
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
@@ -267,7 +267,7 @@ export default function Category() {
               <Tag className="h-12 w-12 text-muted-foreground" />
               <div>
                 <h3 className="text-lg font-medium">No categories found</h3>
-                <p className="text-sm text-muted-foreground">{searchTerm ? "Try a different search term" : "Get started by creating a new algobot"}</p>
+                <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating a new algobot"}</p>
               </div>
             </div>
           ) : (

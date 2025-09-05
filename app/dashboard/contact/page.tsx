@@ -67,16 +67,16 @@ export default function ContactPage() {
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Contact Submission</h1>
-            <p className="text-muted-foreground">View and manage submitted contact queries.</p>
+            <p className="text-gray-900">View and manage submitted contact queries.</p>
           </div>
         </div>
 
         <div className="rounded-md border">
           {contactData.length === 0 ? (
             <div className="text-center py-12 bg-card">
-              <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
+              <MessageSquare className="mx-auto h-12 w-12 text-gray-900" />
               <h3 className="mt-4 text-lg font-medium text-foreground">No contact submissions</h3>
-              <p className="mt-1 text-sm text-muted-foreground">No one has submitted the contact form yet.</p>
+              <p className="mt-1 text-sm text-gray-900">No one has submitted the contact form yet.</p>
             </div>
           ) : (
             <Table>
@@ -100,14 +100,14 @@ export default function ContactPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Mail className="h-5 w-5 text-muted-foreground" />
+                        <Mail className="h-5 w-5 text-gray-900" />
                         <span>{submission.email}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       {submission.phone && (
                         <div className="flex items-center space-x-2">
-                          <Phone className="h-5 w-5 text-muted-foreground" />
+                          <Phone className="h-5 w-5 text-gray-900" />
                           <span>{submission.phone}</span>
                         </div>
                       )}
@@ -142,7 +142,7 @@ export default function ContactPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <Calendar className="h-5 w-5 text-gray-900" />
                         <span>{formatDate(submission.createdAt)}</span>
                       </div>
                     </TableCell>

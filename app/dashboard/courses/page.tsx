@@ -328,7 +328,7 @@ export default function Courses() {
                   {course.CourseName}
                 </Link>
               </h3>
-              <div className="text-base text-muted-foreground line-clamp-2 h-12 overflow-hidden text-ellipsis">{course.description}</div>
+              <div className="text-base text-muted-foreground line-clamp-2 h-12 overflow-hidden text-ellipsis font-lexend">{course.description}</div>
             </div>
             <DropdownMenu open={popoverOpen} onOpenChange={setPopoverOpen}>
               <DropdownMenuTrigger asChild>
@@ -348,7 +348,7 @@ export default function Courses() {
                       className="cursor-pointer"
                     >
                       <CalendarPlus className="mr-2 h-5 w-5" />
-                      <span className="text-base font-semibold text-gray-500">Add Session</span>
+                      <span className="text-base font-semibold text-gray-500 font-lexend">Add Session</span>
                     </DropdownMenuItem>
                   </Link>
                 ) : (
@@ -361,7 +361,7 @@ export default function Courses() {
                       className="cursor-pointer"
                     >
                       <BookPlus className="mr-2 h-5 w-5" />
-                      <span className="text-base font-semibold text-gray-500">Add Chapters</span>
+                      <span className="text-base font-semibold text-gray-500 font-lexend">Add Chapters</span>
                     </DropdownMenuItem>
                   </Link>
                 )}
@@ -374,7 +374,7 @@ export default function Courses() {
                   }}
                 >
                   <Edit className="mr-2 h-5 w-5" />
-                  <span className="text-base font-semibold text-gray-500">Edit</span>
+                  <span className="text-base font-semibold text-gray-500 font-lexend">Edit</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600"
@@ -664,7 +664,7 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="recorded" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" className="p-3" />
+                  <Input type="file" accept="image/*" name="image" className="p-3 text-gray-900" />
                   {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>
@@ -715,7 +715,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">Language</label>
-                    <select name="language" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                    <select name="language" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                       <option value="english">English</option>
                       <option value="spanish">Spanish</option>
                       <option value="french">French</option>
@@ -725,17 +725,17 @@ export default function Courses() {
                   </div>
                 </div>
                 {/* Start and End Date in one row */}
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
                   <div className="flex-1">
                     <label className="block font-medium mb-1">Start Date</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {recordedStartDate ? format(recordedStartDate, "PPP") : <span>Pick a date</span>}
+                        <Button variant="outline" className="w-full h-[55px] justify-start text-left font-normal px-4 group">
+                          <CalendarIcon className="mr-2 h-4 w-4 group-hover:text-gray-900" />
+                          {recordedStartDate ? <span className="text-base font-semibold text-gray-900">{format(recordedStartDate, "PPP")}</span> : <><input placeholder="Pick a date" className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold" />{/* <span className="text-base font-semibold">Pick a date</span> */}</>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0 calendar-gray">
                         <Calendar
                           mode="single"
                           selected={recordedStartDate}
@@ -756,12 +756,12 @@ export default function Courses() {
                     <label className="block font-medium mb-1">End Date</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {recordedEndDate ? format(recordedEndDate, "PPP") : <span>Pick a date</span>}
+                        <Button variant="outline" className="w-full h-[55px] justify-start text-left font-normal px-4 group">
+                          <CalendarIcon className="mr-2 h-4 w-4 group-hover:text-gray-900" />
+                          {recordedEndDate ? <span className="text-base font-semibold text-gray-900">{format(recordedEndDate, "PPP")}</span> : <><input placeholder="Pick a date" className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold" />{/* <span className="text-base font-semibold">Pick a date</span> */}</>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0 calendar-gray">
                         <Calendar
                           mode="single"
                           selected={recordedEndDate}
@@ -805,7 +805,7 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Define Course</label>
-                  <select name="defineCourse" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || "english"}>
+                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || ""}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
@@ -824,7 +824,7 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="live" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" className="p-3" />
+                  <Input type="file" accept="image/*" name="image" className="p-3 text-gray-900" />
                   {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>
@@ -875,7 +875,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">Language</label>
-                    <select name="language" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                    <select name="language" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                       <option value="english">English</option>
                       <option value="spanish">Spanish</option>
                       <option value="french">French</option>
@@ -909,14 +909,14 @@ export default function Courses() {
                   </div>
                 </div>
                 {/* Start and End Date in one row */}
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
                   <div className="flex-1">
                     <label className="block font-medium mb-1">Start Date</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Button variant="outline" className="w-full h-[55px] justify-start text-left font-normal px-4">
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {liveStartDate ? format(liveStartDate, "PPP") : <span>Pick a date</span>}
+                          {liveStartDate ? format(liveStartDate, "PPP") : <><input placeholder="Pick a date" className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold" />{/* <span className="text-base font-semibold">Pick a date</span> */}</>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -929,9 +929,9 @@ export default function Courses() {
                     <label className="block font-medium mb-1">End Date</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Button variant="outline" className="w-full h-[55px] justify-start text-left font-normal px-4">
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {liveEndDate ? format(liveEndDate, "PPP") : <span>Pick a date</span>}
+                          {liveEndDate ? format(liveEndDate, "PPP") : <><input placeholder="Pick a date" className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold" />{/* <span className="text-base font-semibold">Pick a date</span> */}</>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -959,7 +959,7 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Define Course</label>
-                  <select name="defineCourse" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
@@ -978,7 +978,7 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="physical" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" className="p-3" />
+                  <Input type="file" accept="image/*" name="image" className="p-3 text-gray-900" />
                   {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
                 </div>
                 <div>
@@ -1029,7 +1029,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">Language</label>
-                    <select name="language" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                    <select name="language" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                       <option value="english">English</option>
                       <option value="spanish">Spanish</option>
                       <option value="french">French</option>
@@ -1062,14 +1062,14 @@ export default function Courses() {
                   </div>
                 </div>
                 {/* Start and End Date in one row */}
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
                   <div className="flex-1">
                     <label className="block font-medium mb-1">Start Date</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Button variant="outline" className="w-full h-[55px] justify-start text-left font-normal px-4">
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {physicalStartDate ? format(physicalStartDate, "PPP") : <span>Pick a date</span>}
+                          {physicalStartDate ? format(physicalStartDate, "PPP") : <><input placeholder="Pick a date" className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold" />{/* <span className="text-base font-semibold">Pick a date</span> */}</>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -1082,9 +1082,9 @@ export default function Courses() {
                     <label className="block font-medium mb-1">End Date</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Button variant="outline" className="w-full h-[55px] justify-start text-left font-normal px-4">
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {physicalEndDate ? format(physicalEndDate, "PPP") : <span>Pick a date</span>}
+                          {physicalEndDate ? format(physicalEndDate, "PPP") : <><input placeholder="Pick a date" className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold" />{/* <span className="text-base font-semibold">Pick a date</span> */}</>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -1165,7 +1165,7 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Define Course</label>
-                  <select name="defineCourse" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>

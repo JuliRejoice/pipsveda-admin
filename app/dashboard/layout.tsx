@@ -5,7 +5,15 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import { Lexend } from "next/font/google";
 // import { ThemeProvider } from '@/components/theme-provider';
+
+const lexend = Lexend({
+  variable: "--font-lexend",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
 
 const getPageTitle = (pathname: string): string => {
   const parts = pathname.split("/").filter(Boolean);

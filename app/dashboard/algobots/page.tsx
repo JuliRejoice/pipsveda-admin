@@ -60,19 +60,15 @@ const formSchema = z.object({
         url: z
           .string()
           .min(1, "Video link URL is required")
-          .refine((val) => {
-            const videoPlatforms = [
-              /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/,    
-              /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/,                
-              /^(https?:\/\/)?(www\.)?dailymotion\.com\/.+$/,            
-              /^(https?:\/\/)?(www\.)?facebook\.com\/.*\/videos\/.+$/,    
-              /^(https?:\/\/)?(www\.)?drive\.google\.com\/file\/.+$/,  
-              /^(https?:\/\/)?(www\.)?streamable\.com\/.+$/,           
-            ];
-            return videoPlatforms.some((regex) => regex.test(val));
-          }, {
-            message: "Please enter a valid video link.",
-          }),
+          .refine(
+            (val) => {
+              const videoPlatforms = [/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/, /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/, /^(https?:\/\/)?(www\.)?dailymotion\.com\/.+$/, /^(https?:\/\/)?(www\.)?facebook\.com\/.*\/videos\/.+$/, /^(https?:\/\/)?(www\.)?drive\.google\.com\/file\/.+$/, /^(https?:\/\/)?(www\.)?streamable\.com\/.+$/];
+              return videoPlatforms.some((regex) => regex.test(val));
+            },
+            {
+              message: "Please enter a valid video link.",
+            }
+          ),
         language: z.string().optional(),
       })
     )
@@ -186,9 +182,9 @@ export default function AlgoBots() {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -411,18 +407,18 @@ export default function AlgoBots() {
   const onSubmitStep1 = async (data: FormValues) => {
     try {
       setIsLoading(true);
-      
+
       // If we already have a botPlanId and we're not in edit mode, just move to step 2
       if (botPlanId && !isEditMode) {
         setStep(2);
         return;
       }
-      
+
       // Ensure each link has a default language of 'English' if none is selected
       const processedLinks = (data.links || [])
         .filter((link) => link.url && link.url.trim() !== "")
         .map((link) => ({
-          language: link.language || 'English',
+          language: link.language || "English",
           url: link.url,
         }));
 
@@ -456,7 +452,7 @@ export default function AlgoBots() {
       setStep(2);
     } catch (error: any) {
       console.error("Error in step 1:", error);
-      if (error.response?.data?.message?.includes('already exists')) {
+      if (error.response?.data?.message?.includes("already exists")) {
         // If bot already exists, just move to step 2
         setStep(2);
       } else {
@@ -543,10 +539,10 @@ export default function AlgoBots() {
     const botLinks =
       Array.isArray(rawLinks) && rawLinks.length > 0
         ? rawLinks.map((l: any) => ({
-          url: l.url || "",
-          language: l.language || "",
-          _id: l._id,
-        }))
+            url: l.url || "",
+            language: l.language || "",
+            _id: l._id,
+          }))
         : [{ url: "", language: "" }];
 
     setStep1({ links: botLinks });
@@ -614,7 +610,7 @@ export default function AlgoBots() {
     <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
       <DialogContent className="sm:max-w-[600px] h-[80vh] p-5 overflow-y-auto scroll-thin">
         <DialogHeader>
-          <DialogTitle>Bot Details</DialogTitle>
+          <DialogTitle className="text-2xl">Bot Details</DialogTitle>
         </DialogHeader>
         {selectedBot && (
           <div className="space-y-4">
@@ -624,7 +620,7 @@ export default function AlgoBots() {
 
             <div className="space-y-2">
               <h3 className="text-xl font-semibold">{selectedBot.title}</h3>
-              <p className="text-sm text-muted-foreground">{selectedBot.shortDescription}</p>
+              <p className="text-sm text-muted-foreground font-lexend">{selectedBot.shortDescription}</p>
               <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: marked(selectedBot.description || "") }} />
             </div>
 
@@ -700,7 +696,6 @@ export default function AlgoBots() {
     setCurrentPage(1); // Reset to first page when searching
   };
 
-
   const handleAddPlan = async () => {
     const { plan, price, botProviderId, botId, discount } = getValues();
 
@@ -724,7 +719,7 @@ export default function AlgoBots() {
       setPriceError("Price must be less than 1,000,000");
       setError("price" as any, { type: "manual", message: "Price must be less than 1,000,000" } as any);
       hasError = true;
-    } else if ((price as string).includes('.') && (price as string).split('.')[1].length > 2) {
+    } else if ((price as string).includes(".") && (price as string).split(".")[1].length > 2) {
       setPriceError("Price can have maximum 2 decimal places");
       setError("price" as any, { type: "manual", message: "Price can have maximum 2 decimal places" } as any);
       hasError = true;
@@ -743,28 +738,36 @@ export default function AlgoBots() {
     // Validate discount
     if (discount && String(discount).trim() !== "") {
       const discountValue = parseFloat(discount as any);
-    
+
       if (isNaN(discountValue) || discountValue < 0) {
-        setError("discount" as any, {
-          type: "manual",
-          message: "Discount must be a valid non-negative number"
-        } as any);
+        setError(
+          "discount" as any,
+          {
+            type: "manual",
+            message: "Discount must be a valid non-negative number",
+          } as any
+        );
         hasError = true;
       } else if (discountValue >= 100) {
-        setError("discount" as any, {
-          type: "manual",
-          message: "Discount must be less than 100"
-        } as any);
+        setError(
+          "discount" as any,
+          {
+            type: "manual",
+            message: "Discount must be less than 100",
+          } as any
+        );
         hasError = true;
       } else if (price && parseFloat(price as any) > 0 && discountValue > parseFloat(price as any)) {
-        setError("discount" as any, {
-          type: "manual",
-          message: "Discount cannot be greater than price"
-        } as any);
+        setError(
+          "discount" as any,
+          {
+            type: "manual",
+            message: "Discount cannot be greater than price",
+          } as any
+        );
         hasError = true;
       }
     }
-    
 
     if (hasError) return;
 
@@ -791,7 +794,7 @@ export default function AlgoBots() {
           price: newPlan.price,
           botId: newPlan.botId,
         };
-        
+
         // Only include discount in API data if it exists
         if (newPlan.discount) {
           step2Data.discount = newPlan.discount;
@@ -803,17 +806,17 @@ export default function AlgoBots() {
               prev.map((p) =>
                 p._id === editingPlanId
                   ? {
-                    ...p,
-                    ...newPlan,
-                    botId: {
-                      _id: newPlan.botId,
-                      botProviderId: {
-                        _id: newPlan.botProviderId,
-                        companyName: "",
+                      ...p,
+                      ...newPlan,
+                      botId: {
+                        _id: newPlan.botId,
+                        botProviderId: {
+                          _id: newPlan.botProviderId,
+                          companyName: "",
+                        },
+                        name: "",
                       },
-                      name: "",
-                    },
-                  }
+                    }
                   : p
               )
             );
@@ -825,17 +828,17 @@ export default function AlgoBots() {
               prev.map((p) =>
                 p._id === editingPlanId
                   ? {
-                    ...p,
-                    ...newPlan,
-                    botId: {
-                      _id: newPlan.botId,
-                      botProviderId: {
-                        _id: newPlan.botProviderId,
-                        companyName: "",
+                      ...p,
+                      ...newPlan,
+                      botId: {
+                        _id: newPlan.botId,
+                        botProviderId: {
+                          _id: newPlan.botProviderId,
+                          companyName: "",
+                        },
+                        name: "",
                       },
-                      name: "",
-                    },
-                  }
+                    }
                   : p
               )
             );
@@ -962,7 +965,7 @@ export default function AlgoBots() {
 
   const handleLanguageChange = (index: number, language: string) => {
     const updatedLinks = [...step1.links];
-    updatedLinks[index].language = language || 'English';
+    updatedLinks[index].language = language || "English";
     setStep1({ ...step1, links: updatedLinks });
     setValue("links", updatedLinks);
     setOpenDropdownIndex(null);
@@ -985,7 +988,7 @@ export default function AlgoBots() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">AlgoBots</h1>
-          <p className="text-muted-foreground">Manage your trading bots and their configurations</p>
+          <p className="text-muted-foreground font-lexend">Manage your trading bots and their configurations</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
@@ -1021,22 +1024,22 @@ export default function AlgoBots() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="title">Strategy Name</Label>
-                      <Input 
-                        id="title" 
-                        placeholder="Enter strategy name" 
-                        {...register("title")} 
+                      <Input
+                        id="title"
+                        placeholder="Enter strategy name"
+                        {...register("title")}
                         onBlur={(e) => {
                           const value = e.target.value.trim();
                           setValue("title", value, { shouldValidate: true });
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                          if (e.key === " " && !e.currentTarget.value.trim()) {
                             e.preventDefault();
                           }
                         }}
-                        className={errors.title ? "border-red-500" : ""} 
+                        className={errors.title ? "border-red-500" : ""}
                       />
-                      {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
+                      {errors.title && <p className="text-sm font-semibold text-red-500">{errors.title.message}</p>}
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
@@ -1045,30 +1048,30 @@ export default function AlgoBots() {
                           <>
                             <div key={link._id || index} className="flex gap-2 items-start">
                               <div className="flex-1 flex gap-2 items-start">
-                                <Input 
-                                  value={link?.url || ""} 
-                                  onChange={(e) => handleLinkChange(index, e.target.value)} 
+                                <Input
+                                  value={link?.url || ""}
+                                  onChange={(e) => handleLinkChange(index, e.target.value)}
                                   onBlur={(e) => {
                                     const value = e.target.value.trim();
                                     handleLinkChange(index, value);
                                   }}
                                   onKeyDown={(e) => {
-                                    if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                                    if (e.key === " " && !e.currentTarget.value.trim()) {
                                       e.preventDefault();
                                     }
                                   }}
-                                  placeholder="Enter Tutorial Video Links..." 
-                                  className="w-full h-10" 
+                                  placeholder="Enter Tutorial Video Links..."
+                                  className="w-full h-[55px] px-4 text-base font-semibold"
                                 />
-                                <div className="relative h-[40px]" ref={dropdownRef}>
-                                  <div 
-                                    className="py-1 px-3 border shadow-sm h-[40px] rounded-lg w-36 flex justify-between items-center cursor-pointer" 
+                                <div className="relative h-[55px]" ref={dropdownRef}>
+                                  <div
+                                    className="flex items-center justify-between h-[55px] px-4 border rounded-md w-36 cursor-pointer bg-background"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setOpenDropdownIndex(openDropdownIndex === index ? null : index);
                                     }}
                                   >
-                                    <span className="text-sm font-medium text-muted-foreground">{languages.find((opt) => opt.languageName === link?.language)?.languageName || "English"}</span>
+                                    <span className="text-base font-semibold text-gray-900">{languages.find((opt) => opt.languageName === link?.language)?.languageName || "English"}</span>
                                     <ChevronDown className={`h-4 w-4 transition-all duration-500 ease-in-out ${openDropdownIndex === index ? "rotate-180" : ""}`} />
                                   </div>
                                   {openDropdownIndex === index && (
@@ -1076,7 +1079,7 @@ export default function AlgoBots() {
                                       <div className="px-2 py-1 bg-background rounded-lg">
                                         {languages.map((option) => (
                                           <div key={option?._id} className="bg-background group hover:bg-gray-100 px-3 py-2 transition-all duration-500 ease-in-out flex flex-col" onClick={() => handleLanguageChange(index, option.languageName)}>
-                                            <span className="text-sm font-medium text-muted-foreground group-hover:text-gray-500 rounded-md cursor-pointer">{option.languageName}</span>
+                                            <span className="text-base font-semibold text-gray-900  rounded-md cursor-pointer">{option.languageName}</span>
                                           </div>
                                         ))}
                                       </div>
@@ -1086,25 +1089,25 @@ export default function AlgoBots() {
                               </div>
                               <div className="flex gap-2 h-10">
                                 {index === step1.links.length - 1 && (
-                                  <Button type="button" variant="outline" size="icon" onClick={handleAddLink} className="h-10 w-10">
-                                    <Plus className="h-4 w-4" />
+                                  <Button type="button" variant="outline" size="icon" onClick={handleAddLink} className="h-[55px] w-12">
+                                    <Plus className="h-5 w-5" />
                                   </Button>
                                 )}
                                 {step1.links.length > 1 && (
-                                  <Button type="button" variant="outline" size="icon" onClick={() => handleRemoveLink(index)} className="h-10 w-10">
+                                  <Button type="button" variant="outline" size="icon" onClick={() => handleRemoveLink(index)} className="h-[55px] w-12">
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 )}
                               </div>
                             </div>
-                            {errors.links?.[index]?.url && <p className="text-sm text-red-500">{errors.links[index]?.url?.message}</p>}
+                            {errors.links?.[index]?.url && <p className="text-sm font-semibold text-red-500">{errors.links[index]?.url?.message}</p>}
                           </>
                         ))}
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="categoryId">Category</Label>
-                      <select id="categoryId" {...register("categoryId")} className={`w-full bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.categoryId ? "border-red-500" : ""}`} disabled={isFetchingCategories}>
+                      <select id="categoryId" {...register("categoryId")} className={`flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.categoryId ? "border-red-500" : ""}`} disabled={isFetchingCategories}>
                         <option value="">Select a category</option>
                         {categories.map((categoryId) => (
                           <option key={categoryId._id} value={categoryId._id}>
@@ -1112,8 +1115,8 @@ export default function AlgoBots() {
                           </option>
                         ))}
                       </select>
-                      {isFetchingCategories && <p className="text-sm text-muted-foreground">Loading categories...</p>}
-                      {errors.categoryId && <p className="text-sm text-red-500">{errors.categoryId.message}</p>}
+                      {isFetchingCategories && <p className="text-sm text-muted-foreground font-lexend">Loading categories...</p>}
+                      {errors.categoryId && <p className="text-sm font-semibold text-red-500">{errors.categoryId.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="imageUrl">Image</Label>
@@ -1126,13 +1129,13 @@ export default function AlgoBots() {
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground">Click or drag and drop to upload</span>
+                          <span className="text-sm text-muted-foreground font-lexend">Click or drag and drop to upload</span>
                         )}
                       </label>
 
                       <Input id="imageUrl" type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
 
-                      {errors.imageUrl && <p className="text-sm text-red-500">{String(errors.imageUrl.message)}</p>}
+                      {errors.imageUrl && <p className="text-sm font-semibold text-red-500">{String(errors.imageUrl.message)}</p>}
 
                       {uploading && (
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -1143,23 +1146,23 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="shortDescription">Short Description</Label>
-                      <Textarea 
-                        id="shortDescription" 
-                        placeholder="Enter a brief description (10-50 characters)" 
-                        {...register("shortDescription")} 
+                      <Textarea
+                        id="shortDescription"
+                        placeholder="Enter a brief description (10-50 characters)"
+                        {...register("shortDescription")}
                         onBlur={(e) => {
                           const value = e.target.value.trim();
                           setValue("shortDescription", value, { shouldValidate: true });
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                          if (e.key === " " && !e.currentTarget.value.trim()) {
                             e.preventDefault();
                           }
                         }}
-                        className={errors.shortDescription ? "border-red-500" : ""} 
-                        rows={2} 
+                        className={errors.shortDescription ? "border-red-500" : ""}
+                        rows={2}
                       />
-                      {errors.shortDescription && <p className="text-sm text-red-500">{errors.shortDescription.message}</p>}
+                      {errors.shortDescription && <p className="text-sm font-semibold text-red-500">{errors.shortDescription.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
@@ -1173,7 +1176,7 @@ export default function AlgoBots() {
                         placeholder="Enter detailed bot description"
                         className={errors.description ? "border-red-500" : ""}
                       />
-                      {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+                      {errors.description && <p className="text-sm font-semibold text-red-500">{errors.description.message}</p>}
                     </div>
                     <div className="flex justify-end space-x-2 py-4">
                       <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
@@ -1223,7 +1226,7 @@ export default function AlgoBots() {
                             setPlans((prev) => prev.map((plan) => (plan._id === editingPlanId ? { ...plan, planType: e.target.value } : plan)));
                           }
                         }}
-                        className={`w-full bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.plan ? "border-red-500" : ""}`}
+                        className={`flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.plan ? "border-red-500" : ""}`}
                       >
                         <option value="">Select a plan</option>
                         {[
@@ -1248,17 +1251,17 @@ export default function AlgoBots() {
                             </option>
                           ))}
                       </select>
-                      {errors.plan && <p className="text-sm text-red-500">{String((errors as any).plan?.message || "")}</p>}
+                      {errors.plan && <p className="text-sm font-semibold text-red-500">{String((errors as any).plan?.message || "")}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="price">Price</Label>
-                      <Input id="price" type="number" placeholder="0.00" {...register("price")} className={errors.price ? "border-red-500" : ""} />
-                      {errors.price && <p className="text-sm text-red-500">{String((errors as any).price?.message || "")}</p>}
+                      <Input id="price" type="number" placeholder="0.00" {...register("price")} className={`h-[55px] px-4 text-base font-semibold ${errors.price ? "border-red-500" : ""}`} />
+                      {errors.price && <p className="text-sm font-semibold text-red-500">{String((errors as any).price?.message || "")}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="discount">Discount</Label>
-                      <Input id="discount" type="number" placeholder="0" {...register("discount")} />
-                      {errors.discount && <p className="text-sm text-red-500">{String(errors.discount.message || '')}</p>}
+                      <Input id="discount" type="number" placeholder="0" {...register("discount")} className="h-[55px] px-4 text-base font-semibold" />
+                      {errors.discount && <p className="text-sm font-semibold text-red-500">{String(errors.discount.message || "")}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="botProviderId">Bot Provider Company</Label>
@@ -1270,8 +1273,8 @@ export default function AlgoBots() {
                           </option>
                         ))}
                       </select>
-                      {isFetchingProviders && <p className="text-sm text-muted-foreground">Loading providers...</p>}
-                      {errors.botProviderId && <p className="text-sm text-red-500">{errors.botProviderId.message}</p>}
+                      {isFetchingProviders && <p className="text-sm text-muted-foreground font-lexend">Loading providers...</p>}
+                      {errors.botProviderId && <p className="text-sm font-semibold text-red-500">{errors.botProviderId.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -1284,8 +1287,8 @@ export default function AlgoBots() {
                           </option>
                         ))}
                       </select>
-                      {isFetchingBotsList && <p className="text-sm text-muted-foreground">Loading bots...</p>}
-                      {errors.botId && <p className="text-sm text-red-500">{errors.botId.message}</p>}
+                      {isFetchingBotsList && <p className="text-sm text-muted-foreground font-lexend">Loading bots...</p>}
+                      {errors.botId && <p className="text-sm font-semibold text-red-500">{errors.botId.message}</p>}
                     </div>
 
                     <div className="pt-2">
@@ -1354,7 +1357,7 @@ export default function AlgoBots() {
               <Bot className="h-12 w-12 text-muted-foreground" />
               <div>
                 <h3 className="text-lg font-medium">No algobots found</h3>
-                <p className="text-sm text-muted-foreground">{searchTerm ? "Try a different search term" : "Get started by creating a new algobot"}</p>
+                <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating a new algobot"}</p>
               </div>
             </div>
           ) : (
@@ -1400,7 +1403,7 @@ export default function AlgoBots() {
                           <Card className="p-3">
                             <CardContent className="p-0">
                               <div key={idx} className="flex items-center justify-between">
-                                <p className="text-sm text-muted-foreground">{plan.planType}</p>
+                                <p className="text-sm text-muted-foreground font-lexend">{plan.planType}</p>
                                 <p className="text-sm font-medium">${plan.initialPrice}</p>
                               </div>
                             </CardContent>

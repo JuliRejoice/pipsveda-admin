@@ -211,7 +211,7 @@ export default function LoginForm() {
               )}
             </div>
             {touched.email && errors.email && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
+              <p className="text-sm font-semibold text-red-500 flex items-center gap-1">
                 <AlertCircle className="h-3.5 w-3.5" />
                 {errors.email}
               </p>
@@ -253,7 +253,7 @@ export default function LoginForm() {
               )}
             </div>
             {touched.password && errors.password && (
-              <p className="text-sm text-red-500 flex items-center gap-1">
+              <p className="text-sm font-semibold text-red-500 flex items-center gap-1">
                 <AlertCircle className="h-3.5 w-3.5" />
                 {errors.password}
               </p>

@@ -528,7 +528,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                     className="w-full"
                                 />
                                 {errors.chapterName && (
-                                    <p className="text-sm text-red-500 mt-1">{errors.chapterName}</p>
+                                    <p className="text-sm font-semibold text-red-500 mt-1">{errors.chapterName}</p>
                                 )}
                             </div>
                         </div>
@@ -549,7 +549,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                     className="w-full p-2 border rounded-md min-h-[100px] resize-none"
                                 />
                                 {errors.description && (
-                                    <p className="text-sm text-red-500 mt-1">{errors.description}</p>
+                                    <p className="text-sm font-semibold text-red-500 mt-1">{errors.description}</p>
                                 )}
                             </div>
                         </div>
@@ -571,7 +571,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                         }}
                                     />
                                     {errors.chapterNo && (
-                                        <p className="text-sm text-red-500 mt-1">{errors.chapterNo}</p>
+                                        <p className="text-sm font-semibold text-red-500 mt-1">{errors.chapterNo}</p>
                                     )}
                                 </div>
                             </div>
@@ -592,7 +592,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                         }}
                                     />
                                     {errors.duration && (
-                                        <p className="text-sm text-red-500 mt-1">{errors.duration}</p>
+                                        <p className="text-sm font-semibold text-red-500 mt-1">{errors.duration}</p>
                                     )}
                                 </div>
                             </div>
@@ -641,7 +641,7 @@ export function CourseChapters({ initialChapters, courseId, courseName, loading,
                                         )}
                                     </div>
                                     {errors.videoFile && (
-                                        <p className="text-sm text-red-500 mt-1">{errors.videoFile}</p>
+                                        <p className="text-sm font-semibold text-red-500 mt-1">{errors.videoFile}</p>
                                     )}
                                 </div>
                             </div>
