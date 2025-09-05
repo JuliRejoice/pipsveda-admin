@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 58, 12, 163; /* Dark Purple #3A0CA3 */
+  --foreground-rgb: 58, 12, 163;
+  /* Dark Purple #3A0CA3 */
   --background-start-rgb: 246, 246, 247;
   --background-end-rgb: 255, 255, 255;
 }
@@ -18,10 +19,14 @@
 
 @layer base {
   :root {
+    --font-sans: 'Inter', sans-serif;
+    --font-lexend: 'Lexend', sans-serif;
     --background: 255 100% 99%;
-    --foreground: 263 84% 34%; /* #3A0CA3 */
+    --foreground: 263 84% 34%;
+    /* #3A0CA3 */
     color: 106, 100%, 4%;
     --blacktheme: 106, 100%, 4%;
+    font-family: var(--font-sans);
 
     --card: 255 100% 100%;
     --card-foreground: 263 84% 34%;
@@ -29,16 +34,19 @@
     --popover: 255 100% 100%;
     --popover-foreground: 263 84% 34%;
 
-    --primary: 268 93% 58%; /* #7B2FF7 */
+    --primary: 268 93% 58%;
+    /* #7B2FF7 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 27 100% 57%; /* #FF7E29 (orange) */
+    --secondary: 27 100% 57%;
+    /* #FF7E29 (orange) */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 263 20% 65%;
     --muted-foreground: 263 20% 45%;
 
-    --accent: 27 100% 95%; /* light orange background */
+    --accent: 27 100% 95%;
+    /* light orange background */
     --accent-foreground: 263 84% 34%;
 
     --destructive: 0 100% 60%;
@@ -48,11 +56,16 @@
     --input: 263 20% 85%;
     --ring: 268 93% 58%;
 
-    --chart-1: 268 93% 58%; /* purple */
-    --chart-2: 27 100% 57%; /* orange */
-    --chart-3: 263 84% 34%; /* dark violet */
-    --chart-4: 0 100% 60%; /* red */
-    --chart-5: 27 80% 75%; /* soft orange */
+    --chart-1: 268 93% 58%;
+    /* purple */
+    --chart-2: 27 100% 57%;
+    /* orange */
+    --chart-3: 263 84% 34%;
+    /* dark violet */
+    --chart-4: 0 100% 60%;
+    /* red */
+    --chart-5: 27 80% 75%;
+    /* soft orange */
 
     --radius: 0.5rem;
   }
@@ -67,16 +80,19 @@
     --popover: 240 6% 15%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 268 93% 58%; /* purple */
+    --primary: 268 93% 58%;
+    /* purple */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 27 100% 57%; /* orange */
+    --secondary: 27 100% 57%;
+    /* orange */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 240 5% 25%;
     --muted-foreground: 0 0% 70%;
 
-    --accent: 27 60% 25%; /* darker orange highlight */
+    --accent: 27 60% 25%;
+    /* darker orange highlight */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 80% 50%;
@@ -110,6 +126,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
 .gradient-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(58, 12, 163, 0.3);
@@ -136,6 +153,7 @@
   border-radius: 1rem;
   padding: 1.5rem;
 }
+
 .dark .glass-card {
   background: rgba(58, 12, 163, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -169,4 +187,34 @@ a {
 
 .scroll-notvisible::-webkit-scrollbar {
   display: none;
+}
+
+
+p,
+span,
+button {
+  font-family: var(--font-lexend) !important;
+}
+
+
+::placeholder {
+  color: #6b7280 !important;
+}
+
+input[type=file]::file-selector-button {
+  color: #6b7280 !important;
+}
+
+.calendar-gray button,
+.calendar-gray input,
+.calendar-gray optgroup,
+.calendar-gray select,
+.calendar-gray textarea {
+  color: #6b7280 !important;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

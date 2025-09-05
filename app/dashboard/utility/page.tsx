@@ -196,7 +196,7 @@ export default function Utility() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                <TableCell colSpan={4} className="h-24 text-center text-lg text-gray-900 font-lexend">
                   No results found
                 </TableCell>
               </TableRow>

@@ -247,7 +247,7 @@ export default function CouponPage() {
           </div>
         </div>
       ) : (
-        <Card>
+        <Card className="overflow-hidden">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -264,13 +264,13 @@ export default function CouponPage() {
               </TableHeader>
               <TableBody>
                 {filteredCoupons.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-8">
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={8} className="py-8">
                       <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
-                        <Gift className="h-12 w-12 text-muted-foreground" />
+                        <Gift className="h-12 w-12 text-gray-500" />
                         <div>
-                          <h3 className="text-lg font-medium">No coupons found</h3>
-                          <p className="text-sm text-muted-foreground">{searchTerm ? "Try a different search term" : "Get started by creating your first coupon"}</p>
+                          <h3 className="text-2xl text-gray-500 font-medium">No coupons found</h3>
+                          <p className="text-lg text-gray-900 font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating your first coupon"}</p>
                         </div>
                       </div>
                     </TableCell>
@@ -282,12 +282,12 @@ export default function CouponPage() {
                       <TableCell>
                         <div className="flex items-center">
                           <Gift className="mr-2 h-4 w-4" />
-                          {coupon.couponCode}
+                          <span className="font-lexend">{coupon.couponCode}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{coupon.discount}</TableCell>
-                      <TableCell> {coupon.usageLimit}</TableCell>
-                      <TableCell>{coupon.usageCount}</TableCell>
+                      <TableCell><span className="font-lexend">{coupon.discount}</span></TableCell>
+                      <TableCell> <span className="font-lexend">{coupon.usageLimit}</span></TableCell>
+                      <TableCell><span className="font-lexend">{coupon.usageCount}</span></TableCell>
                       <TableCell>{format(new Date(coupon.createdAt), "M/d/yyyy, h:mm:ss a")}</TableCell>
                       <TableCell>{format(new Date(coupon.expiryDate), "M/d/yyyy, h:mm:ss a")}</TableCell>
                       <TableCell>
@@ -353,9 +353,9 @@ export default function CouponPage() {
                     <FormItem>
                       <FormLabel>Coupon Code</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Enter Coupon code..." 
-                          {...field} 
+                        <Input
+                          placeholder="Enter Coupon code..."
+                          {...field}
                           value={field.value || ''}
                           onChange={(e) => {
                             // Convert to uppercase and trim
@@ -401,13 +401,13 @@ export default function CouponPage() {
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
-                            <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                              {field.value ? format(field.value, "PPP") : <span>Pick an expiry date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            <Button variant={"outline"} className={cn("w-full h-[55px] pl-3 text-left font-normal group", !field.value && "text-muted-foreground")}>
+                              {field.value ? <span className="text-base font-semibold text-gray-900">{format(field.value, "PPP")}</span> : <span className="text-base font-semibold">Pick an expiry date</span>}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50 group-hover:text-gray-900" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 calendar-gray" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}

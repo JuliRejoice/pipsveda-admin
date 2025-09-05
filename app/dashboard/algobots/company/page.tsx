@@ -154,7 +154,7 @@ export default function CompanyPage() {
                   }}
                   className={errors.companyName ? "border-red-500" : ""} 
                 />
-                {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
+                {errors.companyName && <p className="text-sm font-semibold text-red-500">{errors.companyName.message}</p>}
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>

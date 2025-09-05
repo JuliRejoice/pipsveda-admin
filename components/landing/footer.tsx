@@ -41,7 +41,7 @@ export function LandingFooter() {
             </div>
           </nav>
         </div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground font-lexend">
           © {new Date().getFullYear()} EduManage. All rights reserved.
         </div>
       </div>

@@ -245,7 +245,7 @@ export default function BotPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="botProviderId">Bot Provider Company</Label>
-                <select id="botProviderId" className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm" {...register("botProviderId")}>
+                <select id="botProviderId" className="w-full h-[55px] px-3 py-2 border border-input bg-background rounded-md text-base font-semibold" {...register("botProviderId")}>
                   <option value="">Select a provider company</option>
                   {providers?.map((company) => (
                     <option key={company._id} value={company._id}>
@@ -253,7 +253,7 @@ export default function BotPage() {
                     </option>
                   ))}
                 </select>
-                {errors.botProviderId && <p className="text-sm text-red-500">{errors.botProviderId.message}</p>}
+                {errors.botProviderId && <p className="text-sm font-semibold text-red-500">{errors.botProviderId.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -272,7 +272,7 @@ export default function BotPage() {
                     }
                   }}
                 />
-                {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+                {errors.name && <p className="text-sm font-semibold text-red-500">{errors.name.message}</p>}
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
@@ -311,7 +311,7 @@ export default function BotPage() {
               <Bot className="h-12 w-12 text-muted-foreground" />
               <div>
                 <h3 className="text-lg font-medium">No bots found</h3>
-                <p className="text-sm text-muted-foreground">{searchTerm ? "Try a different search term" : "Get started by creating a new bot"}</p>
+                <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating a new bot"}</p>
               </div>
             </div>
           ) : (

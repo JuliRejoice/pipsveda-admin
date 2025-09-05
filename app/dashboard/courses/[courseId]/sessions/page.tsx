@@ -482,7 +482,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                 placeholder="Session name"
                 className={errors.sessionName ? 'border-red-500' : ''}
               />
-              {errors.sessionName && <p className="text-sm text-red-500 mt-1">{errors.sessionName}</p>}
+              {errors.sessionName && <p className="text-sm font-semibold text-red-500 mt-1">{errors.sessionName}</p>}
             </div>
 
             <div className="space-y-2">
@@ -493,7 +493,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                   <img src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded-md" />
                 </div>
               )}
-              {errors.image && <p className="text-sm text-red-500 mt-1">{errors.image}</p>}
+              {errors.image && <p className="text-sm font-semibold text-red-500 mt-1">{errors.image}</p>}
             </div>
 
             <div className="space-y-2">
@@ -516,7 +516,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                   }`}
                 rows={4}
               />
-              {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description}</p>}
+              {errors.description && <p className="text-sm font-semibold text-red-500 mt-1">{errors.description}</p>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -524,9 +524,9 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                 <Label className="text-sm font-medium">Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Button variant="outline" className="w-full h-[55px] justify-start text-left px-4">
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.date ? format(new Date(formData.date), "PPP") : <span>Pick a date</span>}
+                      {formData.date ? format(new Date(formData.date), "PPP") : <span className="text-base font-semibold">Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -546,7 +546,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                     />
                   </PopoverContent>
                 </Popover>
-                {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date}</p>}
+                {errors.date && <p className="text-sm font-semibold text-red-500 mt-1">{errors.date}</p>}
               </div>
 
               <div className="space-y-2">
@@ -568,7 +568,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                   placeholder="e.g., 09:00 - 10:00"
                   className={errors.time ? 'border-red-500' : ''}
                 />
-                {errors.time && <p className="text-sm text-red-500 mt-1">{errors.time}</p>}
+                {errors.time && <p className="text-sm font-semibold text-red-500 mt-1">{errors.time}</p>}
               </div>
             </div>
 
@@ -591,7 +591,7 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
                 type="url"
                 className={errors.meetingLink ? 'border-red-500' : ''}
               />
-              {errors.meetingLink && <p className="text-sm text-red-500 mt-1">{errors.meetingLink}</p>}
+              {errors.meetingLink && <p className="text-sm font-semibold text-red-500 mt-1">{errors.meetingLink}</p>}
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">

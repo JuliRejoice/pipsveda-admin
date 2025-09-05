@@ -123,7 +123,7 @@ export default function Notifications() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium text-gray-900">{notification.title}</h3>
-                      <span className="text-base font-semibold text-gray-500">{notification.time}</span>
+                      <span className="text-base font-semibold text-gray-500 font-lexend">{notification.time}</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
                   </div>

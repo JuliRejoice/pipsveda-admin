@@ -30,6 +30,7 @@ interface Payment {
   createdAt: string;
   updatedAt: string;
   metaAccountNo: string[];
+  telegramAccountNo: string[];
   botId: {
     strategyId: {
       title: string;
@@ -46,6 +47,9 @@ interface Payment {
   courseId: {
     CourseName: string;
     courseType: string;
+  };
+  uid: {
+    name: string;
   };
 }
 
@@ -159,8 +163,8 @@ export default function Payments() {
 
   const renderNoData = (isSearch: boolean) => (
     <div className="text-center py-12 text-gray-500">
-      <p className="text-lg font-medium">No data found</p>
-      <p className="text-sm mt-1">{isSearch ? "Try a different search term" : "There are no records to display"}</p>
+      <p className="text-2xl text-gray-500 font-medium">No data found</p>
+      <p className="text-lg text-gray-900 font-lexend">{isSearch ? "Try a different search term" : "There are no records to display"}</p>
     </div>
   );
 
@@ -187,70 +191,80 @@ export default function Payments() {
     if (activeTab === "courses") {
       return (
         <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-base">Sr. No</TableHead>
-                <TableHead className="text-base">Course Name</TableHead>
-                <TableHead className="text-base">Course Type</TableHead>
-                <TableHead className="text-base">Amount</TableHead>
-                <TableHead className="text-base">Transaction ID</TableHead>
-                <TableHead className="text-base">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex items-center justify-center py-8">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-muted-foreground">Loading payments...</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
-                      <AlertCircle className="h-12 w-12 text-destructive" />
-                      <div>
-                        <h3 className="text-lg font-medium">Error loading payments</h3>
-                        <p className="text-sm text-muted-foreground">Please try again later</p>
-                        <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                          Retry
-                        </Button>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : filteredPayments.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
-                      <CreditCard className="h-12 w-12 text-muted-foreground" />
-                      <div>
-                        <h3 className="text-lg font-medium">No payments found</h3>
-                        <p className="text-sm text-muted-foreground">{searchTerm ? "No matching payments found" : "No payment records available"}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPayments.map((payment, index) => (
-                  <TableRow key={payment._id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{payment.courseId?.CourseName || "-"}</TableCell>
-                    <TableCell className="capitalize">{payment.courseId?.courseType || "-"}</TableCell>
-                    <TableCell>${payment.price || "0.00"}</TableCell>
-                    <TableCell>{payment.orderId || "N/A"}</TableCell>
-                    <TableCell>{renderStatusBadge(payment.status)}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <div className="whitespace-nowrap mb-5">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-base">Sr. No</TableHead>
+                      <TableHead className="text-base">User Name</TableHead>
+                      <TableHead className="text-base">Purchase Date</TableHead>
+                      <TableHead className="text-base">Course Name</TableHead>
+                      <TableHead className="text-base">Course Type</TableHead>
+                      <TableHead className="text-base">Amount</TableHead>
+                      <TableHead className="text-base">Transaction ID</TableHead>
+                      <TableHead className="text-base">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex items-center justify-center py-8">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                              <p className="text-muted-foreground">Loading payments...</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
+                            <AlertCircle className="h-12 w-12 text-destructive" />
+                            <div>
+                              <h3 className="text-lg font-medium">Error loading payments</h3>
+                              <p className="text-sm text-muted-foreground font-lexend">Please try again later</p>
+                              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                                Retry
+                              </Button>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredPayments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
+                            <CreditCard className="h-12 w-12 text-muted-foreground" />
+                            <div>
+                              <h3 className="text-lg font-medium">No payments found</h3>
+                              <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "No matching payments found" : "No payment records available"}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredPayments.map((payment, index) => (
+                        <TableRow key={payment._id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{payment?.uid?.name}</TableCell>
+                          <TableCell>{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
+                          <TableCell>{payment.courseId?.CourseName || "-"}</TableCell>
+                          <TableCell className="capitalize">{payment.courseId?.courseType || "-"}</TableCell>
+                          <TableCell>${payment.price || "0.00"}</TableCell>
+                          <TableCell>{payment.orderId || "N/A"}</TableCell>
+                          <TableCell>{renderStatusBadge(payment.status)}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
           <DataTablePagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -270,107 +284,117 @@ export default function Payments() {
     if (activeTab === "algobots") {
       return (
         <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-base">Sr. No</TableHead>
-                <TableHead className="text-base">AlgoBot Name</TableHead>
-                <TableHead className="text-base">Plan Type</TableHead>
-                <TableHead className="text-base">Amount</TableHead>
-                <TableHead className="text-base">Transaction ID</TableHead>
-                <TableHead className="text-base">Status</TableHead>
-                <TableHead className="text-base">Meta Acc No.</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex items-center justify-center py-8">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-muted-foreground">Loading algobots...</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
-                      <AlertCircle className="h-12 w-12 text-destructive" />
-                      <div>
-                        <h3 className="text-lg font-medium">Error loading algobots</h3>
-                        <p className="text-sm text-muted-foreground">Please try again later</p>
-                        <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                          Retry
-                        </Button>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : filteredPayments.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
-                      <CreditCard className="h-12 w-12 text-muted-foreground" />
-                      <div>
-                        <h3 className="text-lg font-medium">No Algobot found</h3>
-                        <p className="text-sm text-muted-foreground">{searchTerm ? "No matching algobots found" : "No algobot records available"}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPayments.map((payment, index) => (
-                  <TableRow key={payment._id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{payment?.botId?.strategyId?.title || "-"}</TableCell>
-                    <TableCell className="capitalize">{payment?.botId?.planType || "N/A"}</TableCell>
-                    <TableCell>${payment?.price || "0.00"}</TableCell>
-                    <TableCell className="font-mono">{payment.orderId || "N/A"}</TableCell>
-                    <TableCell>{renderStatusBadge(payment.status)}</TableCell>
-                    <TableCell>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <div className="cursor-pointer" onClick={() => setSelectedPayment(payment)}>
-                            {payment?.metaAccountNo?.length > 0 ? (
-                              <Badge variant="outline" className="hover:bg-gray-100">
-                                View {payment.metaAccountNo.length} Account{payment.metaAccountNo.length !== 1 ? "s" : ""}
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-gray-400">
-                                No Accounts
-                              </Badge>
-                            )}
+          <div className="whitespace-nowrap mb-5">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-base">Sr. No</TableHead>
+                      <TableHead className="text-base">User Name</TableHead>
+                      <TableHead className="text-base">Purchase Date</TableHead>
+                      <TableHead className="text-base">AlgoBot Name</TableHead>
+                      <TableHead className="text-base">Plan Type</TableHead>
+                      <TableHead className="text-base">Amount</TableHead>
+                      <TableHead className="text-base">Transaction ID</TableHead>
+                      <TableHead className="text-base">Status</TableHead>
+                      <TableHead className="text-base">Meta Acc No.</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex items-center justify-center py-8">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                              <p className="text-muted-foreground">Loading algobots...</p>
+                            </div>
                           </div>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>Meta Account Numbers</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            {payment?.metaAccountNo?.length > 0 ? (
-                              <div className="space-y-2">
-                                {payment.metaAccountNo.map((account, idx) => (
-                                  <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-md">
-                                    <span className="font-medium">Account {idx + 1}:</span>
-                                    <span className="font-mono px-3">{account}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-gray-500 text-center py-4">No meta account numbers found</p>
-                            )}
+                        </TableCell>
+                      </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
+                            <AlertCircle className="h-12 w-12 text-destructive" />
+                            <div>
+                              <h3 className="text-lg font-medium">Error loading algobots</h3>
+                              <p className="text-sm text-muted-foreground font-lexend">Please try again later</p>
+                              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                                Retry
+                              </Button>
+                            </div>
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredPayments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
+                            <CreditCard className="h-12 w-12 text-muted-foreground" />
+                            <div>
+                              <h3 className="text-lg font-medium">No Algobot found</h3>
+                              <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "No matching algobots found" : "No algobot records available"}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredPayments.map((payment, index) => (
+                        <TableRow key={payment._id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{payment?.uid?.name}</TableCell>
+                          <TableCell>{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
+                          <TableCell>{payment?.botId?.strategyId?.title || "-"}</TableCell>
+                          <TableCell className="capitalize">{payment?.botId?.planType || "N/A"}</TableCell>
+                          <TableCell>${payment?.price || "0.00"}</TableCell>
+                          <TableCell className="font-mono">{payment.orderId || "N/A"}</TableCell>
+                          <TableCell>{renderStatusBadge(payment.status)}</TableCell>
+                          <TableCell>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <div className="cursor-pointer" onClick={() => setSelectedPayment(payment)}>
+                                  {payment?.metaAccountNo?.length > 0 ? (
+                                    <Badge variant="outline" className="hover:bg-gray-100">
+                                      View {payment.metaAccountNo.length} Account{payment.metaAccountNo.length !== 1 ? "s" : ""}
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-gray-400">
+                                      No Accounts
+                                    </Badge>
+                                  )}
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>Meta Account Numbers</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                  {payment?.metaAccountNo?.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {payment.metaAccountNo.map((account, idx) => (
+                                        <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-md">
+                                          <span className="font-medium">Account {idx + 1}:</span>
+                                          <span className="font-mono px-3">{account}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-gray-500 text-center py-4">No meta account numbers found</p>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div >
           <DataTablePagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -390,70 +414,82 @@ export default function Payments() {
     if (activeTab === "telegram") {
       return (
         <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-base">Sr. No</TableHead>
-                <TableHead className="text-base">Telegram Channel</TableHead>
-                <TableHead className="text-base">Plan Type</TableHead>
-                <TableHead className="text-base">Amount</TableHead>
-                <TableHead className="text-base">Transaction ID</TableHead>
-                <TableHead className="text-base">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex items-center justify-center py-8">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-muted-foreground">Loading Telegram Subscriptions...</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
-                      <AlertCircle className="h-12 w-12 text-destructive" />
-                      <div>
-                        <h3 className="text-lg font-medium">Error loading Telegram Subscriptions</h3>
-                        <p className="text-sm text-muted-foreground">Please try again later</p>
-                        <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                          Retry
-                        </Button>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : filteredPayments.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8">
-                    <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
-                      <CreditCard className="h-12 w-12 text-muted-foreground" />
-                      <div>
-                        <h3 className="text-lg font-medium">No telegram subscriptions found</h3>
-                        <p className="text-sm text-muted-foreground">{searchTerm ? "No matching telegram subscriptions found" : "No telegram subscriptions records available"}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPayments.map((payment, index) => (
-                  <TableRow key={payment._id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{payment?.telegramId?.telegramId?.channelName || "N/A"}</TableCell>
-                    <TableCell className="capitalize">{payment?.planType || "N/A"}</TableCell>
-                    <TableCell>${payment?.price || "0.00"}</TableCell>
-                    <TableCell className="font-mono">{payment?.orderId || "N/A"}</TableCell>
-                    <TableCell>{renderStatusBadge(payment?.status)}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <div className="whitespace-nowrap mb-5">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-base">Sr. No</TableHead>
+                      <TableHead className="text-base">User Name</TableHead>
+                      <TableHead className="text-base">Purchase Date</TableHead>
+                      <TableHead className="text-base">Telegram Account Number</TableHead>
+                      <TableHead className="text-base">Telegram Channel</TableHead>
+                      <TableHead className="text-base">Plan Type</TableHead>
+                      <TableHead className="text-base">Amount</TableHead>
+                      <TableHead className="text-base">Transaction ID</TableHead>
+                      <TableHead className="text-base">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex items-center justify-center py-8">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                              <p className="text-muted-foreground">Loading Telegram Subscriptions...</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
+                            <AlertCircle className="h-12 w-12 text-destructive" />
+                            <div>
+                              <h3 className="text-lg font-medium">Error loading Telegram Subscriptions</h3>
+                              <p className="text-sm text-muted-foreground font-lexend">Please try again later</p>
+                              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                                Retry
+                              </Button>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredPayments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8">
+                          <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
+                            <CreditCard className="h-12 w-12 text-muted-foreground" />
+                            <div>
+                              <h3 className="text-lg font-medium">No telegram subscriptions found</h3>
+                              <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "No matching telegram subscriptions found" : "No telegram subscriptions records available"}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredPayments.map((payment, index) => (
+                        <TableRow key={payment._id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{payment?.uid?.name || "-"}</TableCell>
+                          <TableCell>{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
+                          <TableCell>{payment?.telegramAccountNo || "-"}</TableCell>
+                          <TableCell>{payment?.telegramId?.telegramId?.channelName || "N/A"}</TableCell>
+                          <TableCell className="capitalize">{payment?.planType || "N/A"}</TableCell>
+                          <TableCell>${payment?.price || "0.00"}</TableCell>
+                          <TableCell>{payment?.orderId || "N/A"}</TableCell>
+                          <TableCell>{renderStatusBadge(payment?.status)}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
           <DataTablePagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -473,99 +509,106 @@ export default function Payments() {
     // Default view (All Payments)
     return (
       <>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-base px-6 text-left w-[80px]">Sr. No</TableHead>
-              <TableHead className="text-base px-6 text-left w-[200px]">Purchase Date</TableHead>
-              <TableHead className="text-base px-6 text-left w-[250px]">Course Name</TableHead>
-              <TableHead className="text-base px-6 text-left w-[250px]">Strategy Name</TableHead>
-              <TableHead className="text-base px-6 text-left w-[200px]">Telegram Channel</TableHead>
-              <TableHead className="text-base px-6 text-left w-[150px]">Course Type</TableHead>
-              <TableHead className="text-base px-6 text-left w-[120px]">Plan</TableHead>
-              <TableHead className="text-base px-6 text-left w-[100px]">Amount</TableHead>
-              <TableHead className="text-base px-6 text-left w-[300px]">Transaction ID</TableHead>
-              <TableHead className="text-base px-6 text-left w-[180px]">Meta Account No</TableHead>
-              <TableHead className="text-base px-6 text-left w-[100px]">Status</TableHead>
-            </TableRow>
-          </TableHeader>
+        <div className="whitespace-nowrap mb-5">
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-base px-6 text-left w-[80px]">Sr. No</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[200px]">User Name</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[200px]">Purchase Date</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[250px]">Course Name</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[250px]">Strategy Name</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[200px]">Telegram Channel</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[150px]">Course Type</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[120px]">Plan</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[100px]">Amount</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[300px]">Transaction ID</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[180px]">Meta Account No</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[100px]">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
 
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={11} className="py-8 px-6 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Loading...</p>
-                </TableCell>
-              </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={11} className="py-8 px-6 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-4 h-64">
-                    <AlertCircle className="h-12 w-12 text-destructive" />
-                    <h3 className="text-lg font-medium">Error loading data</h3>
-                    <p className="text-sm text-muted-foreground">Please try again later</p>
-                    <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                      Retry
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : filteredPayments.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={11} className="py-8 px-6 text-center">
-                  <CreditCard className="h-12 w-12 text-muted-foreground" />
-                  <h3 className="text-lg font-medium">No data found</h3>
-                  <p className="text-sm text-muted-foreground">{searchTerm ? "No matching data found" : "No data records available"}</p>
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredPayments.map((payment, index) => (
-                <TableRow key={payment._id}>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">{index + 1}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap capitalize">{payment?.courseId?.CourseName || "-"}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.botId?.strategyId?.title || "-"}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.telegramId?.telegramId?.channelName || "-"}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.courseId?.courseType || "-"}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.botId?.planType || payment?.telegramId?.planType || "-"}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">${payment?.price || "0.00"}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.orderId || "N/A"}</TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <div className="cursor-pointer" onClick={() => setSelectedPayment(payment)}>
-                          <span className="text-base font-semibold">{payment?.botId ? renderStatusBadge("View More") : "-"}</span>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="py-8 px-6 text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-muted-foreground">Loading...</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="py-8 px-6 text-center">
+                        <div className="flex flex-col items-center justify-center space-y-4 h-64">
+                          <AlertCircle className="h-12 w-12 text-destructive" />
+                          <h3 className="text-lg font-medium">Error loading data</h3>
+                          <p className="text-sm text-muted-foreground font-lexend">Please try again later</p>
+                          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                            Retry
+                          </Button>
                         </div>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <DialogTitle>Meta Account Numbers</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          {payment?.metaAccountNo?.length > 0 ? (
-                            <div className="space-y-2">
-                              {payment.metaAccountNo.map((account, idx) => (
-                                <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-md">
-                                  <span className="font-medium">Account {idx + 1}:</span>
-                                  <span className="font-mono px-3">{account}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-gray-500 text-center py-4">No meta account numbers found</p>
-                          )}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-left whitespace-nowrap">{renderStatusBadge(payment?.status)}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredPayments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="py-8 px-6 text-center">
+                        <CreditCard className="h-12 w-12 text-muted-foreground" />
+                        <h3 className="text-lg font-medium">No data found</h3>
+                        <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "No matching data found" : "No data records available"}</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredPayments.map((payment, index) => (
+                      <TableRow key={payment._id}>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{index + 1}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.uid?.name || "-"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap capitalize">{payment?.courseId?.CourseName || "-"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.botId?.strategyId?.title || "-"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.telegramId?.telegramId?.channelName || "-"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.courseId?.courseType || "-"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.botId?.planType || payment?.telegramId?.planType || "-"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">${payment?.price || "0.00"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.orderId || "N/A"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <div className="cursor-pointer" onClick={() => setSelectedPayment(payment)}>
+                                <span className="text-base font-semibold">{payment?.botId ? renderStatusBadge("View More") : "-"}</span>
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                              <DialogHeader>
+                                <DialogTitle>Meta Account Numbers</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4 py-4">
+                                {payment?.metaAccountNo?.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {payment.metaAccountNo.map((account, idx) => (
+                                      <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-md">
+                                        <span className="font-medium">Account {idx + 1}:</span>
+                                        <span className="font-mono px-3">{account}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No meta account numbers found</p>
+                                )}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{renderStatusBadge(payment?.status)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
         <DataTablePagination
           currentPage={currentPage}
           totalPages={totalPages}
