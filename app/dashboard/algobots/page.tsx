@@ -808,14 +808,15 @@ export default function AlgoBots() {
                   ? {
                       ...p,
                       ...newPlan,
-                      botId: {
-                        _id: newPlan.botId,
-                        botProviderId: {
-                          _id: newPlan.botProviderId,
-                          companyName: "",
-                        },
-                        name: "",
-                      },
+                      // botId: {
+                      //   _id: newPlan.botId,
+                      //   botProviderId: {
+                      //     _id: newPlan.botProviderId,
+                      //     companyName: "",
+                      //   },
+                      //   name: "",
+                      // },
+                      botId : newPlan.botId
                     }
                   : p
               )
@@ -907,6 +908,23 @@ export default function AlgoBots() {
     if (plan.botId && typeof plan.botId === "object") {
       const botId = plan.botId._id;
       const providerId = plan.botId.botProviderId?._id;
+
+      if (providerId) {
+        // First set the provider and wait for state update
+        setValue("botProviderId", providerId);
+
+        // Then set the botId in the next tick
+        setTimeout(() => {
+          setValue("botId", botId);
+
+          // Filter bots for the selected provider
+          const fb = bots.filter((b) => b.botProviderId === providerId || !b.botProviderId);
+          setFilteredBots(fb);
+        }, 0);
+      }
+    }else{
+      const botId = plan?.botId;
+      const providerId = plan?.botProviderId;
 
       if (providerId) {
         // First set the provider and wait for state update
