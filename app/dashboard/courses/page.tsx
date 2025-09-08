@@ -7,8 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, UploadCloud, Image, CalendarPlus, BookPlus, AlertTriangle } from "lucide-react";
+import { Search, Plus, Play, MapPin, Edit, Trash2, MoreVertical, Video, Link as LinkIcon, Image, CalendarPlus, BookPlus, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle as DialogTitleUI, DialogFooter } from "@/components/ui/dialog";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -56,6 +57,12 @@ export default function Courses() {
 
   // Add loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  // Handle file selection from ImageUpload component
+  const handleImageChange = (file: File | null) => {
+    setImageFile(file);
+  };
 
   // Function to trim input values on blur
   const handleTrimInput = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -122,9 +129,8 @@ export default function Courses() {
     }
 
     // Image required on create (skip when editing)
-    const imageEntries = formData.getAll("image").filter((v) => v instanceof File && (v as File).size > 0) as File[];
-    if (!editCourse && imageEntries.length === 0) {
-      errors.image = "Please upload a image";
+    if (!editCourse && !imageFile) {
+      errors.image = "Please upload an image";
     }
 
     // Course type specific validations
@@ -241,6 +247,7 @@ export default function Courses() {
     setPhysicalStartDate(undefined);
     setPhysicalEndDate(undefined);
     setFormErrors({});
+    setImageFile(null);
     // setActiveTab('recorded');
     // Reset form fields if using a form ref
     const form = document.querySelector("form");
@@ -466,9 +473,6 @@ export default function Courses() {
         return;
       }
 
-      // Get the thumbnail image file if it exists
-      const thumbnailImage = formData.get("thumbnailImage") as File | null;
-
       // Create a new FormData for the API request
       const apiFormData = new FormData();
 
@@ -499,17 +503,9 @@ export default function Courses() {
         // apiFormData.append('address', formData.get('address') || '');
       }
 
-      // Add the thumbnail image if it exists
-      if (thumbnailImage && thumbnailImage.size > 0) {
-        apiFormData.append("thumbnail", thumbnailImage);
-      }
-
-      // Add course images if they exist (for recorded courses)
-      const courseImages = formData.getAll("image") as File[];
-      if (courseImages && courseImages.length > 0) {
-        courseImages.forEach((file, index) => {
-          apiFormData.append(`image`, file);
-        });
+      // For backward compatibility, also add the image to the files array if it exists
+      if (imageFile) {
+        apiFormData.append("image", imageFile);
       }
 
       try {
@@ -664,8 +660,13 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="recorded" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" className="p-3 text-gray-900" />
-                  {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
+                  <ImageUpload
+                    name="image"
+                    id="course-thumbnail"
+                    error={formErrors.image}
+                    onChange={handleImageChange}
+                    initialImage={editCourse?.courseVideo || null}
+                  />
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
@@ -824,8 +825,13 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="live" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" className="p-3 text-gray-900" />
-                  {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
+                  <ImageUpload
+                    name="image"
+                    id="course-thumbnail"
+                    error={formErrors.image}
+                    onChange={handleImageChange}
+                    initialImage={editCourse?.courseVideo || null}
+                  />
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
@@ -978,8 +984,13 @@ export default function Courses() {
                 <input type="hidden" name="courseType" value="physical" />
                 <div>
                   <label className="block font-medium mb-1">Course Thumbnail Image</label>
-                  <Input type="file" accept="image/*" name="image" className="p-3 text-gray-900" />
-                  {formErrors.image && <div className="text-red-500">{formErrors.image}</div>}
+                  <ImageUpload
+                    name="image"
+                    id="course-thumbnail"
+                    error={formErrors.image}
+                    onChange={handleImageChange}
+                    initialImage={editCourse?.courseVideo || null}
+                  />
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Name</label>
