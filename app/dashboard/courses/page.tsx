@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { createCourse, getCourses, updateCourse, deleteCourse } from "@/components/api/course";
+import { getAllCourseCategory } from "@/components/api/category";
 import React from "react";
 import { Dialog as ConfirmDialog, DialogContent as ConfirmDialogContent, DialogHeader as ConfirmDialogHeader, DialogTitle as ConfirmDialogTitle, DialogFooter as ConfirmDialogFooter } from "@/components/ui/dialog";
 import Link from "next/link";
@@ -46,6 +47,7 @@ export default function Courses() {
   const [physicalEndDate, setPhysicalEndDate] = useState<Date | undefined>();
 
   const [courses, setCourses] = useState<Course[]>([]);
+  const [categories, setCategories] = useState<{_id: string, name: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
@@ -58,6 +60,26 @@ export default function Courses() {
   // Add loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await getAllCourseCategory();
+        if (response.success) {
+          setCategories(response.payload?.data || []);
+        } else {
+          console.error('Failed to fetch categories:', response.message);
+          toast.error('Failed to load categories');
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('An error occurred while loading categories');
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Handle file selection from ImageUpload component
   const handleImageChange = (file: File | null) => {
@@ -507,6 +529,12 @@ export default function Courses() {
       if (imageFile) {
         apiFormData.append("image", imageFile);
       }
+      
+      // Add course category
+      const categoryId = formData.get('courseCategory');
+      if (categoryId) {
+        apiFormData.append('courseCategory', categoryId.toString());
+      }
 
       try {
         let data;
@@ -805,6 +833,22 @@ export default function Courses() {
                   </div>
                 </div>
                 <div>
+                  <label className="block font-medium mb-1">Course Category</label>
+                  <select 
+                    name="courseCategory" 
+                    className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    defaultValue={editCourse?.courseCategory || ""}
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="block font-medium mb-1">Define Course</label>
                   <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || ""}>
                     <option value="">Choose Option</option>
@@ -962,6 +1006,22 @@ export default function Courses() {
                     }}
                   />
                   {formErrors.zoomLink && <div className="text-red-500">{formErrors.zoomLink}</div>}
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Course Category</label>
+                  <select 
+                    name="courseCategory" 
+                    className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    defaultValue={editCourse?.courseCategory || ""}
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Define Course</label>
@@ -1173,6 +1233,22 @@ export default function Courses() {
                     }}
                   />
                   {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Course Category</label>
+                  <select 
+                    name="courseCategory" 
+                    className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    defaultValue={editCourse?.courseCategory || ""}
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Define Course</label>
