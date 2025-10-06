@@ -67,7 +67,43 @@ export interface Course {
     email?: string;
     phone?: string;
     isDefineCourse?: string;
+    courseCategory?: string;
 }
+
+export const getAllCourseCategory = async ({
+    page = 1,
+    limit = 10,
+    search = '',
+    courseType = ''
+}: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    courseType?: string;
+} = {}) => {
+    try {
+        const token = getAuthToken();
+        const headers: Record<string, string> = {};
+
+        if (token) {
+            headers['x-auth-token'] = token;
+        }
+
+        // Build query string with pagination and filtering
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+            ...(search && { search }),
+            ...(courseType && { courseType })
+        });
+
+        const res = await axios.get(`${BaseUrl}/courseCategory/getAllCourseCategory`, { headers });
+        return res.data;
+    } catch (error) {
+        console.error("Error fetching courses", error);
+        throw error;
+    }
+  };
 
 export const getCourses = async ({
     page = 1,
