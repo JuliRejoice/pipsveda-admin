@@ -56,7 +56,7 @@ export default function RevenueBreakdown({ period, data, isLoading = false }:Rev
   ];
 
   return (
-    <Card>
+    <Card className='shadow-lg rounded-xl border-0'>
       <CardHeader>
         <CardTitle>Revenue Breakdown - {period.charAt(0).toUpperCase() + period.slice(1)}</CardTitle>
       </CardHeader>

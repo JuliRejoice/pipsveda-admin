@@ -40,7 +40,7 @@ export const getAllCourseCategory = async (params?: PaginationParams) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/courseCategory/addNewCourseCategory`, categoryData, {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
           'x-auth-token': token,
         },
       });
@@ -57,7 +57,7 @@ export const getAllCourseCategory = async (params?: PaginationParams) => {
     try {
       const response = await axios.put(`${API_BASE_URL}/courseCategory/editCourseCategory?id=${id}`, categoryData, {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
           'x-auth-token': token,
         },
       });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -9,21 +9,34 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Search, Plus, Tag, Edit, Trash2, AlertTriangle, MoreHorizontal } from "lucide-react";
+import { Search, Plus, Tag, Edit, Trash2, AlertTriangle, Upload, X, MoreVertical } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { createCategory, getAllCategory, updateCategory, deleteCategory } from "@/components/api/algobot";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { createCourseCategory, deleteCourseCategory, getAllCourseCategory, updateCourseCategory } from "@/components/api/category";
 
-// Form validation schema - only category name field
+// Form validation schema with category name and image
 const formSchema = z.object({
   name: z
     .string()
     .min(2, "Category name must be at least 2 characters")
     .max(50, "Category name must be at most 50 characters")
     .regex(/^[a-zA-Z0-9\s-]+$/, "Category name can only contain letters, numbers, spaces, and hyphens"),
+    image: z.any()
+    .refine((file) => file instanceof File || file === null || typeof file === 'string', {
+      message: 'Please upload an image file',
+    })
+    .refine(
+      (file) => {
+        if (!file) return false; // Changed from true to false to make it required
+        if (typeof file === 'string') return true; // Allow existing image URLs
+        return file.size <= 5 * 1024 * 1024; // 5MB max size
+      },
+      {
+        message: 'Please upload an image file',
+      }
+    ),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -31,6 +44,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface CategoryItem {
   _id: string;
   name: string;
+  image?: string; // Add image field to the interface
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -56,6 +70,7 @@ export default function Category() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      image: null,
     },
   });
 
@@ -64,8 +79,50 @@ export default function Category() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = form;
+
+  const imageFile = watch('image');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setValue('image', file, { shouldValidate: true });
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setValue('image', file, { shouldValidate: true });
+    }
+  };
+
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeImage = () => {
+    setValue('image', null, { shouldValidate: true });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const [allCategories, setAllCategories] = useState<CategoryItem[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<CategoryItem[]>([]);
@@ -118,17 +175,29 @@ export default function Category() {
   const onSubmit = async (data: FormValues) => {
     try {
       setIsLoading(true);
-console.log(data,"data");
+      
+      // Create FormData to handle file upload
+      const formData = new FormData();
+      formData.append('name', data.name);
+      
+      // Only append image if it's a File object (not a string URL)
+      if (data.image && data.image instanceof File) {
+        formData.append('image', data.image);
+      } else if (isEditMode && typeof data.image === 'string') {
+        // If it's an edit and image is a string (existing URL), we don't need to send it again
+        // unless it was changed, but we'll handle that in the API
+        formData.append('imageUrl', data.image);
+      }
 
       if (isEditMode && currentCategoryId) {
-        const response = await updateCourseCategory(currentCategoryId, data);
+        const response = await updateCourseCategory(currentCategoryId, formData);
         if (response.success) {
           toast.success("Category updated successfully!");
         } else {
           toast.error(response.message);
         }
       } else {
-        const response = await createCourseCategory(data);
+        const response = await createCourseCategory(formData);
         if (response.success) {
           toast.success("Category created successfully!");
         } else {
@@ -150,8 +219,16 @@ console.log(data,"data");
   // Set up form for editing
   const handleEdit = (category: CategoryItem) => {
     setCurrentCategoryId(category._id);
+    setValue("name", category.name, { shouldValidate: true });
+    
+    // Set the image if it exists in the category data
+    if (category.image) {
+      setValue("image", category.image, { shouldValidate: true });
+    } else {
+      setValue("image", null, { shouldValidate: true });
+    }
+    
     setIsEditMode(true);
-    setValue("name", category.name);
     setIsOpen(true);
   };
 
@@ -213,7 +290,7 @@ console.log(data,"data");
             <DialogHeader>
               <DialogTitle>{isEditMode ? "Edit Category" : "Create New Category"}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Category Name</Label>
                 <Input 
@@ -231,6 +308,60 @@ console.log(data,"data");
                   }}
                 />
                 {errors.name && <p className="text-sm font-semibold text-red-500">{errors.name.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Category Image</Label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                    isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={openFileDialog}
+                >
+                  {imageFile ? (
+                    <div className="relative">
+                      <img
+                        src={typeof imageFile === 'string' ? imageFile : URL.createObjectURL(imageFile)}
+                        alt="Preview"
+                        className="mx-auto max-h-48 rounded-md object-cover"
+                      />
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeImage();
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                        <Upload className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <p className="text-sm text-gray-600 mb-1">
+                        <span className="text-blue-600 font-medium">Click to upload</span> or drag and drop
+                      </p>
+                    </>
+                  )}
+                </div>
+                {errors.image && (
+                  <p className="text-sm text-red-500">
+                    {errors.image.message as string}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
@@ -253,7 +384,6 @@ console.log(data,"data");
           <Input placeholder="Search category..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
         </div>
       </div>
-
       {/* Content */}
       {isFetching ? (
         <div className="flex items-center justify-center py-8">
@@ -262,62 +392,73 @@ console.log(data,"data");
             <p className="text-muted-foreground">Loading categories...</p>
           </div>
         </div>
+      ) : filteredCategories.length === 0 ? (
+        <div className="text-center py-12 space-y-2">
+          <Tag className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="text-lg font-medium">No categories found</h3>
+          <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating a new category"}</p>
+        </div>
       ) : (
-        <>
-          {filteredCategories.length === 0 ? (
-            <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
-              <Tag className="h-12 w-12 text-muted-foreground" />
-              <div>
-                <h3 className="text-lg font-medium">No categories found</h3>
-                <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating a new algobot"}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filteredCategories
+            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+            .map((category) => (
+              <div key={category._id} className="relative group border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                <div className="relative pt-[56.25%] bg-gray-100">
+                  {category.image ? (
+                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+                      <img 
+                        src={category.image} 
+                        alt={category.name}
+                        className="min-w-full min-h-full object-cover"
+                        style={{ objectFit: 'contain' }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                      <Tag className="h-12 w-12 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 flex items-center justify-between">
+                  <h3 className="font-medium">{category.name}</h3>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(category);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(category._id);
+                        }}
+                        className="cursor-pointer text-red-600 focus:text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-base">Sr. No</TableHead>
-                    <TableHead className="text-base">Category Name</TableHead>
-                    <TableHead className="text-base">Edit</TableHead>
-                    <TableHead className="text-base">Delete</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCategories
-                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((category, index) => (
-                      <TableRow key={category._id}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{category.name}</TableCell>
-                        <TableCell className="font-medium"><button onClick={() => handleEdit(category)}><Edit className="mr-2 h-4 w-4" /></button></TableCell>
-                        <TableCell className="font-medium"><button onClick={() => handleDeleteClick(category._id)}><Trash2 className="mr-2 h-4 w-4" /></button></TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </div>
+            ))}
+        </div>
           )}
-
-          {totalItems > itemsPerPage && (
-            <div className="mt-6">
-              <DataTablePagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={(value) => {
-                  setItemsPerPage(value);
-                  setCurrentPage(1);
-                }}
-                itemsPerPageOptions={[10, 20, 30, 50]}
-                className="border-t pt-4"
-              />
-            </div>
-          )}
-        </>
-      )}
+        {/* </>
+      )} */}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

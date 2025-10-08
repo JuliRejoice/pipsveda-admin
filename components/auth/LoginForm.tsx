@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Loader2 } from 'lucide-react';
 import { SignIn } from '@/components/api/login';
+import Pipslogo from '@/public/images/pipslogo';
 
 interface FormErrors {
   email?: string;
@@ -180,6 +181,9 @@ export default function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
+        <div className="flex justify-center">
+          <Pipslogo width="110px" height="90px" />
+        </div>
         <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
         <CardDescription className='text-base font-semibold'>
           Enter your credentials to access the dashboard

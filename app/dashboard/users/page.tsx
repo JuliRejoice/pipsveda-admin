@@ -117,7 +117,7 @@ const customerFormSchema = z.object({
 
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
-export default function Customers() {
+export default function Users() {
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -372,7 +372,7 @@ export default function Customers() {
                 <TableHeader className="bg-background">
                   <TableRow>
                     <TableHead className="text-base">Sr. No</TableHead>
-                    <TableHead className="text-base w-[250px]">Customer</TableHead>
+                    <TableHead className="text-base w-[250px]">User</TableHead>
                     <TableHead className="text-base">Contact</TableHead>
                     <TableHead className="text-base">Gender</TableHead>
                     <TableHead className="text-base">Birthday</TableHead>

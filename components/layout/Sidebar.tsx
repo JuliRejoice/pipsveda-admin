@@ -20,8 +20,8 @@ const sidebarItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Customers",
-    href: "/dashboard/customers",
+    title: "Users",
+    href: "/dashboard/users",
     icon: Users,
   },
   {
@@ -121,7 +121,7 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <div className={cn("bg-background border-r transition-all duration-300 flex flex-col h-screen sticky top-0", isCollapsed ? "w-16" : "w-[280px]")}>
+    <div className={cn("bg-[#f5f5f5] transition-all duration-300 flex flex-col h-screen sticky top-0", isCollapsed ? "w-16" : "w-[280px]")}>
       {/* Toggle Button - Fixed at the top right */}
       <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn("absolute -right-5 top-14 z-10 rounded-lg border bg-background p-0", "flex items-center justify-center hover:bg-muted w-8 h-8")}>
         {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
