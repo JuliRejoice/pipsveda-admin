@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Phone } from "lucide-react";
+import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Phone, User } from "lucide-react";
 import { getCustomers, updateCustomer, deleteCustomer, setCustomerStatus, createCustomer } from "@/components/api/customer";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -352,11 +352,6 @@ export default function Users() {
             <div className="relative w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input placeholder="Search by name, email, or phone..." value={searchInput} onChange={handleSearchInputChange} className="pl-10 font-normal" />
-              {isSearching && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary"></div>
-                </div>
-              )}
             </div>
 
             {/* <Button onClick={() => setIsAddCustomerOpen(true)}>
@@ -382,7 +377,16 @@ export default function Users() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCustomers.length > 0 ? (
+                  {isSearching ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="py-8 text-center">
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+                          <p className="text-muted-foreground">Searching customers...</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredCustomers.length > 0 ? (
                     filteredCustomers.map((customer, index) => (
                       <TableRow key={customer._id}>
                         <TableCell>{index + 1}</TableCell>
@@ -495,12 +499,7 @@ export default function Users() {
                       <TableCell colSpan={8} className="h-24 text-center">
                         <div className="flex flex-col items-center justify-center py-8">
                           <div className="text-gray-400 mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users">
-                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                              <circle cx="9" cy="7" r="4"></circle>
-                              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
+                           <User className="h-12 w-12"/>
                           </div>
                           <h3 className="text-lg font-medium text-gray-900">No customers found</h3>
                           <p className="text-base font-semibold text-gray-500 font-lexend">{searchTerm ? "Try adjusting your search or filter to find what you're looking for." : "Get started by adding a new customer."}</p>

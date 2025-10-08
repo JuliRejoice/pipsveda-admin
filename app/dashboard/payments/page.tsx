@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPaymentHistory } from "@/components/api/payment";
+import { downloadInvoice, getPaymentHistory } from "@/components/api/payment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, AlertCircle, CreditCard } from "lucide-react";
+import { Search, AlertCircle, CreditCard, DownloadIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
+import { toast } from "sonner";
 
 interface Payment {
   _id: string;
@@ -31,6 +32,12 @@ interface Payment {
   updatedAt: string;
   metaAccountNo: string[];
   telegramAccountNo: string[];
+  planExpiry: string;
+  noOfBots: number;
+  discount: number;
+  couponDiscount: number;
+  initialPrice: number;
+  price: number;
   botId: {
     strategyId: {
       title: string;
@@ -43,7 +50,6 @@ interface Payment {
     };
     planType: string;
   };
-  price: number;
   courseId: {
     CourseName: string;
     courseType: string;
@@ -76,6 +82,7 @@ export default function Payments() {
   const [itemsPerPage, setItemsPerPage] = useState(8);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [loadingInvoices, setLoadingInvoices] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -117,6 +124,90 @@ export default function Payments() {
     fetchPayments();
   }, [currentPage, itemsPerPage, activeTab]);
 
+  const calculateExpiryDate = (purchaseDate: string, planDuration: string) => {
+    if (!planDuration || planDuration === 'N/A') return null;
+
+    const purchase = new Date(purchaseDate);
+    const duration = parseInt(planDuration);
+
+    if (planDuration.includes('Month')) {
+      purchase.setMonth(purchase.getMonth() + duration);
+    } else if (planDuration.includes('year')) {
+      purchase.setFullYear(purchase.getFullYear() + duration);
+    }
+    return purchase.toLocaleDateString("en-US");
+  };
+
+  const downloadPaymentInvoice = async (payment: Payment) => {
+    if (loadingInvoices[payment._id]) return; // Prevent multiple clicks
+
+    try {
+      setLoadingInvoices(prev => ({ ...prev, [payment._id]: true }));
+      const expiryDate = payment.planExpiry || 
+                       calculateExpiryDate(payment.createdAt, payment.planType); 
+
+      // Handle date safely
+      let purchaseDate = 'N/A';
+      if (payment.createdAt) {
+        const date = new Date(payment.createdAt);
+        purchaseDate = !isNaN(date.getTime()) ? date.toLocaleDateString("en-US") : 'Invalid date';
+      }
+
+      const invoicePayload = {
+        transactionId: payment.orderId,
+        purchaseDate: purchaseDate,
+        expiryDate: expiryDate,
+        items: [
+          {
+            planName:
+              payment.telegramId?.telegramId?.channelName ||
+              payment.botId?.strategyId?.title ||
+              payment.courseId?.CourseName ||
+              "N/A",
+            planDuration: payment.planType || "N/A",
+            metaNo: payment.telegramAccountNo || payment.metaAccountNo?.[0] || "N/A",
+            qty: payment.noOfBots || 1,
+            amount: payment.price || 0,
+          },
+        ],
+        couponDiscount: payment.couponDiscount > 0 ? `-${payment.couponDiscount}` : "-",
+        planDiscount: payment.discount > 0 ? `-${payment.discount}` : "-",
+        totalValue: payment.initialPrice || 0,
+        total: payment.price || 0,
+      };
+
+      const response = await downloadInvoice(invoicePayload as any);
+
+      if (response?.success && response?.payload) {
+
+        const pdfRes = await fetch(response.payload);
+        const blob = await pdfRes.blob();
+
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        console.log(link.href);
+        link.download = `invoice-${payment.orderId || Date.now()}.pdf`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        window.URL.revokeObjectURL(url);
+
+        toast.success("Invoice downloaded successfully!");
+      } else {
+        throw new Error("Failed to generate invoice");
+      }
+    } catch (error: any) {
+      console.error("Error generating invoice:", error);
+      toast.error(error.message || "Failed to generate invoice");
+    } finally {
+      setLoadingInvoices(prev => ({ ...prev, [payment._id]: false }));
+    }
+  }
+
   const filterPaymentsByTab = (payments: Payment[]) => {
     return payments.filter((payment) => {
       switch (activeTab) {
@@ -145,7 +236,7 @@ export default function Payments() {
 
     const searchTerm = term.toLowerCase();
     return payments.filter((payment) => {
-      return payment.userName?.toLowerCase().includes(searchTerm) || payment.itemName?.toLowerCase().includes(searchTerm) || payment.paymentId?.toLowerCase().includes(searchTerm) || payment.orderId?.toLowerCase().includes(searchTerm) || payment.userEmail?.toLowerCase().includes(searchTerm) || payment.courseId?.CourseName?.toLowerCase().includes(searchTerm) || payment.botId?.strategyId?.title?.toLowerCase().includes(searchTerm) || payment.telegramId?.telegramId?.channelName?.toLowerCase().includes(searchTerm) || payment.planType?.toLowerCase().includes(searchTerm);
+      return payment.uid.name?.toLowerCase().includes(searchTerm) || payment.itemName?.toLowerCase().includes(searchTerm) || payment.paymentId?.toLowerCase().includes(searchTerm) || payment.orderId?.toLowerCase().includes(searchTerm) || payment.userEmail?.toLowerCase().includes(searchTerm) || payment.courseId?.CourseName?.toLowerCase().includes(searchTerm) || payment.botId?.strategyId?.title?.toLowerCase().includes(searchTerm) || payment.telegramId?.telegramId?.channelName?.toLowerCase().includes(searchTerm) || payment.planType?.toLowerCase().includes(searchTerm);
     });
   };
 
@@ -205,6 +296,7 @@ export default function Payments() {
                       <TableHead className="text-base">Amount</TableHead>
                       <TableHead className="text-base">Transaction ID</TableHead>
                       <TableHead className="text-base">Status</TableHead>
+                      <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -257,6 +349,25 @@ export default function Payments() {
                           <TableCell>${payment.price || "0.00"}</TableCell>
                           <TableCell>{payment.orderId || "N/A"}</TableCell>
                           <TableCell>{renderStatusBadge(payment.status)}</TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => downloadPaymentInvoice(payment)}
+                            disabled={loadingInvoices[payment._id]}
+                            className="border-none"
+                          >
+                            {loadingInvoices[payment._id] ? (
+                              <>
+                                <DownloadIcon className={`h-4 w-4 animate-pulse ${loadingInvoices[payment._id] ? "cursor-not-allowed" : ""}`} />
+                              </>
+                            ) : (
+                              <>
+                                <DownloadIcon className="h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -297,8 +408,9 @@ export default function Payments() {
                       <TableHead className="text-base">Plan Type</TableHead>
                       <TableHead className="text-base">Amount</TableHead>
                       <TableHead className="text-base">Transaction ID</TableHead>
-                      <TableHead className="text-base">Status</TableHead>
                       <TableHead className="text-base">Meta Acc No.</TableHead>
+                      <TableHead className="text-base">Status</TableHead>
+                      <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -350,7 +462,6 @@ export default function Payments() {
                           <TableCell className="capitalize">{payment?.botId?.planType || "N/A"}</TableCell>
                           <TableCell>${payment?.price || "0.00"}</TableCell>
                           <TableCell className="font-mono">{payment.orderId || "N/A"}</TableCell>
-                          <TableCell>{renderStatusBadge(payment.status)}</TableCell>
                           <TableCell>
                             <Dialog>
                               <DialogTrigger asChild>
@@ -387,6 +498,26 @@ export default function Payments() {
                               </DialogContent>
                             </Dialog>
                           </TableCell>
+                          <TableCell>{renderStatusBadge(payment.status)}</TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => downloadPaymentInvoice(payment)}
+                            disabled={loadingInvoices[payment._id]}
+                            className="border-none"
+                          >
+                            {loadingInvoices[payment._id] ? (
+                              <>
+                                <DownloadIcon className={`h-4 w-4 animate-pulse ${loadingInvoices[payment._id] ? "cursor-not-allowed" : ""}`} />
+                              </>
+                            ) : (
+                              <>
+                                <DownloadIcon className="h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -394,7 +525,7 @@ export default function Payments() {
                 </Table>
               </CardContent>
             </Card>
-          </div >
+          </div>
           <DataTablePagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -429,6 +560,7 @@ export default function Payments() {
                       <TableHead className="text-base">Amount</TableHead>
                       <TableHead className="text-base">Transaction ID</TableHead>
                       <TableHead className="text-base">Status</TableHead>
+                      <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -482,6 +614,25 @@ export default function Payments() {
                           <TableCell>${payment?.price || "0.00"}</TableCell>
                           <TableCell>{payment?.orderId || "N/A"}</TableCell>
                           <TableCell>{renderStatusBadge(payment?.status)}</TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => downloadPaymentInvoice(payment)}
+                            disabled={loadingInvoices[payment._id]}
+                            className="border-none"
+                          >
+                            {loadingInvoices[payment._id] ? (
+                              <>
+                                <DownloadIcon className={`h-4 w-4 animate-pulse ${loadingInvoices[payment._id] ? "cursor-not-allowed" : ""}`} />
+                              </>
+                            ) : (
+                              <>
+                                <DownloadIcon className="h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -527,6 +678,7 @@ export default function Payments() {
                     <TableHead className="text-base px-6 text-left w-[300px]">Transaction ID</TableHead>
                     <TableHead className="text-base px-6 text-left w-[180px]">Meta Account No</TableHead>
                     <TableHead className="text-base px-6 text-left w-[100px]">Status</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[100px]">Invoice</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -534,7 +686,7 @@ export default function Payments() {
                   {isLoading ? (
                     <TableRow>
                       <TableCell colSpan={11} className="py-8 px-6 text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                         <p className="text-muted-foreground">Loading...</p>
                       </TableCell>
                     </TableRow>
@@ -601,6 +753,25 @@ export default function Payments() {
                           </Dialog>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-left whitespace-nowrap">{renderStatusBadge(payment?.status)}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => downloadPaymentInvoice(payment)}
+                            disabled={loadingInvoices[payment._id]}
+                            className="border-none"
+                          >
+                            {loadingInvoices[payment._id] ? (
+                              <>
+                                <DownloadIcon className={`h-4 w-4 animate-pulse ${loadingInvoices[payment._id] ? "cursor-not-allowed" : ""}`} />
+                              </>
+                            ) : (
+                              <>
+                                <DownloadIcon className="h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -612,7 +783,7 @@ export default function Payments() {
         <DataTablePagination
           currentPage={currentPage}
           totalPages={totalPages}
-          totalItems={totalItems}
+          totalItems={totalItems} 
           itemsPerPage={itemsPerPage}
           onPageChange={handlePageChange}
           onItemsPerPageChange={(value) => {

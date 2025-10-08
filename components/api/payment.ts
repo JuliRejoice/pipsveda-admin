@@ -57,3 +57,18 @@ export const getPaymentHistory = async (params?: PaginationParams): Promise<Paym
         throw error;
     }
 };
+
+export const downloadInvoice = async (paymentData : any) => {
+    try {
+        const response = await axios.post(`${BaseUrl}/payment/createInvoice`,paymentData,{
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': getAuthToken(),
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error downloading invoice:', error);
+        throw error;
+    }
+};

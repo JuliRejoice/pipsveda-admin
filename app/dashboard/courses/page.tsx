@@ -1349,7 +1349,7 @@ export default function Courses() {
           </>
         )}
       </Tabs>
-      <DataTablePagination
+      {searchTerm === "" && <DataTablePagination
         currentPage={currentPage}
         totalPages={totalPages}
         totalItems={totalItems}
@@ -1361,7 +1361,7 @@ export default function Courses() {
         }}
         itemsPerPageOptions={[8, 10, 20, 30, 50]}
         className="border-t pt-4"
-      />
+      />}
     </div>
   );
 }
