@@ -108,29 +108,39 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-base font-medium">{stat.title}</CardTitle>
-                <Icon className="h-4 w-4 text-blacktheme" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl font-semibold text-blacktheme font-lexend">{stat.value}</div>
-                <p className="text-base text-muted-foreground flex items-center gap-2 font-lexend">
-                  {Number(stat.change) > 0 ? <TrendingUp className="h-5 w-5 mr-1 text-green-500" /> : <TrendingDown className="h-4 w-4 mr-1 text-red-500" />}
-                  {stat.change}% from last month
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+  {stats.map((stat, index) => {
+    const Icon = stat.icon;
+    const colors = [
+      { bg: 'bg-purple-100', text: 'text-black' },      // Purple
+      { bg: 'bg-pink-100', text: 'text-black' },      // Blue
+      { bg: 'bg-orange-100', text: 'text-black' },      // Orange
+      { bg: 'bg-green-100', text: 'text-black' },      // Green
+    ][index % 4];
+    
+    return (
+      <Card key={stat.title} className={`${colors.bg} ${colors.text} border-0`}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            {stat.title}
+          </CardTitle>
+          <div className={`h-8 w-8 rounded-full ${colors.bg} bg-opacity-20 flex items-center justify-center`}>
+            <Icon className="h-4 w-4" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stat.value}</div>
+          <p className="text-xs text-opacity-80">
+            {stat.change}% from last month
+          </p>
+        </CardContent>
+      </Card>
+    );
+  })}
+</div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="shadow-lg rounded-xl border-0">
           <CardHeader>
             <CardTitle>Revenue Overview</CardTitle>
           </CardHeader>
@@ -139,7 +149,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-lg rounded-xl border-0">
           <CardHeader>
             <CardTitle>New User Signups</CardTitle>
           </CardHeader>
