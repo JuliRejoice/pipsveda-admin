@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { getUserSignupReport } from '../api/dashboard';
 
 // const data = [
@@ -13,6 +13,19 @@ import { getUserSignupReport } from '../api/dashboard';
 //   { name: 'Sat', signups: 67 },
 //   { name: 'Sun', signups: 41 },
 // ];
+
+export const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{ background: '#fff', padding: '10px', border: '1px solid #ccc' }}>
+        <p>{label}</p>
+        <p>Users: {payload[0].value}</p>
+      </div>
+    );
+  }
+
+  return null;
+};
 
 
 export default function UserSignupChart() {
@@ -29,13 +42,27 @@ export default function UserSignupChart() {
   console.log(data)
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="day" />
-        <YAxis />
-        <Tooltip cursor={false} />
-        <Bar dataKey="userCount" fill="#8884d8" radius={[5, 5, 0, 0]} barSize={50}/>
-      </BarChart>
-    </ResponsiveContainer>
+    <BarChart data={data}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="day" />
+    <YAxis />
+    <Tooltip cursor={false} content={<CustomTooltip />} />
+    <Legend 
+      formatter={(value: string) => {
+        const labelMap: Record<string, string> = {
+          userCount: 'Weekly Signup Activity (Last 7 Days)'
+        };
+        return labelMap[value] || value;
+      }}
+    />
+    <Bar 
+      dataKey="userCount" 
+      name="Weekly Signup Activity (Last 7 Days)"
+      fill="#8884d8" 
+      radius={[5, 5, 0, 0]} 
+      barSize={50}
+    />
+  </BarChart>
+</ResponsiveContainer>
   );
 }
