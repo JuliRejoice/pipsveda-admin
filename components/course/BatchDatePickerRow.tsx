@@ -20,7 +20,7 @@ interface Batch {
 
 interface Props {
   index: number;
-  batch: Batch;
+  batch: any;
   updateBatch: (
     index: number,
     key: "startDate" | "endDate",

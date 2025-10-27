@@ -42,7 +42,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -658,10 +658,9 @@ export default function Courses() {
               <DropdownMenuContent align="end">
                 {activeTab === "live" ? (
                   <Link
-                  href={`/dashboard/courses/${course._id}/batches`}
-                  className="w-full"
+                    href={`/dashboard/courses/${course._id}/batches?type=live`}
+                    className="w-full"
                   >
-                   
                     <DropdownMenuItem
                       onSelect={(e) => {
                         e.preventDefault();
@@ -677,7 +676,7 @@ export default function Courses() {
                   </Link>
                 ) : (
                   <Link
-                    href={`/dashboard/courses/${course._id}`}
+                    href={`/dashboard/courses/${course._id}/batches?type=physical`}
                     className="w-full"
                   >
                     <DropdownMenuItem
@@ -1718,280 +1717,289 @@ export default function Courses() {
             </TabsContent>
             {/* Physical Course Form */}
             <TabsContent value="physical">
-              <form
-                className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
-                onSubmit={handleCourseSubmit}
-              >
-                <input type="hidden" name="courseType" value="physical" />
-                <div>
-                  <label className="block font-medium mb-1">
-                    Course Thumbnail Image
-                  </label>
-                  <ImageUpload
-                    name="image"
-                    id="course-thumbnail"
-                    error={formErrors.image}
-                    onChange={handleImageChange}
-                    initialImage={editCourse?.courseVideo || null}
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Course Name</label>
-                  <Input
-                    placeholder="Course Name"
-                    name="name"
-                    defaultValue={editCourse?.CourseName || ""}
-                    onBlur={handleTrimInput}
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === " " &&
-                        !(e.target as HTMLInputElement).value.trim()
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                  />
-                  {formErrors.name && (
-                    <div className="text-red-500">{formErrors.name}</div>
-                  )}
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">
-                    Course Description
-                  </label>
-                  <Input
-                    placeholder="Course Description"
-                    name="description"
-                    defaultValue={editCourse?.description || ""}
-                    onBlur={handleTrimInput}
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === " " &&
-                        !(e.target as HTMLInputElement).value.trim()
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                  />
-                  {formErrors.description && (
-                    <div className="text-red-500">{formErrors.description}</div>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {!isPhysicalBatchVisible && (
+                <form
+                  className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
+                  onSubmit={handleCourseSubmit}
+                >
+                  <input type="hidden" name="courseType" value="physical" />
                   <div>
                     <label className="block font-medium mb-1">
-                      Instructor Name
+                      Course Thumbnail Image
                     </label>
-                    <Select
-                      name="instructor"
-                      defaultValue={
-                        editCourse?.instructor?._id || editCourse?.instructor
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an instructor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {instructors.map((instructor) => (
-                          <SelectItem
-                            key={instructor._id}
-                            value={instructor._id}
-                          >
-                            {instructor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {formErrors.instructor && (
+                    <ImageUpload
+                      name="image"
+                      id="course-thumbnail"
+                      error={formErrors.image}
+                      onChange={handleImageChange}
+                      initialImage={editCourse?.courseVideo || null}
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">
+                      Course Name
+                    </label>
+                    <Input
+                      placeholder="Course Name"
+                      name="name"
+                      defaultValue={editCourse?.CourseName || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === " " &&
+                          !(e.target as HTMLInputElement).value.trim()
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                    {formErrors.name && (
+                      <div className="text-red-500">{formErrors.name}</div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">
+                      Course Description
+                    </label>
+                    <Input
+                      placeholder="Course Description"
+                      name="description"
+                      defaultValue={editCourse?.description || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === " " &&
+                          !(e.target as HTMLInputElement).value.trim()
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                    {formErrors.description && (
                       <div className="text-red-500">
-                        {formErrors.instructor}
+                        {formErrors.description}
                       </div>
                     )}
                   </div>
-                  <div>
-                    <label className="block font-medium mb-1">Language</label>
-                    <select
-                      name="language"
-                      className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      defaultValue={editCourse?.language || "english"}
-                    >
-                      <option value="english">English</option>
-                      <option value="spanish">Spanish</option>
-                      <option value="french">French</option>
-                      <option value="german">German</option>
-                      <option value="hindi">Hindi</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Course Price
-                    </label>
-                    <Input
-                      placeholder="Course Price"
-                      type="number"
-                      name="price"
-                      defaultValue={editCourse?.price || ""}
-                    />
-                    {formErrors.price && (
-                      <div className="text-red-500">{formErrors.price}</div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Hours</label>
-                    <Input
-                      placeholder="Hours"
-                      type="text"
-                      name="hours"
-                      defaultValue={editCourse?.hours || ""}
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === " " &&
-                          !(e.target as HTMLInputElement).value.trim()
-                        ) {
-                          e.preventDefault();
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1">
+                        Instructor Name
+                      </label>
+                      <Select
+                        name="instructor"
+                        defaultValue={
+                          editCourse?.instructor?._id || editCourse?.instructor
                         }
-                      }}
-                    />
-                    {formErrors.hours && (
-                      <div className="text-red-500">{formErrors.hours}</div>
-                    )}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an instructor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {instructors.map((instructor) => (
+                            <SelectItem
+                              key={instructor._id}
+                              value={instructor._id}
+                            >
+                              {instructor.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {formErrors.instructor && (
+                        <div className="text-red-500">
+                          {formErrors.instructor}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">Language</label>
+                      <select
+                        name="language"
+                        className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        defaultValue={editCourse?.language || "english"}
+                      >
+                        <option value="english">English</option>
+                        <option value="spanish">Spanish</option>
+                        <option value="french">French</option>
+                        <option value="german">German</option>
+                        <option value="hindi">Hindi</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-                {/* Start and End Date in one row */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                  <div className="flex-1">
-                    <label className="block font-medium mb-1">Start Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full h-[55px] justify-start text-left font-normal px-4"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {physicalStartDate ? (
-                            format(physicalStartDate, "PPP")
-                          ) : (
-                            <>
-                              <input
-                                placeholder="Pick a date"
-                                className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                              />
-                              {/* <span className="text-base font-semibold">Pick a date</span> */}
-                            </>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={physicalStartDate}
-                          onSelect={setPhysicalStartDate}
-                          initialFocus
-                          disabled={(date) =>
-                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1">
+                        Course Price
+                      </label>
+                      <Input
+                        placeholder="Course Price"
+                        type="number"
+                        name="price"
+                        defaultValue={editCourse?.price || ""}
+                      />
+                      {formErrors.price && (
+                        <div className="text-red-500">{formErrors.price}</div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">Hours</label>
+                      <Input
+                        placeholder="Hours"
+                        type="text"
+                        name="hours"
+                        defaultValue={editCourse?.hours || ""}
+                        onBlur={handleTrimInput}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === " " &&
+                            !(e.target as HTMLInputElement).value.trim()
+                          ) {
+                            e.preventDefault();
                           }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {formErrors.startDate && (
-                      <div className="text-red-500">{formErrors.startDate}</div>
-                    )}
+                        }}
+                      />
+                      {formErrors.hours && (
+                        <div className="text-red-500">{formErrors.hours}</div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <label className="block font-medium mb-1">End Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full h-[55px] justify-start text-left font-normal px-4"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {physicalEndDate ? (
-                            format(physicalEndDate, "PPP")
-                          ) : (
-                            <>
-                              <input
-                                placeholder="Pick a date"
-                                className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                              />
-                              {/* <span className="text-base font-semibold">Pick a date</span> */}
-                            </>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={physicalEndDate}
-                          onSelect={setPhysicalEndDate}
-                          initialFocus
-                          disabled={(date) =>
-                            date < new Date(new Date().setHours(0, 0, 0, 0))
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {formErrors.endDate && (
-                      <div className="text-red-500">{formErrors.endDate}</div>
-                    )}
+                  {/* Start and End Date in one row */}
+                  <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="flex-1">
+                      <label className="block font-medium mb-1">
+                        Start Date
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full h-[55px] justify-start text-left font-normal px-4"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {physicalStartDate ? (
+                              format(physicalStartDate, "PPP")
+                            ) : (
+                              <>
+                                <input
+                                  placeholder="Pick a date"
+                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
+                                />
+                                {/* <span className="text-base font-semibold">Pick a date</span> */}
+                              </>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={physicalStartDate}
+                            onSelect={setPhysicalStartDate}
+                            initialFocus
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {formErrors.startDate && (
+                        <div className="text-red-500">
+                          {formErrors.startDate}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="block font-medium mb-1">End Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full h-[55px] justify-start text-left font-normal px-4"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {physicalEndDate ? (
+                              format(physicalEndDate, "PPP")
+                            ) : (
+                              <>
+                                <input
+                                  placeholder="Pick a date"
+                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
+                                />
+                                {/* <span className="text-base font-semibold">Pick a date</span> */}
+                              </>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={physicalEndDate}
+                            onSelect={setPhysicalEndDate}
+                            initialFocus
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {formErrors.endDate && (
+                        <div className="text-red-500">{formErrors.endDate}</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {formErrors.dateRange && (
-                  <div className="text-red-500">{formErrors.dateRange}</div>
-                )}
-                {/* <div>
+                  {formErrors.dateRange && (
+                    <div className="text-red-500">{formErrors.dateRange}</div>
+                  )}
+                  {/* <div>
                   <label className="block font-medium mb-1">Date and Time</label>
                   <Input placeholder="e.g. 2024-02-15 9:00 AM" name="dateTime" />
                 </div> */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="block font-medium">Email</label>
-                    <Input
-                      type="email"
-                      placeholder="Email"
-                      name="email"
-                      defaultValue={editCourse?.email || ""}
-                      className="w-full"
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === " " &&
-                          !(e.target as HTMLInputElement).value.trim()
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                    {formErrors.email && (
-                      <p className="text-red-500">{formErrors.email}</p>
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block font-medium">Phone No.</label>
-                    <Input
-                      type="tel"
-                      placeholder="Phone Number"
-                      name="phone"
-                      defaultValue={editCourse?.phone || ""}
-                      className="w-full"
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === " " &&
-                          !(e.target as HTMLInputElement).value.trim()
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                    {formErrors.phone && (
-                      <p className="text-red-500">{formErrors.phone}</p>
-                    )}
-                  </div>
-                  {/* <div className="space-y-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="block font-medium">Email</label>
+                      <Input
+                        type="email"
+                        placeholder="Email"
+                        name="email"
+                        defaultValue={editCourse?.email || ""}
+                        className="w-full"
+                        onBlur={handleTrimInput}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === " " &&
+                            !(e.target as HTMLInputElement).value.trim()
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                      {formErrors.email && (
+                        <p className="text-red-500">{formErrors.email}</p>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block font-medium">Phone No.</label>
+                      <Input
+                        type="tel"
+                        placeholder="Phone Number"
+                        name="phone"
+                        defaultValue={editCourse?.phone || ""}
+                        className="w-full"
+                        onBlur={handleTrimInput}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === " " &&
+                            !(e.target as HTMLInputElement).value.trim()
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                      {formErrors.phone && (
+                        <p className="text-red-500">{formErrors.phone}</p>
+                      )}
+                    </div>
+                    {/* <div className="space-y-1">
                                         <label className="block font-medium text-sm">Address</label>
                                         <Input 
                                             placeholder="Full address" 
@@ -2003,14 +2011,55 @@ export default function Courses() {
                                             <p className="text-xs text-red-500">{formErrors.address}</p>
                                         )}
                                     </div> */}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1">City</label>
+                      <Input
+                        placeholder="City"
+                        name="city"
+                        defaultValue={editCourse?.city || ""}
+                        onBlur={handleTrimInput}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === " " &&
+                            !(e.target as HTMLInputElement).value.trim()
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                      {formErrors.city && (
+                        <div className="text-red-500">{formErrors.city}</div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">State</label>
+                      <Input
+                        placeholder="State"
+                        name="state"
+                        defaultValue={editCourse?.state || ""}
+                        onBlur={handleTrimInput}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === " " &&
+                            !(e.target as HTMLInputElement).value.trim()
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                      {formErrors.state && (
+                        <div className="text-red-500">{formErrors.state}</div>
+                      )}
+                    </div>
+                  </div>
                   <div>
-                    <label className="block font-medium mb-1">City</label>
+                    <label className="block font-medium mb-1">Country</label>
                     <Input
-                      placeholder="City"
-                      name="city"
-                      defaultValue={editCourse?.city || ""}
+                      placeholder="Country"
+                      name="country"
+                      defaultValue={editCourse?.country || ""}
                       onBlur={handleTrimInput}
                       onKeyDown={(e) => {
                         if (
@@ -2021,70 +2070,29 @@ export default function Courses() {
                         }
                       }}
                     />
-                    {formErrors.city && (
-                      <div className="text-red-500">{formErrors.city}</div>
+                    {formErrors.country && (
+                      <div className="text-red-500">{formErrors.country}</div>
                     )}
                   </div>
                   <div>
-                    <label className="block font-medium mb-1">State</label>
-                    <Input
-                      placeholder="State"
-                      name="state"
-                      defaultValue={editCourse?.state || ""}
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === " " &&
-                          !(e.target as HTMLInputElement).value.trim()
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                    {formErrors.state && (
-                      <div className="text-red-500">{formErrors.state}</div>
-                    )}
+                    <label className="block font-medium mb-1">
+                      Course Category
+                    </label>
+                    <select
+                      name="courseCategory"
+                      className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      defaultValue={editCourse?.courseCategory || ""}
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Country</label>
-                  <Input
-                    placeholder="Country"
-                    name="country"
-                    defaultValue={editCourse?.country || ""}
-                    onBlur={handleTrimInput}
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === " " &&
-                        !(e.target as HTMLInputElement).value.trim()
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                  />
-                  {formErrors.country && (
-                    <div className="text-red-500">{formErrors.country}</div>
-                  )}
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">
-                    Course Category
-                  </label>
-                  <select
-                    name="courseCategory"
-                    className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    defaultValue={editCourse?.courseCategory || ""}
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((category) => (
-                      <option key={category._id} value={category._id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* <div>
+                  {/* <div>
                   <label className="block font-medium mb-1">Define Course</label>
                   <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                     <option value="">Choose Option</option>
@@ -2092,16 +2100,87 @@ export default function Courses() {
                     <option value="trending">Trending</option>
                   </select>
                 </div> */}
-                <DialogFooter>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting
-                      ? "Saving..."
-                      : editCourse
-                      ? "Update Course"
-                      : "Create In-Person Course"}
-                  </Button>
-                </DialogFooter>
-              </form>
+                  <DialogFooter>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting
+                        ? "Saving..."
+                        : editCourse
+                        ? "Update Course"
+                        : "Next"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              )}
+              {isPhysicalBatchVisible && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleCreateBatch(physicalBatches, setPhysicalBatches);
+                  }}
+                >
+                  <div className="space-y-4">
+                    <Button
+                      type="button"
+                      variant="default"
+                      onClick={() => {
+                        setPhysicalBatches([
+                          ...physicalBatches,
+                          {
+                            id: "",
+                            batchName: "",
+                            description: "",
+                            startDate: null,
+                            endDate: null,
+                            courseId: "",
+                          },
+                        ]);
+                      }}
+                    >
+                      Add Batch
+                    </Button>
+
+                    {physicalBatches.map((batch, index) => (
+                      <BatchDatePickerRow
+                        key={index}
+                        index={index}
+                        batch={batch}
+                        updateBatch={async (
+                          index: number,
+                          key: string,
+                          value: any
+                        ) => {
+                          const updatedBatches = [...physicalBatches];
+                          updatedBatches[index] = {
+                            ...updatedBatches[index],
+                            [key]: value,
+                          };
+                          setPhysicalBatches(updatedBatches);
+
+                          if (batch._id) {
+                            await handleUpdateBatch(
+                              batch._id,
+                              { ...updatedBatches[index], [key]: value },
+                              setPhysicalBatches
+                            );
+                          }
+                        }}
+                        removeBatch={(index) =>
+                          handleDeleteBatch(
+                            physicalBatches?.[index]?._id as string,
+                            setPhysicalBatches
+                          )
+                        }
+                        errors={batchErrors[index]}
+                      />
+                    ))}
+                    <DialogFooter>
+                      <Button type="submit" variant="default">
+                        Save Batches
+                      </Button>
+                    </DialogFooter>
+                  </div>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
         </DialogContent>
