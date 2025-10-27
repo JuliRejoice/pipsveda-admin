@@ -138,12 +138,7 @@ export default function Utility() {
   return (
     <div className="space-y-6">
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Utility Settings</h1>
-          <p className="text-muted-foreground">Manage your application's utility settings</p>
-        </div>
-      </div>
+      
 
       {/* Search */}
       <div className="flex items-center space-x-2">

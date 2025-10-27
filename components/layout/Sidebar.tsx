@@ -12,6 +12,7 @@ import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell,
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import InstructorImg from "@/public/images/instructor.js";
 
 const sidebarItems = [
   {
@@ -25,14 +26,19 @@ const sidebarItems = [
     icon: Users,
   },
   {
-    title: "Courses",
-    href: "/dashboard/courses",
-    icon: BookOpen,
-  },
-  {
     title: "Category",
     href: "/dashboard/category",
     icon: LayoutList,
+  },
+  {
+    title: "Instructors",
+    href: "/dashboard/instructor",
+    icon: InstructorImg,
+  },
+  {
+    title: "Courses",
+    href: "/dashboard/courses",
+    icon: BookOpen,
   },
   {
     title: "AlgoBots",
@@ -155,7 +161,9 @@ export default function Sidebar() {
             return (
               <Link key={item.href} href={item.href}>
                 <Button variant={isActive ? "default" : "ghost"} className={cn(`w-full justify-start group ${isCollapsed ? "!px-0 flex items-center justify-center" : ""} ${isActive && !isCollapsed ? "px-0" : "px-4"}`, isCollapsed ? "h-10" : "h-12")}>
-                  <Icon className={cn("h-6 w-6", !isCollapsed && "mr-3")} />
+                  <div className={cn("h-6 w-6", !isCollapsed && "mr-3")}>
+                    <Icon />
+                  </div>
                   <span className={`text-base font-medium ${!isActive ? "text-gray-900" : "text-white"}`}>{!isCollapsed && item.title}</span>
                 </Button>
               </Link>

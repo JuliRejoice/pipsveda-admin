@@ -220,16 +220,6 @@ export default function CouponPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Coupons</h1>
-          <p className="text-muted-foreground">Manage discount coupons and promotional codes.</p>
-        </div>
-        <Button onClick={handleAddNew}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Coupon
-        </Button>
-      </div>
-
       {/* Search */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
@@ -237,6 +227,13 @@ export default function CouponPage() {
           <Input placeholder="Search coupons..." value={searchTerm} onChange={handleSearchInputChange} className="pl-8 font-normal" />
         </div>
       </div>
+       
+        <Button onClick={handleAddNew}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Coupon
+        </Button>
+      </div>
+
 
       {/* Content */}
       {isLoading ? (

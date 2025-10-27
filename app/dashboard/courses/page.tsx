@@ -17,6 +17,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { createCourse, getCourses, updateCourse, deleteCourse } from "@/components/api/course";
 import { getAllCourseCategory } from "@/components/api/category";
+import { getAllInstructors } from "@/components/api/instructor";
 import React from "react";
 import { Dialog as ConfirmDialog, DialogContent as ConfirmDialogContent, DialogHeader as ConfirmDialogHeader, DialogTitle as ConfirmDialogTitle, DialogFooter as ConfirmDialogFooter } from "@/components/ui/dialog";
 import Link from "next/link";
@@ -24,6 +25,7 @@ import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { Course } from "@/components/api/course";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Courses() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,9 +49,12 @@ export default function Courses() {
   const [physicalEndDate, setPhysicalEndDate] = useState<Date | undefined>();
 
   const [courses, setCourses] = useState<Course[]>([]);
-  const [categories, setCategories] = useState<{_id: string, name: string}[]>([]);
+  const [categories, setCategories] = useState<{ _id: string, name: string }[]>([]);
+  const [instructors, setInstructors] = useState<{ _id: string, name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingInstructors, setLoadingInstructors] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [instructorError, setInstructorError] = useState<string>('');
   const [editCourse, setEditCourse] = useState<Course | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
@@ -119,7 +124,7 @@ export default function Courses() {
     }
 
     if (!instructor) {
-      errors.instructor = "Instructor name is required";
+      errors.instructor = "Instructor is required";
     }
 
     // Validate price (required and > 0)
@@ -165,9 +170,6 @@ export default function Courses() {
     }
 
     if (courseType === "physical") {
-      if (!formData.get("location")?.toString().trim()) {
-        errors.location = "Location is required";
-      }
       if (!formData.get("email")?.toString().trim()) {
         errors.email = "Email is required";
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.get("email")?.toString().trim() || "")) {
@@ -179,6 +181,15 @@ export default function Courses() {
         errors.phone = "Phone number is required";
       } else if (!/^[+\d\s-]{10,}$/.test(formData.get("phone")?.toString().trim() || "")) {
         errors.phone = "Please enter a valid phone number (min 10 digits)";
+      }
+      if(!formData.get("city")?.toString().trim()){
+        errors.city = "City is required";
+      }
+      if(!formData.get("state")?.toString().trim()){
+        errors.state = "State is required";
+      }
+      if(!formData.get("country")?.toString().trim()){
+        errors.country = "Country is required";
       }
     }
 
@@ -192,6 +203,26 @@ export default function Courses() {
       return true;
     } catch (e) {
       return false;
+    }
+  };
+
+  // Fetch instructors
+  const fetchInstructors = async () => {
+    setLoadingInstructors(true);
+    setInstructorError('');
+    try {
+      const response = await getAllInstructors({});
+      if (response.success && response.payload?.data) {
+        setInstructors(response.payload.data.map((instructor: any) => ({
+          _id: instructor._id,
+          name: instructor.name
+        })));
+      }
+    } catch (err) {
+      console.error("Error fetching instructors:", err);
+      setInstructorError("Failed to load instructors. Please try again later.");
+    } finally {
+      setLoadingInstructors(false);
     }
   };
 
@@ -253,6 +284,12 @@ export default function Courses() {
       coursesCount: courses.length,
     });
   }, [currentPage, itemsPerPage, totalItems, totalPages, courses]);
+
+  // Fetch instructors and courses when component mounts
+  useEffect(() => {
+    fetchInstructors();
+    fetchCourses();
+  }, []);
 
   // Fetch courses when pagination or filters change
   useEffect(() => {
@@ -433,7 +470,7 @@ export default function Courses() {
 
           <div className="flex items-center text-sm text-muted-foreground">
             <span className="font-bold">Instructor:</span>
-            <span className="ml-1">{course.instructor || "John Doe"}</span>
+            <span className="ml-1">{course.instructor?.name || "John Doe"}</span>
           </div>
 
           <div className="flex items-center justify-between text-sm">
@@ -442,10 +479,10 @@ export default function Courses() {
             </div>
           </div>
 
-          {course.location && (
+          {course.country && (
             <div className="flex items-center text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 mr-1" />
-              <span>{course.location}</span>
+              <span>{course.country}</span>
             </div>
           )}
         </CardContent>
@@ -519,7 +556,6 @@ export default function Courses() {
       if (courseType === "live") {
         apiFormData.append("meetingLink", formData.get("zoomLink") || "");
       } else if (courseType === "physical") {
-        apiFormData.append("location", formData.get("location") || "");
         apiFormData.append("email", formData.get("email") || "");
         apiFormData.append("phone", formData.get("phone") || "");
         // apiFormData.append('address', formData.get('address') || '');
@@ -529,7 +565,18 @@ export default function Courses() {
       if (imageFile) {
         apiFormData.append("image", imageFile);
       }
+
+      if(formData.get("city")){
+        apiFormData.append("city", formData.get("city") || "");
+      }
       
+      if(formData.get("state")){
+        apiFormData.append("state", formData.get("state") || "");
+      }
+
+      if(formData.get("country")){
+        apiFormData.append("country", formData.get("country") || "");
+      }
       // Add course category
       const categoryId = formData.get('courseCategory');
       if (categoryId) {
@@ -729,7 +776,7 @@ export default function Courses() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block font-medium mb-1">Instructor Name</label>
-                    <Input
+                    {/* <Input
                       placeholder="Instructor Name"
                       name="instructor"
                       defaultValue={editCourse?.instructor || ""}
@@ -739,7 +786,24 @@ export default function Courses() {
                           e.preventDefault();
                         }
                       }}
-                    />
+                    /> */}
+                    <Select 
+
+                    
+                      name="instructor"
+                      defaultValue={editCourse?.instructor?._id || editCourse?.instructor}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an instructor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {instructors.map((instructor) => (
+                          <SelectItem key={instructor._id} value={instructor._id}>
+                            {instructor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {formErrors.instructor && <div className="text-red-500">{formErrors.instructor}</div>}
                   </div>
                   <div>
@@ -834,8 +898,8 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Category</label>
-                  <select 
-                    name="courseCategory" 
+                  <select
+                    name="courseCategory"
                     className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     defaultValue={editCourse?.courseCategory || ""}
                     required
@@ -848,14 +912,14 @@ export default function Courses() {
                     ))}
                   </select>
                 </div>
-                <div>
+                {/* <div>
                   <label className="block font-medium mb-1">Define Course</label>
                   <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || ""}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
                   </select>
-                </div>
+                </div> */}
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : editCourse ? "Update Course" : "Create Recorded Course"}
@@ -910,17 +974,21 @@ export default function Courses() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-medium mb-1">Instructor Name</label>
-                    <Input
-                      placeholder="Instructor Name"
+                    <Select 
                       name="instructor"
-                      defaultValue={editCourse?.instructor || ""}
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
+                      defaultValue={editCourse?.instructor?._id || editCourse?.instructor}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an instructor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {instructors.map((instructor) => (
+                          <SelectItem key={instructor._id} value={instructor._id}>
+                            {instructor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {formErrors.instructor && <div className="text-red-500">{formErrors.instructor}</div>}
                   </div>
                   <div>
@@ -1009,8 +1077,8 @@ export default function Courses() {
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Category</label>
-                  <select 
-                    name="courseCategory" 
+                  <select
+                    name="courseCategory"
                     className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     defaultValue={editCourse?.courseCategory || ""}
                     required
@@ -1023,14 +1091,14 @@ export default function Courses() {
                     ))}
                   </select>
                 </div>
-                <div>
+                {/* <div>
                   <label className="block font-medium mb-1">Define Course</label>
                   <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
                   </select>
-                </div>
+                </div> */}
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : editCourse ? "Update Course" : "Create Live Online"}
@@ -1085,17 +1153,21 @@ export default function Courses() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-medium mb-1">Instructor Name</label>
-                    <Input
-                      placeholder="Instructor Name"
+                    <Select 
                       name="instructor"
-                      defaultValue={editCourse?.instructor || ""}
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
+                      defaultValue={editCourse?.instructor?._id || editCourse?.instructor}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an instructor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {instructors.map((instructor) => (
+                          <SelectItem key={instructor._id} value={instructor._id}>
+                            {instructor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {formErrors.instructor && <div className="text-red-500">{formErrors.instructor}</div>}
                   </div>
                   <div>
@@ -1218,13 +1290,45 @@ export default function Courses() {
                                         )}
                                     </div> */}
                 </div>
-                <div className="space-y-1">
-                  <label className="block font-medium">Location</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-medium mb-1">City</label>
+                    <Input
+                      placeholder="City"
+                      name="city"
+                      defaultValue={editCourse?.city || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                    {formErrors.city && <div className="text-red-500">{formErrors.city}</div>}
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">State</label>
+                    <Input
+                      placeholder="State"
+                      name="state"
+                      defaultValue={editCourse?.state || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                    {formErrors.state && <div className="text-red-500">{formErrors.state}</div>}
+                  </div>
+                  
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Country</label>
                   <Input
-                    placeholder="Location"
-                    name="location"
-                    defaultValue={editCourse?.location || ""}
-                    className="w-full"
+                    placeholder="Country"
+                    name="country"
+                    defaultValue={editCourse?.country || ""}
                     onBlur={handleTrimInput}
                     onKeyDown={(e) => {
                       if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
@@ -1232,12 +1336,12 @@ export default function Courses() {
                       }
                     }}
                   />
-                  {formErrors.location && <p className="text-red-500">{formErrors.location}</p>}
+                  {formErrors.country && <div className="text-red-500">{formErrors.country}</div>}
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Course Category</label>
-                  <select 
-                    name="courseCategory" 
+                  <select
+                    name="courseCategory"
                     className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     defaultValue={editCourse?.courseCategory || ""}
                     required
@@ -1250,14 +1354,14 @@ export default function Courses() {
                     ))}
                   </select>
                 </div>
-                <div>
+                {/* <div>
                   <label className="block font-medium mb-1">Define Course</label>
                   <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
                   </select>
-                </div>
+                </div> */}
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : editCourse ? "Update Course" : "Create In-Person Course"}

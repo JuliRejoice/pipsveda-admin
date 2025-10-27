@@ -1004,10 +1004,10 @@ export default function AlgoBots() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">AlgoBots</h1>
-          <p className="text-muted-foreground font-lexend">Manage your trading bots and their configurations</p>
-        </div>
+        <div className="relative">
+        <Search className="absolute left-2.5 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
+        <Input type="search" placeholder="Search bots..." className="w-full bg-background pl-8 md:w-[300px] font-normal" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+      </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
@@ -1359,10 +1359,7 @@ export default function AlgoBots() {
         </Dialog>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-        <Input type="search" placeholder="Search bots..." className="w-full bg-background pl-8 md:w-[300px] font-normal" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-      </div>
+      
 
       {isFetching ? (
         <div className="flex items-center justify-center h-64">

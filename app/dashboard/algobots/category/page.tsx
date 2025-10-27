@@ -196,10 +196,14 @@ export default function Category() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Category</h1>
-          <p className="text-muted-foreground">Manage trading categories and classifications.</p>
+         {/* Search */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search category..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
         </div>
+      </div>
+
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button onClick={handleCreateNew}>
@@ -244,13 +248,7 @@ export default function Category() {
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search category..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
-        </div>
-      </div>
+    
 
       {/* Content */}
       {isFetching ? (
