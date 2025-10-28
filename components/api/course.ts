@@ -431,3 +431,15 @@ export const deleteBatch = async (id: string) => {
     throw error;
   }
 };
+
+export const getAllCenters = async () => {
+  try {
+    const res = await axios.get(`${BaseUrl}/center/getAllCenter`, {
+      headers: getHeaders(),
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching centers:", error);
+    throw error;
+  }
+};

@@ -306,6 +306,28 @@ export default function Courses() {
     setImageFile(file);
   };
 
+  // Handle intro video change
+  const handleIntroVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      // Validate file type
+      if (!file.type.startsWith("video/")) {
+        setFormErrors((prev) => ({
+          ...prev,
+          introVideo: "Please upload a valid video file",
+        }));
+        e.target.value = ""; // Reset the file input
+        return;
+      }
+      // Clear any previous errors
+      setFormErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.introVideo;
+        return newErrors;
+      });
+    }
+  };
+
   // Function to trim input values on blur
   const handleTrimInput = (
     e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -688,7 +710,7 @@ export default function Courses() {
                     >
                       <BookPlus className="mr-2 h-5 w-5" />
                       <span className="text-base font-semibold text-gray-500 font-lexend">
-                        Add Chapters
+                        Add Batch
                       </span>
                     </DropdownMenuItem>
                   </Link>
@@ -825,6 +847,14 @@ export default function Courses() {
       apiFormData.append("courseEnd", endDate);
       apiFormData.append("instructor", formData.get("instructor") || "");
       apiFormData.append("language", formData.get("language") || "english");
+
+      // Add intro video file if it exists
+      const introVideoFile = (
+        e.currentTarget.elements.namedItem("introVideo") as HTMLInputElement
+      )?.files?.[0];
+      if (introVideoFile) {
+        apiFormData.append("introVideo", introVideoFile);
+      }
 
       // Only add isDefineCourse if defineCourse has a value
       const defineCourse = formData.get("defineCourse");
@@ -1312,6 +1342,20 @@ export default function Courses() {
                     )}
                   </div>
                 </div>
+                {/* <div className="flex flex-col">
+                  <label className="block font-medium mb-1">Intro Video</label>
+
+                  <div className="relative w-full">
+                    <Input
+                      type="file"
+                      name="introVideo"
+                      accept="video/*"
+                      className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0  file:text-white text-gray-600 text-center"
+                      onChange={handleIntroVideoChange}
+                    />
+                  </div>
+                </div> */}
+
                 <div>
                   <label className="block font-medium mb-1">
                     Course Category
@@ -1607,6 +1651,23 @@ export default function Courses() {
                       <div className="text-red-500">{formErrors.zoomLink}</div>
                     )}
                   </div>
+                  {/* <div>
+                    <label className="block font-medium mb-1">
+                      Intro Video
+                    </label>
+                    <Input
+                      type="file"
+                      name="introVideo"
+                      accept="video/*"
+                      className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0  file:text-white text-gray-600 text-center"
+                      onChange={handleIntroVideoChange}
+                    />
+                    {formErrors.introVideo && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.introVideo}
+                      </p>
+                    )}
+                  </div> */}
                   <div>
                     <label className="block font-medium mb-1">
                       Course Category
@@ -2074,6 +2135,23 @@ export default function Courses() {
                       <div className="text-red-500">{formErrors.country}</div>
                     )}
                   </div>
+                  {/* <div>
+                    <label className="block font-medium mb-1">
+                      Intro Video
+                    </label>
+                    <Input
+                      type="file"
+                      name="introVideo"
+                      accept="video/*"
+                      className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0  file:text-white text-gray-600 text-center"
+                      onChange={handleIntroVideoChange}
+                    />
+                    {formErrors.introVideo && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.introVideo}
+                      </p>
+                    )}
+                  </div> */}
                   <div>
                     <label className="block font-medium mb-1">
                       Course Category

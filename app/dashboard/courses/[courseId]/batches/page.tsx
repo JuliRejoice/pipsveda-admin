@@ -25,12 +25,14 @@ import {
   deleteBatch,
   getAllBatch,
   getCourses,
+  getAllCenters,
 } from "@/components/api/course";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BatchDatePickerRow } from "@/components/course/BatchDatePickerRow";
 
 interface Batch {
+  centerId?: any;
   _id?: string;
   startDate: string;
   endDate: string;
@@ -44,7 +46,7 @@ export default function CourseBatches() {
 
   const courseId = params.courseId as string;
   const batchType = searchParams.get("type");
- 
+
   const [courseName, setCourseName] = useState("");
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +56,8 @@ export default function CourseBatches() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [batchErrors, setBatchErrors] = useState<Record<number, any>>({});
+  const [centers, setCenters] = useState<any[]>([]);
+  const [selectedCenter, setSelectedCenter] = useState<any>(null);
 
   const validateBatch = (batch: Batch) => {
     const err: Record<string, string> = {};
@@ -71,7 +75,7 @@ export default function CourseBatches() {
       const currentStart = new Date(batch.startDate);
 
       const latestStart = batches
-        .filter((b) => b._id !== batch._id) 
+        .filter((b) => b._id !== batch._id)
         .reduce((latest, b) => {
           const bStart = new Date(b.startDate);
           return bStart > latest ? bStart : latest;
@@ -87,7 +91,18 @@ export default function CourseBatches() {
     return err;
   };
 
-  // ✅ FETCH BATCHES
+  const fetchCenters = async () => {
+    try {
+      const response = await getAllCenters();
+      if (response.success) {
+        setCenters(response.payload?.data || []);
+      } else throw new Error(response.message);
+    } catch (err) {
+      console.error("Error loading centers:", err);
+      toast.error("Failed to load centers");
+    }
+  };
+
   const fetchBatches = async () => {
     try {
       const response = await getAllBatch();
@@ -108,7 +123,6 @@ export default function CourseBatches() {
     }
   };
 
-  // ✅ FETCH COURSE NAME
   const fetchCourseName = async () => {
     try {
       const res = await getCourses();
@@ -123,10 +137,18 @@ export default function CourseBatches() {
     if (courseId) {
       fetchBatches();
       fetchCourseName();
+      fetchCenters();
     }
   }, [courseId]);
 
-  // ✅ CREATE / UPDATE BATCH
+  const formatDate = (dateStr: any) =>
+    new Date(dateStr).toLocaleDateString("en-GB", {
+      timeZone: "UTC",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
   const handleSaveBatch = async (batch: Batch) => {
     const validationErrors = validateBatch(batch);
     if (Object.keys(validationErrors).length > 0) {
@@ -136,42 +158,46 @@ export default function CourseBatches() {
 
     setIsSubmitting(true);
     try {
+      const batchPayload = {
+        startDate: new Date(batch.startDate).toISOString().split("T")[0],
+        endDate: new Date(batch.endDate).toISOString().split("T")[0],
+        courseId,
+        ...(batchType === "physical" &&
+          selectedCenter?._id && {
+            centerId: selectedCenter._id,
+          }),
+      };
+
       if (selectedBatch?._id) {
-        // UPDATE MODE
-        const res = await updateBatch(selectedBatch._id, batch);
+        const res = await updateBatch(selectedBatch._id, batchPayload);
         if (res.success) {
           toast.success("Batch updated successfully");
           await fetchBatches();
-        } else toast.error(res.message || "Failed to update batch");
+        } else {
+          toast.error(res.message || "Failed to update batch");
+        }
       } else {
-        // CREATE MODE
         const payload = {
-          batch: [
-            {
-              startDate: new Date(batch.startDate).toISOString().split("T")[0],
-              endDate: new Date(batch.endDate).toISOString().split("T")[0],
-              courseId,
-            },
-          ],
+          batch: [batchPayload],
         };
         const res = await createNewBatch(payload);
         if (res.success) {
           toast.success("Batch created successfully");
           await fetchBatches();
-        } else toast.error(res.message || "Failed to create batch");
+        } else {
+          toast.error(res.message || "Failed to create batch");
+        }
       }
       setIsDialogOpen(false);
       setSelectedBatch(null);
       setBatchErrors({});
     } catch (err) {
-      console.error("Error saving batch:", err);
       toast.error("Error saving batch");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ✅ DELETE BATCH
   const handleDeleteBatch = async (id: string) => {
     setIsDeleting(true);
     try {
@@ -181,7 +207,6 @@ export default function CourseBatches() {
         setBatches((prev) => prev.filter((b) => b._id !== id));
       } else toast.error(res.message || "Failed to delete batch");
     } catch (err) {
-      console.error("Error deleting batch:", err);
       toast.error("Error deleting batch");
     } finally {
       setIsDeleting(false);
@@ -285,13 +310,21 @@ export default function CourseBatches() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
+                    {batchType === "physical" && (
+                      <p className="text-sm">
+                        <span className="font-medium">Center:</span>{" "}
+                        {centers?.find((c) => c._id === batch.centerId._id)
+                          ?.centerName || "N/A"}
+                      </p>
+                    )}
                     <p className="text-sm">
                       <span className="font-medium">Start Date:</span>{" "}
-                      {new Date(batch.startDate).toLocaleDateString("en-GB")}
+                      {formatDate(batch.startDate)}
                     </p>
+
                     <p className="text-sm">
                       <span className="font-medium">End Date:</span>{" "}
-                      {new Date(batch.endDate).toLocaleDateString("en-GB")}
+                      {formatDate(batch.endDate)}
                     </p>
                   </CardContent>
                 </Card>
@@ -313,6 +346,7 @@ export default function CourseBatches() {
           <BatchDatePickerRow
             key={selectedBatch?._id || "new"}
             index={0}
+            location={batchType === "physical" ? true : false}
             batch={
               selectedBatch || {
                 startDate: "",
@@ -320,13 +354,15 @@ export default function CourseBatches() {
                 courseId,
               }
             }
-            updateBatch={(_, key, value) => {
-              setSelectedBatch((prev) => ({
-                ...(prev || { startDate: "", endDate: "", courseId }),
+            setSelectedCenter={setSelectedCenter}
+            updateBatch={(index, key, value) => {
+              setSelectedBatch((prev: any) => ({
+                ...prev,
                 [key]: value,
               }));
             }}
-            removeBatch={() => setIsDialogOpen(false)}
+            centers={centers}
+            // removeBatch={() => setIsDialogOpen(false)}
             errors={batchErrors[0]}
           />
 
