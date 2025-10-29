@@ -488,13 +488,6 @@ export default function Courses() {
     setLoading(true);
     setError(null);
     try {
-      console.log("Fetching courses with params:", {
-        page: currentPage,
-        limit: itemsPerPage,
-        search: searchTerm,
-        courseType: activeTab,
-      });
-
       const response = await getCourses({
         page: currentPage,
         limit: itemsPerPage,
@@ -502,22 +495,13 @@ export default function Courses() {
         courseType: activeTab,
       });
 
-      console.log("API Response:", response);
-
       if (response && response.success) {
         const { data, count } = response.payload;
 
         setCourses(data || []);
         setTotalItems(count || 0);
         setTotalPages(Math.ceil((count || 0) / itemsPerPage));
-
-        console.log("Updated state:", {
-          coursesCount: data?.length || 0,
-          totalItems: count || 0,
-          totalPages: Math.ceil((count || 0) / itemsPerPage),
-        });
       } else {
-        console.error("API Response indicates failure:", response);
         setError(response?.message || "Failed to load courses");
       }
     } catch (err: any) {
@@ -700,7 +684,7 @@ export default function Courses() {
                       </span>
                     </DropdownMenuItem>
                   </Link>
-                ) : (
+                ) : activeTab === "physical" ? (
                   <Link
                     href={`/dashboard/courses/${course._id}/batches?type=physical`}
                     className="w-full"
@@ -718,6 +702,8 @@ export default function Courses() {
                       </span>
                     </DropdownMenuItem>
                   </Link>
+                ) : (
+                  ""
                 )}
                 <DropdownMenuItem
                   onClick={(e) => {

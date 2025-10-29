@@ -350,7 +350,7 @@ export default function BannerPage() {
               <img
                 src={banner.image}
                 alt="Banner"
-                className="w-full h-40 object-contain bg-gray-50"
+                className="w-full h-40 object-cover bg-gray-50"
               />
             </div>
           ))}
