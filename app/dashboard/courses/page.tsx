@@ -125,7 +125,7 @@ export default function Courses() {
   const [loadingInstructors, setLoadingInstructors] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [instructorError, setInstructorError] = useState<string>("");
-  const [editCourse, setEditCourse] = useState<Course | null>(null);
+  const [editCourse, setEditCourse] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
   const [isLiveBatchVisible, setIsLiveBatchVisible] = useState(false);
@@ -301,25 +301,33 @@ export default function Courses() {
     }
   };
 
-  // Handle file selection from ImageUpload component
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
   };
 
-  // Handle intro video change
   const handleIntroVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      // Validate file type
+      const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+
       if (!file.type.startsWith("video/")) {
         setFormErrors((prev) => ({
           ...prev,
           introVideo: "Please upload a valid video file",
         }));
-        e.target.value = ""; // Reset the file input
+        e.target.value = "";
         return;
       }
-      // Clear any previous errors
+
+      if (file.size > maxSize) {
+        setFormErrors((prev) => ({
+          ...prev,
+          introVideo: "Video file size must be less than 50MB",
+        }));
+        e.target.value = "";
+        return;
+      }
+
       setFormErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.introVideo;
@@ -328,24 +336,20 @@ export default function Courses() {
     }
   };
 
-  // Function to trim input values on blur
   const handleTrimInput = (
     e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const trimmedValue = e.target.value.trim();
     if (trimmedValue !== e.target.value) {
       e.target.value = trimmedValue;
-      // Trigger change event to update form state
       const event = new Event("input", { bubbles: true });
       e.target.dispatchEvent(event);
     }
   };
 
-  // Add this validation function at the top level of the component
   const validateForm = (formData: FormData, courseType: string) => {
     const errors: Record<string, string> = {};
 
-    // Common validations for all course types
     const name = formData.get("name")?.toString().trim() || "";
     const description = formData.get("description")?.toString().trim() || "";
     const instructor = formData.get("instructor")?.toString().trim() || "";
@@ -850,10 +854,12 @@ export default function Courses() {
 
       // Add intro video file if it exists
       const introVideoFile = (
-        e.currentTarget.elements.namedItem("introVideo") as HTMLInputElement
+        e.currentTarget.elements.namedItem(
+          "courseIntroVideo"
+        ) as HTMLInputElement
       )?.files?.[0];
       if (introVideoFile) {
-        apiFormData.append("introVideo", introVideoFile);
+        apiFormData.append("courseIntroVideo", introVideoFile);
       }
 
       // Only add isDefineCourse if defineCourse has a value
@@ -871,7 +877,6 @@ export default function Courses() {
         // apiFormData.append('address', formData.get('address') || '');
       }
 
-      // For backward compatibility, also add the image to the files array if it exists
       if (imageFile) {
         apiFormData.append("image", imageFile);
       }
@@ -887,7 +892,6 @@ export default function Courses() {
       if (formData.get("country")) {
         apiFormData.append("country", formData.get("country") || "");
       }
-      // Add course category
       const categoryId = formData.get("courseCategory");
       if (categoryId) {
         apiFormData.append("courseCategory", categoryId.toString());
@@ -1342,7 +1346,7 @@ export default function Courses() {
                     )}
                   </div>
                 </div>
-                {/* <div className="flex flex-col">
+                <div className="flex flex-col">
                   <label className="block font-medium mb-1">Intro Video</label>
 
                   <div className="relative w-full">
@@ -1354,7 +1358,7 @@ export default function Courses() {
                       onChange={handleIntroVideoChange}
                     />
                   </div>
-                </div> */}
+                </div>
 
                 <div>
                   <label className="block font-medium mb-1">
@@ -1651,7 +1655,7 @@ export default function Courses() {
                       <div className="text-red-500">{formErrors.zoomLink}</div>
                     )}
                   </div>
-                  {/* <div>
+                  <div>
                     <label className="block font-medium mb-1">
                       Intro Video
                     </label>
@@ -1667,7 +1671,7 @@ export default function Courses() {
                         {formErrors.introVideo}
                       </p>
                     )}
-                  </div> */}
+                  </div>
                   <div>
                     <label className="block font-medium mb-1">
                       Course Category
@@ -2135,7 +2139,7 @@ export default function Courses() {
                       <div className="text-red-500">{formErrors.country}</div>
                     )}
                   </div>
-                  {/* <div>
+                  <div>
                     <label className="block font-medium mb-1">
                       Intro Video
                     </label>
@@ -2151,7 +2155,7 @@ export default function Courses() {
                         {formErrors.introVideo}
                       </p>
                     )}
-                  </div> */}
+                  </div>
                   <div>
                     <label className="block font-medium mb-1">
                       Course Category

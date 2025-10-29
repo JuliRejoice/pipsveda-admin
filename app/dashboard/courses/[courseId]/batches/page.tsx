@@ -62,6 +62,9 @@ export default function CourseBatches() {
   const validateBatch = (batch: Batch) => {
     const err: Record<string, string> = {};
 
+    if (batchType === "physical") {
+      if (!batch.centerId) err.centerId = "Center is required";
+    }
     if (!batch.startDate) err.startDate = "Start date is required";
     if (!batch.endDate) err.endDate = "End date is required";
 
@@ -313,8 +316,15 @@ export default function CourseBatches() {
                     {batchType === "physical" && (
                       <p className="text-sm">
                         <span className="font-medium">Center:</span>{" "}
-                        {centers?.find((c) => c._id === batch.centerId._id)
-                          ?.centerName || "N/A"}
+                        {batch.centerId
+                          ? centers?.find(
+                              (c) =>
+                                c._id ===
+                                (typeof batch.centerId === "string"
+                                  ? batch.centerId
+                                  : batch.centerId?._id)
+                            )?.centerName || "N/A"
+                          : "N/A"}
                       </p>
                     )}
                     <p className="text-sm">
