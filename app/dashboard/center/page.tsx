@@ -5,44 +5,62 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger, 
-  DropdownMenuSeparator 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, Plus, MoreHorizontal, Edit, Trash2, MapPin } from "lucide-react";
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  MapPin,
+} from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
+import {
+  CitySelect,
+  CountrySelect,
+  StateSelect,
+} from "react-country-state-city";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
-import { createCenter, deleteCenter, getAllCenter, updateCenter } from "@/components/api/center";
+import {
+  createCenter,
+  deleteCenter,
+  getAllCenter,
+  updateCenter,
+} from "@/components/api/center";
+import "react-country-state-city/dist/react-country-state-city.css";
 
 interface Center {
   _id: string;
@@ -64,32 +82,42 @@ interface CenterApiResponse {
   };
 }
 
-const centerFormSchema = z.object({
-  centerName: z
-    .string()
-    .min(3, "Center name must be at least 3 characters")
-    .max(100, "Center name must be at most 100 characters"),
-  
-  location: z
-    .string()
-    .min(3, "Location must be at least 3 characters")
-    .max(200, "Location must be at most 200 characters"),
-    
-  city: z
-    .string()
-    .min(2, "City must be at least 2 characters")
-    .max(100, "City must be at most 100 characters"),
-    
-  state: z
-    .string()
-    .min(2, "State must be at least 2 characters")
-    .max(100, "State must be at most 100 characters"),
-    
-  country: z
-    .string()
-    .min(2, "Country must be at least 2 characters")
-    .max(100, "Country must be at most 100 characters"),
-});
+export const centerFormSchema = z
+  .object({
+    centerName: z
+      .string()
+      .min(3, "Center name must be at least 3 characters")
+      .max(100, "Center name must be at most 100 characters"),
+
+    location: z
+      .string()
+      .min(3, "Location must be at least 3 characters")
+      .max(200, "Location must be at most 200 characters"),
+
+    country: z.string().min(1, "Please select a country"),
+    state: z.string().min(1, "Please select a state"),
+    city: z.string().min(1, "Please select a city"),
+  })
+  .refine(
+    (data) => {
+      if (data.state && !data.country) return false;
+      return true;
+    },
+    {
+      message: "Please select a country first",
+      path: ["state"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.city && !data.state) return false;
+      return true;
+    },
+    {
+      message: "Please select a state first",
+      path: ["city"],
+    }
+  );
 
 type CenterFormValues = z.infer<typeof centerFormSchema>;
 
@@ -108,6 +136,10 @@ export default function CenterPage() {
   const [centerToDelete, setCenterToDelete] = useState<Center | null>(null);
   const [currentCenterId, setCurrentCenterId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedCountryId, setSelectedCountryId] = useState<string | null>(
+    null
+  );
+  const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
 
   const form = useForm<CenterFormValues>({
     resolver: zodResolver(centerFormSchema),
@@ -123,11 +155,11 @@ export default function CenterPage() {
   const fetchCentersData = async () => {
     try {
       setIsLoading(true);
-      const response = await getAllCenter({
+      const response = (await getAllCenter({
         page: currentPage,
         limit: itemsPerPage,
         search: searchTerm,
-      }) as unknown as CenterApiResponse;
+      })) as unknown as CenterApiResponse;
 
       setCenters(response.payload.data);
       setTotalItems(response.payload.count);
@@ -220,16 +252,16 @@ export default function CenterPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-       <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-[35px] w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search centers..."
-                className="pl-8 w-[200px] lg:w-[300px]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-[35px] w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search centers..."
+            className="pl-8 w-[200px] lg:w-[300px]"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         <Button onClick={() => setIsAddCenterOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Center
@@ -284,7 +316,10 @@ export default function CenterPage() {
                     <TableCell>{center.state}</TableCell>
                     <TableCell>{center.country}</TableCell>
                     <TableCell>
-                      <Badge variant={center.isActive ? "default" : "secondary"} className="border-none">
+                      <Badge
+                        variant={center.isActive ? "default" : "secondary"}
+                        className="border-none"
+                      >
                         {center.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
@@ -323,7 +358,7 @@ export default function CenterPage() {
               )}
             </TableBody>
           </Table>
-          
+
           {!isLoading && centers.length > 0 && (
             <div className="mt-4">
               <DataTablePagination
@@ -340,8 +375,8 @@ export default function CenterPage() {
       </Card>
 
       {/* Add/Edit Center Dialog */}
-      <Dialog 
-        open={isAddCenterOpen} 
+      <Dialog
+        open={isAddCenterOpen}
         onOpenChange={(open) => {
           if (!open) {
             // Reset form and state when dialog is closed
@@ -365,8 +400,8 @@ export default function CenterPage() {
               {isEditMode ? "Edit Center" : "Add New Center"}
             </DialogTitle>
             <DialogDescription>
-              {isEditMode 
-                ? "Update the center details below." 
+              {isEditMode
+                ? "Update the center details below."
                 : "Fill in the details to add a new center."}
             </DialogDescription>
           </DialogHeader>
@@ -385,7 +420,7 @@ export default function CenterPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="location"
@@ -394,65 +429,172 @@ export default function CenterPage() {
                     <FormLabel>Location</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input 
-                          placeholder="Enter location"  
-                          {...field} 
-                        />
+                        <Input placeholder="Enter location" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter city" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>State</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter state" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
+
               <FormField
                 control={form.control}
                 name="country"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Country</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter country" {...field} />
+                      <CountrySelect
+                        containerClassName="w-full"
+                        inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
+                          fieldState.error
+                            ? "border-destructive"
+                            : "border-input"
+                        } bg-background focus:outline-none focus:ring-2 focus:ring-ring`}
+                        onChange={(val: any) => {
+                          field.onChange(val.name);
+                          setSelectedCountryId(val.id);
+                          setSelectedStateId(null);
+                          form.setValue("state", "");
+                          form.setValue("city", "");
+                          form.clearErrors(["state", "city"]);
+                        }}
+                        placeHolder="Select Country"
+                      />
                     </FormControl>
-                    <FormMessage />
+                    {fieldState.error && (
+                      <p className="text-sm font-medium text-destructive mt-1">
+                        {fieldState.error.message}
+                      </p>
+                    )}
                   </FormItem>
                 )}
               />
-              
+
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field, fieldState }) => {
+                  // Show error if state is clicked without country
+                  const handleStateFocus = () => {
+                    if (!selectedCountryId) {
+                      form.setError(
+                        "state",
+                        {
+                          type: "manual",
+                          message: "Please select a country first",
+                        },
+                        { shouldFocus: true }
+                      );
+                    } else {
+                      form.clearErrors("state");
+                    }
+                  };
+
+                  return (
+                    <FormItem>
+                      <FormLabel>State</FormLabel>
+                      <FormControl>
+                        <div onClick={handleStateFocus} className="w-full">
+                          <StateSelect
+                            containerClassName="w-full"
+                            inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
+                              fieldState.error
+                                ? "border-destructive"
+                                : "border-input"
+                            } bg-background focus:outline-none focus:ring-2 focus:ring-ring`}
+                            countryid={
+                              selectedCountryId ? Number(selectedCountryId) : 0
+                            }
+                            onChange={(val: any) => {
+                              field.onChange(val?.name || "");
+                              setSelectedStateId(val?.id || null);
+                              form.setValue("city", "");
+                              form.clearErrors(["state", "city"]);
+                            }}
+                            onFocus={handleStateFocus}                    
+                            placeHolder="Select State"
+                            disabled={!selectedCountryId}
+                            value={field.value}
+                          />
+                        </div>
+                      </FormControl>
+                      {fieldState.error && (
+                        <p className="text-sm font-medium text-destructive mt-1">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </FormItem>
+                  );
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field, fieldState }) => {
+                  // Show error if city is clicked without state
+                  const handleCityFocus = () => {
+                    if (!selectedStateId) {
+                      form.setError(
+                        "city",
+                        {
+                          type: "manual",
+                          message: selectedCountryId
+                            ? "Please select a state first"
+                            : "Please select a country and state first",
+                        },
+                        { shouldFocus: true }
+                      );
+                    } else {
+                      form.clearErrors("city");
+                    }
+                  };
+
+                  return (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl>
+                        <div onClick={handleCityFocus} className="w-full">
+                          <CitySelect
+                            containerClassName="w-full"
+                            inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
+                              fieldState.error
+                                ? "border-destructive"
+                                : "border-input"
+                            } bg-background focus:outline-none focus:ring-2 focus:ring-ring`}
+                            countryid={
+                              selectedCountryId ? Number(selectedCountryId) : 0
+                            }
+                            stateid={
+                              selectedStateId ? Number(selectedStateId) : 0
+                            }
+                            onChange={(val: any) => {
+                              if (val) {
+                                field.onChange(val.name);
+                                form.clearErrors("city");
+                              }
+                            }}
+                            onFocus={handleCityFocus}
+                            placeHolder="Select City"
+                            disabled={!selectedStateId}
+                          />
+                        </div>
+                      </FormControl>
+                      {fieldState.error && (
+                        <p className="text-sm font-medium text-destructive mt-1">
+                          {fieldState.error.message}
+                        </p>
+                      )}
+                    </FormItem>
+                  );
+                }}
+              />
+
               <DialogFooter className="mt-6">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => {
                     setIsAddCenterOpen(false);
                     form.reset();
@@ -463,9 +605,13 @@ export default function CenterPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading 
-                    ? (isEditMode ? "Updating..." : "Creating...")
-                    : (isEditMode ? "Update Center" : "Add Center")}
+                  {isLoading
+                    ? isEditMode
+                      ? "Updating..."
+                      : "Creating..."
+                    : isEditMode
+                    ? "Update Center"
+                    : "Add Center"}
                 </Button>
               </DialogFooter>
             </form>
@@ -479,20 +625,21 @@ export default function CenterPage() {
           <DialogHeader>
             <DialogTitle>Are you sure?</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete the center
-              "{centerToDelete?.centerName}" and remove all associated data.
+              This action cannot be undone. This will permanently delete the
+              center "{centerToDelete?.centerName}" and remove all associated
+              data.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
               disabled={isDeleting}
             >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmDelete}
               disabled={isDeleting}
             >

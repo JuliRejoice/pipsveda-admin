@@ -44,30 +44,30 @@ export interface CourseApiResponse {
 }
 
 export interface Course {
-    _id: string;
-    CourseName: string;
-    description?: string;
-    courseType: string;
-    courseStart?: string;
-    courseEnd?: string;
-    meetingLink?: string;
-    zoomLink?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    instructor?: string;
-    language?: string;
-    address?: string;
-    isActive?: boolean;
-    price?: number;
-    createdAt?: string;
-    updatedAt?: string;
-    courseVideo?: string;
-    hours?: string;
-    email?: string;
-    phone?: string;
-    isDefineCourse?: string;
-    courseCategory?: string;
+  _id: string;
+  CourseName: string;
+  description?: string;
+  courseType: string;
+  courseStart?: string;
+  courseEnd?: string;
+  meetingLink?: string;
+  zoomLink?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  instructor?: string;
+  language?: string;
+  address?: string;
+  isActive?: boolean;
+  price?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  courseVideo?: string;
+  hours?: string;
+  email?: string;
+  phone?: string;
+  isDefineCourse?: string;
+  courseCategory?: string;
 }
 
 export const getAllCourseCategory = async ({
@@ -431,85 +431,21 @@ export const deleteBatch = async (id: string) => {
     throw error;
   }
 };
-
-export const getAllCenters = async () => {
-  try {
-    const res = await axios.get(`${BaseUrl}/center/getAllCenter`, {
-      headers: getHeaders(),
-    });
-    return res.data;
-  } catch (error) {
-    console.error("Error fetching centers:", error);
-    throw error;
-  }
-};
-
-export const createBanner = async (imageFile: File) => {
+export const uploadImage = async (imageFile: File) => {
   try {
     const formData = new FormData();
     formData.append("image", imageFile);
 
-    const res = await axios.post(
-      `${BaseUrl}/banner/createNewBanner`,
-      formData,
-      {
-        headers: {
-          ...getHeaders(),
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    return res.data;
-  } catch (error) {
-    console.error("Error creating banner:", error);
-    throw error;
-  }
-};
-
-export const updateBanner = async (id: string, imageFile: File) => {
-  try {
-    const formData = new FormData();
-    formData.append("image", imageFile);
-
-    const res = await axios.put(
-      `${BaseUrl}/banner/updateBanner?id=${id}`,
-      formData,
-      {
-        headers: {
-          ...getHeaders(),
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    return res.data;
-  } catch (error) {
-    console.error("Error updating banner:", error);
-    throw error;
-  }
-};
-
-export const getAllBanners = async () => {
-  try {
-    const res = await axios.get(`${BaseUrl}/banner/getBanner`, {
-      headers: getHeaders(),
+    const res = await axios.post(`${BaseUrl}/user/upload-image`, formData, {
+      headers: {
+        ...getHeaders(),
+        "Content-Type": "multipart/form-data",
+      },
     });
-    return res.data;
-  } catch (error) {
-    console.error("Error fetching banners:", error);
-    throw error;
-  }
-};
 
-export const deleteBanner = async (id: string) => {
-  try {
-    const res = await axios.delete(`${BaseUrl}/banner/deleteBanner?id=${id}`, {
-      headers: getHeaders(),
-    });
     return res.data;
   } catch (error) {
-    console.error("Error deleting banner:", error);
+    console.error("Error uploading image:", error);
     throw error;
   }
 };

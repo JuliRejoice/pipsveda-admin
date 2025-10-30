@@ -27,6 +27,7 @@ import {
   BookPlus,
   AlertTriangle,
   CalendarClock,
+  BookAIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -54,17 +55,13 @@ import {
   updateBatch,
   deleteBatch,
   getAllBatch,
+  uploadImage,
 } from "@/components/api/course";
+import { getAllCenters } from "@/components/api/banner";
 import { getAllCourseCategory } from "@/components/api/category";
 import { getAllInstructors } from "@/components/api/instructor";
 import React from "react";
-import {
-  Dialog as ConfirmDialog,
-  DialogContent as ConfirmDialogContent,
-  DialogHeader as ConfirmDialogHeader,
-  DialogTitle as ConfirmDialogTitle,
-  DialogFooter as ConfirmDialogFooter,
-} from "@/components/ui/dialog";
+
 import Link from "next/link";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { Course } from "@/components/api/course";
@@ -83,6 +80,7 @@ type Batch = {
   _id?: string;
   id: string;
   batchName: string;
+  centerId?: string;
   description: string;
   startDate: Date | null;
   endDate: Date | null;
@@ -147,6 +145,7 @@ export default function Courses() {
       id: "",
       batchName: "",
       description: "",
+      centerId: "",
       startDate: null,
       endDate: null,
       courseId: "",
@@ -159,6 +158,25 @@ export default function Courses() {
   // Add loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [centers, setCenters] = useState<any[]>([]);
+  const [selectedCenter, setSelectedCenter] = useState<any>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+
+  const fetchCenters = async () => {
+    try {
+      const response = await getAllCenters();
+      if (response.success) {
+        setCenters(response.payload?.data || []);
+      } else throw new Error(response.message);
+    } catch (err) {
+      console.error("Error loading centers:", err);
+      toast.error("Failed to load centers");
+    }
+  };
+
+  useEffect(() => {
+    if (latestCourse) fetchCenters();
+  }, [latestCourse]);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -241,6 +259,10 @@ export default function Courses() {
             ? new Date(b.endDate).toISOString().split("T")[0]
             : null,
           courseId: latestCourse?._id || "",
+          ...(activeTab === "physical" &&
+            selectedCenter?._id && {
+              centerId: selectedCenter._id,
+            }),
         })),
       };
 
@@ -308,7 +330,7 @@ export default function Courses() {
   const handleIntroVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+      const maxSize = 50 * 1024 * 1024;
 
       if (!file.type.startsWith("video/")) {
         setFormErrors((prev) => ({
@@ -328,11 +350,8 @@ export default function Courses() {
         return;
       }
 
-      setFormErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.introVideo;
-        return newErrors;
-      });
+      setVideoFile(file);
+      setFormErrors((prev) => ({ ...prev, introVideo: "" }));
     }
   };
 
@@ -353,6 +372,11 @@ export default function Courses() {
     const name = formData.get("name")?.toString().trim() || "";
     const description = formData.get("description")?.toString().trim() || "";
     const instructor = formData.get("instructor")?.toString().trim() || "";
+    const courseLevel = formData.get("courseLevel")?.toString().trim() || "";
+
+    if (!courseLevel) {
+      errors.courseLevel = "Course level is required";
+    }
 
     if (!name) {
       errors.name = "Course name is required";
@@ -515,7 +539,13 @@ export default function Courses() {
       setLoading(false);
     }
   };
-
+  // Add this useEffect near your other effects
+  useEffect(() => {
+    if (editCourse) {
+      // Reset video file state when editing a course
+      setVideoFile(null);
+    }
+  }, [editCourse]);
   useEffect(() => {
     console.log("Pagination state changed:", {
       currentPage,
@@ -667,26 +697,82 @@ export default function Courses() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {activeTab === "live" ? (
-                  <Link
-                    href={`/dashboard/courses/${course._id}/batches?type=live`}
-                    className="w-full"
-                  >
-                    <DropdownMenuItem
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        setPopoverOpen(false);
-                      }}
-                      className="cursor-pointer"
+                  <>
+                    <Link
+                      href={`/dashboard/courses/${course._id}/batches?type=live`}
+                      className="w-full"
                     >
-                      <CalendarClock className="mr-2 h-5 w-5" />
-                      <span className="text-base font-semibold text-gray-500 font-lexend">
-                        Add Batch
-                      </span>
-                    </DropdownMenuItem>
-                  </Link>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setPopoverOpen(false);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <CalendarClock className="mr-2 h-5 w-5" />
+                        <span className="text-base font-semibold text-gray-500 font-lexend">
+                          Edit Batch
+                        </span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link
+                      href={`/dashboard/courses/${course._id}/syllabus?type=live`}
+                      className="w-full"
+                    >
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setPopoverOpen(false);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <BookAIcon className="mr-2 h-5 w-5" />
+                        <span className="text-base font-semibold text-gray-500 font-lexend">
+                          Add Syllabus
+                        </span>
+                      </DropdownMenuItem>
+                    </Link>
+                  </>
                 ) : activeTab === "physical" ? (
+                  <>
+                    <Link
+                      href={`/dashboard/courses/${course._id}/batches?type=physical`}
+                      className="w-full"
+                    >
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setPopoverOpen(false);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <BookPlus className="mr-2 h-5 w-5" />
+                        <span className="text-base font-semibold text-gray-500 font-lexend">
+                          Edit Batch
+                        </span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link
+                      href={`/dashboard/courses/${course._id}/syllabus?type=physical`}
+                      className="w-full"
+                    >
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setPopoverOpen(false);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <BookAIcon className="mr-2 h-5 w-5" />
+                        <span className="text-base font-semibold text-gray-500 font-lexend">
+                          Add Syllabus
+                        </span>
+                      </DropdownMenuItem>
+                    </Link>
+                  </>
+                ) : (
                   <Link
-                    href={`/dashboard/courses/${course._id}/batches?type=physical`}
+                    href={`/dashboard/courses/${course._id}/syllabus?type=live`}
                     className="w-full"
                   >
                     <DropdownMenuItem
@@ -696,14 +782,12 @@ export default function Courses() {
                       }}
                       className="cursor-pointer"
                     >
-                      <BookPlus className="mr-2 h-5 w-5" />
+                      <BookAIcon className="mr-2 h-5 w-5" />
                       <span className="text-base font-semibold text-gray-500 font-lexend">
-                        Add Batch
+                        Add Syllabus
                       </span>
                     </DropdownMenuItem>
                   </Link>
-                ) : (
-                  ""
                 )}
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -837,18 +921,29 @@ export default function Courses() {
       apiFormData.append("courseEnd", endDate);
       apiFormData.append("instructor", formData.get("instructor") || "");
       apiFormData.append("language", formData.get("language") || "english");
+      apiFormData.append("courseLevel", formData.get("courseLevel") || "");
 
-      // Add intro video file if it exists
-      const introVideoFile = (
-        e.currentTarget.elements.namedItem(
-          "courseIntroVideo"
-        ) as HTMLInputElement
-      )?.files?.[0];
-      if (introVideoFile) {
-        apiFormData.append("courseIntroVideo", introVideoFile);
+      if (videoFile) {
+        try {
+          const videoResponse = await uploadImage(videoFile);
+
+          if (videoResponse?.success && videoResponse?.payload) {
+            apiFormData.append("courseIntroVideo", videoResponse.payload);
+          } else {
+            throw new Error("Failed to upload video: Invalid response");
+          }   
+        } catch (error) {
+          console.error("Error uploading video:", error);
+          toast.error("Failed to upload video");
+          return;
+        }
+      } else if (editCourse?.courseIntroVideo) {
+        // Only include if there's an existing video URL
+        if (editCourse.courseIntroVideo !== "undefined") {
+          apiFormData.append("courseIntroVideo", editCourse.courseIntroVideo);
+        }
       }
 
-      // Only add isDefineCourse if defineCourse has a value
       const defineCourse = formData.get("defineCourse");
       if (defineCourse) {
         apiFormData.append("isDefineCourse", defineCourse.toString());
@@ -1018,6 +1113,8 @@ export default function Courses() {
             setLiveEndDate(undefined);
             setPhysicalStartDate(undefined);
             setPhysicalEndDate(undefined);
+            setIsPhysicalBatchVisible(false);
+            setIsLiveBatchVisible(false);
             const form = document.querySelector("form");
             if (form) {
               form.reset();
@@ -1333,16 +1430,54 @@ export default function Courses() {
                   </div>
                 </div>
                 <div className="flex flex-col">
+                  <label className="block font-medium mb-1">Course Level</label>
+                  <Input
+                    type="text"
+                    name="courseLevel"
+                    placeholder="Enter course level"
+                    defaultValue={editCourse?.courseLevel || ""}
+                    className="h-[55px] w-full"
+                    required
+                    onBlur={handleTrimInput}
+                  />
+                  {formErrors.courseLevel && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {formErrors.courseLevel}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col">
                   <label className="block font-medium mb-1">Intro Video</label>
 
                   <div className="relative w-full">
                     <Input
                       type="file"
-                      name="introVideo"
+                      name="courseIntroVideo"
                       accept="video/*"
-                      className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0  file:text-white text-gray-600 text-center"
+                      className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0 file:text-white text-gray-600 text-center"
                       onChange={handleIntroVideoChange}
+                      id="courseIntroVideo"
                     />
+                    {/* Add this to show current video when editing */}
+                    {editCourse?.courseIntroVideo && !videoFile && (
+                      <div className="mt-2">
+                        <video
+                          src={editCourse?.courseIntroVideo}
+                          controls
+                          className="max-w-full h-auto max-h-20 rounded-md"
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                          Current video
+                        </p>
+                      </div>
+                    )}
+                    {/* Show selected file name when a new video is selected */}
+                    {videoFile && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        Selected: {videoFile.name}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -1645,13 +1780,35 @@ export default function Courses() {
                     <label className="block font-medium mb-1">
                       Intro Video
                     </label>
-                    <Input
-                      type="file"
-                      name="introVideo"
-                      accept="video/*"
-                      className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0  file:text-white text-gray-600 text-center"
-                      onChange={handleIntroVideoChange}
-                    />
+                    <div className="relative w-full">
+                      <Input
+                        type="file"
+                        name="courseIntroVideo"
+                        accept="video/*"
+                        className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0 file:text-white text-gray-600 text-center"
+                        onChange={handleIntroVideoChange}
+                        id="courseIntroVideo"
+                      />
+                      {/* Add this to show current video when editing */}
+                      {editCourse?.courseIntroVideo && !videoFile && (
+                        <div className="mt-2">
+                          <video
+                            src={editCourse?.courseIntroVideo}
+                            controls
+                            className="max-w-full h-auto max-h-20 rounded-md"
+                          />
+                          <p className="text-sm text-gray-500 mt-1">
+                            Current video
+                          </p>
+                        </div>
+                      )}
+                      {/* Show selected file name when a new video is selected */}
+                      {videoFile && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Selected: {videoFile.name}
+                        </p>
+                      )}
+                    </div>
                     {formErrors.introVideo && (
                       <p className="text-red-500 text-sm mt-1">
                         {formErrors.introVideo}
@@ -2125,17 +2282,40 @@ export default function Courses() {
                       <div className="text-red-500">{formErrors.country}</div>
                     )}
                   </div>
+
                   <div>
                     <label className="block font-medium mb-1">
                       Intro Video
                     </label>
-                    <Input
-                      type="file"
-                      name="introVideo"
-                      accept="video/*"
-                      className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0  file:text-white text-gray-600 text-center"
-                      onChange={handleIntroVideoChange}
-                    />
+                    <div className="relative w-full">
+                      <Input
+                        type="file"
+                        name="courseIntroVideo"
+                        accept="video/*"
+                        className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0 file:text-white text-gray-600 text-center"
+                        onChange={handleIntroVideoChange}
+                        id="courseIntroVideo"
+                      />
+                      {/* Add this to show current video when editing */}
+                      {editCourse?.courseIntroVideo && !videoFile && (
+                        <div className="mt-2">
+                          <video
+                            src={editCourse?.courseIntroVideo}
+                            controls
+                            className="max-w-full h-auto max-h-20 rounded-md"
+                          />
+                          <p className="text-sm text-gray-500 mt-1">
+                            Current video
+                          </p>
+                        </div>
+                      )}
+                      {/* Show selected file name when a new video is selected */}
+                      {videoFile && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Selected: {videoFile.name}
+                        </p>
+                      )}
+                    </div>
                     {formErrors.introVideo && (
                       <p className="text-red-500 text-sm mt-1">
                         {formErrors.introVideo}
@@ -2197,6 +2377,7 @@ export default function Courses() {
                             id: "",
                             batchName: "",
                             description: "",
+                            centerId: "",
                             startDate: null,
                             endDate: null,
                             courseId: "",
@@ -2212,6 +2393,7 @@ export default function Courses() {
                         key={index}
                         index={index}
                         batch={batch}
+                        location={activeTab === "physical" ? true : false}
                         updateBatch={async (
                           index: number,
                           key: string,
@@ -2239,6 +2421,8 @@ export default function Courses() {
                           )
                         }
                         errors={batchErrors[index]}
+                        centers={centers}
+                        setSelectedCenter={setSelectedCenter}
                       />
                     ))}
                     <DialogFooter>

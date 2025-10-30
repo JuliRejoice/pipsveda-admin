@@ -25,8 +25,8 @@ import {
   deleteBatch,
   getAllBatch,
   getCourses,
-  getAllCenters,
 } from "@/components/api/course";
+import { getAllCenters } from "@/components/api/banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BatchDatePickerRow } from "@/components/course/BatchDatePickerRow";
@@ -104,7 +104,7 @@ export default function CourseBatches() {
       console.error("Error loading centers:", err);
       toast.error("Failed to load centers");
     }
-  };
+  };  
 
   const fetchBatches = async () => {
     try {
@@ -364,13 +364,13 @@ export default function CourseBatches() {
                 courseId,
               }
             }
-            setSelectedCenter={setSelectedCenter}
             updateBatch={(index, key, value) => {
               setSelectedBatch((prev: any) => ({
                 ...prev,
                 [key]: value,
               }));
             }}
+            setSelectedCenter={setSelectedCenter}
             centers={centers}
             // removeBatch={() => setIsDialogOpen(false)}
             errors={batchErrors[0]}

@@ -218,3 +218,16 @@ input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+.stsearch-box input {
+  border: none !important;
+}
+.stdropdown-item.selected {
+  background-color: #8072bd !important;
+
+}
+.stdropdown-menu {
+  border: none !important;
+}
+.stdropdown-item {
+  border: none !important;
+}

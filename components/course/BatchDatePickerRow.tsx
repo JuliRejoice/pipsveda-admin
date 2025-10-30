@@ -64,7 +64,7 @@ export const BatchDatePickerRow: React.FC<Props> = ({
           <label className="block font-medium mb-1">Batch Location</label>
 
           <Select
-            value={batch.centerId?._id || ""}
+            value={batch.centerId || ""}
             onValueChange={(value) => {
               const selectedCenter = centers?.find((c) => c._id === value);
               updateBatch(index, "centerId", value);
@@ -191,8 +191,6 @@ export const BatchDatePickerRow: React.FC<Props> = ({
             <div className="text-red-500 text-sm mt-1">{errors.endDate}</div>
           )}
         </div>
-      </div>
-
       {removeBatch && (
         <Button
           variant="outline"
@@ -202,6 +200,8 @@ export const BatchDatePickerRow: React.FC<Props> = ({
           <Trash className="h-4 w-4 " />
         </Button>
       )}
+      </div>
+
     </div>
   );
 };

@@ -37,7 +37,7 @@ import {
   createBanner,
   updateBanner,
   deleteBanner,
-} from "@/components/api/course";
+} from "@/components/api/banner";
 
 const formSchema = z.object({
   image: z
