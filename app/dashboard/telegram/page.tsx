@@ -7,15 +7,46 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MessageCircle, Plus, Edit, Trash2, MoreVertical, Users, Pencil, AlertTriangle } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  MessageCircle,
+  Plus,
+  Edit,
+  Trash2,
+  MoreVertical,
+  Users,
+  Pencil,
+  AlertTriangle,
+  Image as ImageIcon,
+  X,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { createChannel, updateChannel, getAllTelegram, deleteChannel, createChannelPlan, updateChannelPlan, getAllTelegramPlan, deleteChannelPlan } from "@/components/api/telegram";
+import {
+  createChannel,
+  updateChannel,
+  getAllTelegram,
+  deleteChannel,
+  createChannelPlan,
+  updateChannelPlan,
+  getAllTelegramPlan,
+  deleteChannelPlan,
+} from "@/components/api/telegram";
 import { initScriptLoader } from "next/script";
 
 // Form validation schema
@@ -25,20 +56,30 @@ const formSchema = z.object({
     .nonempty("Channel name is required")
     .min(2, "Channel name must be at least 2 characters")
     .max(50, "Channel name must be at most 50 characters")
-    .regex(/^[a-zA-Z0-9\s\-()]+$/, "Channel name can only contain letters, numbers, spaces, hyphens, and parentheses"),
+    .regex(
+      /^[a-zA-Z0-9\s\-()]+$/,
+      "Channel name can only contain letters, numbers, spaces, hyphens, and parentheses"
+    ),
 
-  description: z.string().nonempty("Description is required").min(10, "Description must be at least 10 characters"),
+  description: z
+    .string()
+    .nonempty("Description is required")
+    .min(10, "Description must be at least 10 characters"),
 
   link: z
     .string()
     .min(1, "Telegram link is required")
-    .refine((val) => /^https?:\/\/.+\..+/.test(val), { message: "Please enter a valid HTTP/HTTPS URL" }),
+    .refine((val) => /^https?:\/\/.+\..+/.test(val), {
+      message: "Please enter a valid HTTP/HTTPS URL",
+    }),
 
   plan: z.string().optional(),
   price: z.string().optional(),
   discount: z.string().optional(),
   botProviderId: z.string().optional(),
   botId: z.string().optional(),
+  imageUrl: z.string().optional(),
+  logoUrl: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -65,6 +106,8 @@ interface TelegramChannel {
   createdAt?: string;
   updatedAt?: string;
   telegtamPlan?: any[];
+  image?: string;
+  logo?: string;
 }
 
 export default function TelegramManagement() {
@@ -82,6 +125,10 @@ export default function TelegramManagement() {
   const [planEdit, setPlanEdit] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -94,6 +141,8 @@ export default function TelegramManagement() {
       discount: "",
       botProviderId: "",
       botId: "",
+      imageUrl: "",
+      logoUrl: "",
     },
   });
 
@@ -108,6 +157,36 @@ export default function TelegramManagement() {
     clearErrors,
     formState: { errors },
   } = form;
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setValue("imageUrl", URL.createObjectURL(file));
+    }
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+      setValue("logoUrl", URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setValue("imageUrl", "");
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setValue("logoUrl", "");
+  };
 
   // Fetch channels on component mount
   const fetchChannels = async () => {
@@ -134,11 +213,22 @@ export default function TelegramManagement() {
     try {
       setIsLoading(true);
 
-      const channelData = {
+      // Prepare the channel data object
+      const channelData: any = {
         channelName: data.channelName,
         description: data.description,
         link: data.link,
       };
+
+      // For edit mode, include existing image/logo if they exist
+      if (isEditMode && currentChannelId) {
+        channelData.image = data.imageUrl || null;
+        channelData.logo = data.logoUrl || null;
+      } else {
+        // For create mode, only include if files were actually selected
+        channelData.image = imageFile ? data.imageUrl : null;
+        channelData.logo = logoFile ? data.logoUrl : null;
+      }
 
       if (isEditMode && currentChannelId) {
         // Update existing channel
@@ -178,16 +268,16 @@ export default function TelegramManagement() {
 
       if (isEditMode && currentChannelId) {
         // Update each plan individually
-        const updatePlanPromises = plans.map(plan => {
+        const updatePlanPromises = plans.map((plan) => {
           const planData = {
             telegramId: currentChannelId,
             planType: plan.planType,
             price: parseFloat(plan.price),
-            discount: parseFloat(plan.discount) || 0
+            discount: parseFloat(plan.discount) || 0,
           };
 
           // If plan has an _id, it's an existing plan that needs updating
-          if (plan._id && !plan._id.startsWith('temp_')) {
+          if (plan._id && !plan._id.startsWith("temp_")) {
             return updateChannelPlan(plan._id, planData);
           }
           // Otherwise, it's a new plan that needs to be created
@@ -196,7 +286,7 @@ export default function TelegramManagement() {
 
         // Wait for all plan updates/creations to complete
         const results = await Promise.all(updatePlanPromises);
-        const allSuccessful = results.every(result => result?.success);
+        const allSuccessful = results.every((result) => result?.success);
 
         if (allSuccessful) {
           toast.success("All plans updated successfully");
@@ -206,19 +296,19 @@ export default function TelegramManagement() {
         }
       } else if (currentChannelId) {
         // Create each plan individually
-        const createPlanPromises = plans.map(plan => {
+        const createPlanPromises = plans.map((plan) => {
           const planData = {
             telegramId: currentChannelId,
             planType: plan.planType,
             price: parseFloat(plan.price),
-            discount: parseFloat(plan.discount) || 0
+            discount: parseFloat(plan.discount) || 0,
           };
           return createChannelPlan(planData);
         });
 
         // Wait for all plan creations to complete
         const results = await Promise.all(createPlanPromises);
-        const allSuccessful = results.every(result => result?.success);
+        const allSuccessful = results.every((result) => result?.success);
 
         if (allSuccessful) {
           toast.success("All plans created successfully");
@@ -241,11 +331,18 @@ export default function TelegramManagement() {
       setIsLoading(false);
     }
   };
+  console.log(channels);
 
   // Set up form for editing
   const handleEdit = async (channel: TelegramChannel) => {
     setCurrentChannelId(channel._id);
     setIsEditMode(true);
+
+    // Set preview states
+    setImagePreview(channel.image || null);
+    setLogoPreview(channel.logo || null);
+    setImageFile(null);
+    setLogoFile(null);
 
     // Reset form with channel data
     reset({
@@ -257,6 +354,8 @@ export default function TelegramManagement() {
       discount: "",
       botProviderId: "",
       botId: "",
+      imageUrl: channel.image || "",
+      logoUrl: channel.logo || "",
     });
 
     try {
@@ -321,9 +420,16 @@ export default function TelegramManagement() {
       discount: "",
       botProviderId: "",
       botId: "",
+      imageUrl: "",
+      logoUrl: "",
     });
     setPlans([]);
     setCurrentChannelId(null);
+    setImageFile(null);
+    setLogoFile(null);
+    setImagePreview(null);
+    setLogoPreview(null);
+    setStep(1);
     setIsEditMode(false);
     setIsOpen(true);
     setStep(1);
@@ -338,61 +444,93 @@ export default function TelegramManagement() {
     let hasError = false;
 
     if (!plan || String(plan).trim() === "") {
-      setError("plan" as any, { type: "manual", message: "Plan duration is required" } as any);
+      setError(
+        "plan" as any,
+        { type: "manual", message: "Plan duration is required" } as any
+      );
       hasError = true;
     }
 
-    const priceValue = String(price || '').trim();
+    const priceValue = String(price || "").trim();
     // Price validation
     const priceNum = parseFloat(priceValue);
-    const priceParts = priceValue.split('.');
-    
+    const priceParts = priceValue.split(".");
+
     if (!priceValue) {
       setPriceError("Price is required");
-      setError("price" as any, { type: "manual", message: "Price is required" } as any);
+      setError(
+        "price" as any,
+        { type: "manual", message: "Price is required" } as any
+      );
       hasError = true;
     } else if (isNaN(priceNum) || priceNum <= 0) {
       setPriceError("Price must be a valid positive number");
-      setError("price" as any, { type: "manual", message: "Price must be a valid positive number" } as any);
+      setError(
+        "price" as any,
+        {
+          type: "manual",
+          message: "Price must be a valid positive number",
+        } as any
+      );
       hasError = true;
     } else if (priceNum > 1000000) {
       setPriceError("Price must be less than 1,000,000");
-      setError("price" as any, { type: "manual", message: "Price must be less than 1,000,000" } as any);
+      setError(
+        "price" as any,
+        { type: "manual", message: "Price must be less than 1,000,000" } as any
+      );
       hasError = true;
     } else if (priceParts[1] && priceParts[1].length !== 2) {
       setPriceError("Price must have exactly 2 decimal places");
-      setError("price" as any, { type: "manual", message: "Price must have exactly 2 decimal places" } as any);
+      setError(
+        "price" as any,
+        {
+          type: "manual",
+          message: "Price must have exactly 2 decimal places",
+        } as any
+      );
       hasError = true;
     }
-    
+
     // Discount validation
-    const discountValue = String(discount || '0').trim();
+    const discountValue = String(discount || "0").trim();
     const discountNum = parseInt(discountValue, 10);
-    
+
     if (discountValue && !/^\d+$/.test(discountValue)) {
-      setError("discount" as any, { type: "manual", message: "Discount must be a whole number" } as any);
+      setError(
+        "discount" as any,
+        { type: "manual", message: "Discount must be a whole number" } as any
+      );
       hasError = true;
     } else if (discountValue && (discountNum < 0 || discountNum > 99)) {
-      setError("discount" as any, { type: "manual", message: "Discount must be between 0 and 99" } as any);
+      setError(
+        "discount" as any,
+        { type: "manual", message: "Discount must be between 0 and 99" } as any
+      );
       hasError = true;
     }
 
     if (hasError) return;
 
     const newPlan: Plan = {
-      _id: planEdit && editingPlanId ? editingPlanId : `temp_${Date.now()}_${Math.random()}`,
+      _id:
+        planEdit && editingPlanId
+          ? editingPlanId
+          : `temp_${Date.now()}_${Math.random()}`,
       planType: plan || "",
-      price: String(price || ''),
-      discount: String(discount || '0'),
+      price: String(price || ""),
+      discount: String(discount || "0"),
       value: parseFloat(price as string) || 0,
-      botId: '',
-      botProviderId: '',
-      initialPrice: parseFloat(price as string) || 0
+      botId: "",
+      botProviderId: "",
+      initialPrice: parseFloat(price as string) || 0,
     };
 
     try {
       if (planEdit && editingPlanId) {
-        setPlans((prev: Plan[]) => prev.map((p) => (p._id === editingPlanId ? { ...p, ...newPlan } : p)));
+        setPlans((prev: Plan[]) =>
+          prev.map((p) => (p._id === editingPlanId ? { ...p, ...newPlan } : p))
+        );
         toast.success("Plan updated successfully");
         setPlanEdit(false);
         setEditingPlanId(null);
@@ -430,7 +568,7 @@ export default function TelegramManagement() {
       ...getValues(),
       plan: plan.planType || "",
       price: (plan.initialPrice || plan.price)?.toString() || "",
-      discount: plan.discount?.toString() || "0"
+      discount: plan.discount?.toString() || "0",
     });
 
     // Scroll to the form
@@ -473,13 +611,16 @@ export default function TelegramManagement() {
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Telegram Channel Management</h1>
-          <p className="text-muted-foreground">Manage your Telegram channels and their configurations</p>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Telegram Channel Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your Telegram channels and their configurations
+          </p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
@@ -489,15 +630,33 @@ export default function TelegramManagement() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>{isEditMode ? "Edit Telegram Channel" : "Create New Telegram Channel"}</DialogTitle>
+              <DialogTitle>
+                {isEditMode
+                  ? "Edit Telegram Channel"
+                  : "Create New Telegram Channel"}
+              </DialogTitle>
             </DialogHeader>
 
             {/* Step Sidebar */}
             <div className="flex space-x-6">
-              <div onClick={() => setStep(1)} className={`pb-2 font-semibold cursor-pointer ${step === 1 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}>
+              <div
+                onClick={() => setStep(1)}
+                className={`pb-2 font-semibold cursor-pointer ${
+                  step === 1
+                    ? "text-foreground border-b-2 border-primary"
+                    : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"
+                }`}
+              >
                 Channel Details
               </div>
-              <div onClick={() => setStep(2)} className={`pb-2 font-semibold cursor-pointer ${step === 2 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}>
+              <div
+                onClick={() => setStep(2)}
+                className={`pb-2 font-semibold cursor-pointer ${
+                  step === 2
+                    ? "text-foreground border-b-2 border-primary"
+                    : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"
+                }`}
+              >
                 Plans
               </div>
             </div>
@@ -509,73 +668,194 @@ export default function TelegramManagement() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="channelName">Channel Name</Label>
-                      <Input 
-                        id="channelName" 
-                        placeholder="Enter channel name" 
+                      <Input
+                        id="channelName"
+                        placeholder="Enter channel name"
                         {...register("channelName")}
                         onBlur={(e) => {
                           const value = e.target.value.trim();
-                          setValue("channelName", value, { shouldValidate: true });
+                          setValue("channelName", value, {
+                            shouldValidate: true,
+                          });
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                          if (e.key === " " && !e.currentTarget.value.trim()) {
                             e.preventDefault();
                           }
                         }}
-                        className={errors.channelName ? "border-red-500" : ""} 
+                        className={errors.channelName ? "border-red-500" : ""}
                       />
-                      {errors.channelName && <p className="text-sm font-semibold text-red-500">{errors.channelName.message}</p>}
+                      {errors.channelName && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.channelName.message}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
-                      <Textarea 
-                        id="description" 
-                        placeholder="Enter channel description" 
+                      <Textarea
+                        id="description"
+                        placeholder="Enter channel description"
                         {...register("description")}
                         onBlur={(e) => {
                           const value = e.target.value.trim();
-                          setValue("description", value, { shouldValidate: true });
+                          setValue("description", value, {
+                            shouldValidate: true,
+                          });
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                          if (e.key === " " && !e.currentTarget.value.trim()) {
                             e.preventDefault();
                           }
                         }}
-                        className={errors.description ? "border-red-500" : ""} 
-                        rows={4} 
+                        className={errors.description ? "border-red-500" : ""}
+                        rows={4}
                       />
-                      {errors.description && <p className="text-sm font-semibold text-red-500">{errors.description.message}</p>}
+                      {errors.description && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.description.message}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="link">Telegram Link</Label>
-                      <Input 
-                        id="link" 
-                        placeholder="https://t.me/yourchannel" 
+                      <Input
+                        id="link"
+                        placeholder="https://t.me/yourchannel"
                         {...register("link")}
                         onBlur={(e) => {
                           const value = e.target.value.trim();
                           setValue("link", value, { shouldValidate: true });
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                          if (e.key === " " && !e.currentTarget.value.trim()) {
                             e.preventDefault();
                           }
                         }}
-                        className={errors.link ? "border-red-500" : ""} 
+                        className={errors.link ? "border-red-500" : ""}
                       />
-                      {errors.link && <p className="text-sm font-semibold text-red-500">{errors.link.message}</p>}
+                      {errors.link && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.link.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="image">Channel Image</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <label
+                            htmlFor="image-upload"
+                            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50"
+                          >
+                            {imagePreview || getValues("imageUrl") ? (
+                              <div className="relative w-full h-full">
+                                <img
+                                  src={imagePreview || getValues("imageUrl")}
+                                  alt="Channel preview"
+                                  className="object-cover w-full h-full rounded-lg"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeImage();
+                                  }}
+                                  className="absolute p-1 text-white bg-red-500 rounded-full -top-2 -right-2 hover:bg-red-600"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center text-gray-400">
+                                <ImageIcon className="w-8 h-8 mb-1" />
+                                <span className="text-sm">Upload Image</span>
+                              </div>
+                            )}
+                            <input
+                              id="image-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageChange}
+                            />
+                          </label>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          <p>Recommended size: 800x450px</p>
+                          <p>Max file size: 5MB</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="logo">Channel Logo</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <label
+                            htmlFor="logo-upload"
+                            className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed rounded-full cursor-pointer hover:bg-gray-50"
+                          >
+                            {logoPreview || getValues("logoUrl") ? (
+                              <div className="relative w-full h-full">
+                                <img
+                                  src={logoPreview || getValues("logoUrl")}
+                                  alt="Logo preview"
+                                  className="object-cover w-full h-full rounded-full"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeLogo();
+                                  }}
+                                  className="absolute p-1 text-white bg-red-500 rounded-full -top-2 -right-2 hover:bg-red-600"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center text-gray-400">
+                                <ImageIcon className="w-6 h-6 mb-1" />
+                                <span className="text-xs">Upload Logo</span>
+                              </div>
+                            )}
+                            <input
+                              id="logo-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleLogoChange}
+                            />
+                          </label>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          <p>Recommended size: 200x200px</p>
+                          <p>Max file size: 2MB</p>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="flex justify-end space-x-2 py-4">
-                      <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsOpen(false)}
+                        disabled={isLoading}
+                      >
                         Cancel
                       </Button>
                       <Button
                         type="button"
                         onClick={async () => {
-                          const isStepValid = await trigger(["channelName", "description", "link"]);
+                          const isStepValid = await trigger([
+                            "channelName",
+                            "description",
+                            "link",
+                          ]);
                           if (isStepValid) {
                             const formData = getValues();
                             await onSubmitStep1(formData);
@@ -592,7 +872,10 @@ export default function TelegramManagement() {
 
               {step === 2 && (
                 <>
-                  <form onSubmit={handleSubmit(onSubmitSecond)} className="space-y-4">
+                  <form
+                    onSubmit={handleSubmit(onSubmitSecond)}
+                    className="space-y-4"
+                  >
                     <div className="space-y-2">
                       <Label htmlFor="plan">Plan Duration</Label>
                       <select
@@ -601,10 +884,18 @@ export default function TelegramManagement() {
                         onChange={(e) => {
                           setValue("plan", e.target.value);
                           if (planEdit && editingPlanId) {
-                            setPlans((prev) => prev.map((plan) => (plan._id === editingPlanId ? { ...plan, planType: e.target.value } : plan)));
+                            setPlans((prev) =>
+                              prev.map((plan) =>
+                                plan._id === editingPlanId
+                                  ? { ...plan, planType: e.target.value }
+                                  : plan
+                              )
+                            );
                           }
                         }}
-                        className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.plan ? "border-red-500" : ""}`}
+                        className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          errors.plan ? "border-red-500" : ""
+                        }`}
                       >
                         <option value="">Select a plan</option>
                         {[
@@ -616,42 +907,75 @@ export default function TelegramManagement() {
                         ]
                           .filter((planOption) => {
                             if (planEdit && editingPlanId) {
-                              const editingPlan = plans.find((p) => p._id === editingPlanId);
-                              if (editingPlan && editingPlan.planType === planOption.value) {
+                              const editingPlan = plans.find(
+                                (p) => p._id === editingPlanId
+                              );
+                              if (
+                                editingPlan &&
+                                editingPlan.planType === planOption.value
+                              ) {
                                 return true;
                               }
                             }
-                            return !plans.some((p) => p.planType === planOption.value);
+                            return !plans.some(
+                              (p) => p.planType === planOption.value
+                            );
                           })
                           .map((planOption) => (
-                            <option key={planOption.value} value={planOption.value}>
+                            <option
+                              key={planOption.value}
+                              value={planOption.value}
+                            >
                               {planOption.label}
                             </option>
                           ))}
                       </select>
-                      {errors.plan && <p className="text-sm font-semibold text-red-500">{String((errors as any).plan?.message || "")}</p>}
+                      {errors.plan && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {String((errors as any).plan?.message || "")}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="price">Price</Label>
-                      <Input id="price" type="number" placeholder="0.00" {...register("price")} className={errors.price ? "border-red-500" : ""} />
-                      {errors.price && <p className="text-sm font-semibold text-red-500">{String((errors as any).price?.message || "")}</p>}
+                      <Input
+                        id="price"
+                        type="number"
+                        placeholder="0.00"
+                        {...register("price")}
+                        className={errors.price ? "border-red-500" : ""}
+                      />
+                      {errors.price && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {String((errors as any).price?.message || "")}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="discount">Discount (%)</Label>
-                      <Input 
-                        id="discount" 
-                        type="number" 
-                        placeholder="0" 
-                        {...register("discount")} 
-                        className={errors.discount ? "border-red-500" : ""} 
+                      <Input
+                        id="discount"
+                        type="number"
+                        placeholder="0"
+                        {...register("discount")}
+                        className={errors.discount ? "border-red-500" : ""}
                       />
-                      {errors.discount && <p className="text-sm font-semibold text-red-500">{String((errors as any).discount?.message || "")}</p>}
+                      {errors.discount && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {String((errors as any).discount?.message || "")}
+                        </p>
+                      )}
                     </div>
 
                     <div className="pt-2">
-                      <Button type="button" onClick={handleAddPlan} id="plan-form" disabled={isLoading}>
+                      <Button
+                        type="button"
+                        onClick={handleAddPlan}
+                        id="plan-form"
+                        disabled={isLoading}
+                      >
                         {planEdit ? "Update Plan" : "Add Plan"}
                       </Button>
                     </div>
@@ -661,20 +985,38 @@ export default function TelegramManagement() {
                       <div className="space-y-3">
                         <h4 className="font-semibold">Added Plans</h4>
                         {plans.map((plan, index) => (
-                          <div key={index} className="border rounded-md p-3 bg-background text-sm flex justify-between items-center">
+                          <div
+                            key={index}
+                            className="border rounded-md p-3 bg-background text-sm flex justify-between items-center"
+                          >
                             <div>
                               <p>
                                 <strong>Duration:</strong> {plan.planType}
                               </p>
                               <p>
-                                <strong>Price:</strong> {plan?._id ? `$${plan.initialPrice}` : `$${plan.price}`}
+                                <strong>Price:</strong>{" "}
+                                {plan?._id
+                                  ? `$${plan.initialPrice}`
+                                  : `$${plan.price}`}
                               </p>
                             </div>
                             <div className="flex gap-2">
-                              <Button type="button" variant="ghost" size="sm" onClick={() => handleEditPlan(index)} className="text-blue-500 hover:text-blue-700">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditPlan(index)}
+                                className="text-blue-500 hover:text-blue-700"
+                              >
                                 <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button type="button" variant="ghost" size="sm" onClick={() => handleRemovePlan(index)} className="text-red-500 hover:text-red-700">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemovePlan(index)}
+                                className="text-red-500 hover:text-red-700"
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -684,7 +1026,12 @@ export default function TelegramManagement() {
                     )}
 
                     <div className="flex justify-end gap-2 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsOpen(false)}
+                        disabled={isLoading}
+                      >
                         Cancel
                       </Button>
                       <Button type="submit" disabled={isLoading}>
@@ -707,13 +1054,24 @@ export default function TelegramManagement() {
             <div className="space-y-4">
               <Alert variant="destructive" className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 mt-0.5" />
-                <AlertDescription>Are you sure you want to delete this channel? This action cannot be undone.</AlertDescription>
+                <AlertDescription>
+                  Are you sure you want to delete this channel? This action
+                  cannot be undone.
+                </AlertDescription>
               </Alert>
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                  disabled={isDeleting}
+                >
                   Cancel
                 </Button>
-                <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+                <Button
+                  variant="destructive"
+                  onClick={confirmDelete}
+                  disabled={isDeleting}
+                >
                   {isDeleting ? "Deleting..." : "Delete"}
                 </Button>
               </div>
@@ -727,19 +1085,43 @@ export default function TelegramManagement() {
           <MessageCircle className="h-12 w-12 text-muted-foreground" />
           <div>
             <h3 className="text-lg font-medium">No channels found</h3>
-            <p className="text-sm text-muted-foreground font-lexend">Get started by creating a new channel</p>
+            <p className="text-sm text-muted-foreground font-lexend">
+              Get started by creating a new channel
+            </p>
           </div>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {channels.map((channel) => (
-            <Card key={channel._id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={channel._id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardHeader className="pb-4">
+                <div className="w-full rounded-md overflow-hidden border-2 border-white shadow-sm">
+                  <img
+                    src={channel.image}
+                    alt={`${channel.channelName} logo`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     <div>
-                      <CardTitle className="text-lg">{channel.channelName}</CardTitle>
-                      <p className="text-base text-gray-500 mt-2.5">{channel.description}</p>
+                      <CardTitle className="text-lg flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                          <img
+                            src={channel.logo}
+                            alt={`${channel.channelName} logo`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span>{channel.channelName}</span>
+                      </CardTitle>
+
+                      <p className="text-base text-gray-500 mt-2.5">
+                        {channel.description}
+                      </p>
                     </div>
                   </div>
                   <DropdownMenu>
@@ -753,7 +1135,10 @@ export default function TelegramManagement() {
                         <Edit className="mr-2 h-5 w-5" />
                         <span className="text-base font-semibold">Edit</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(channel._id)}>
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() => handleDelete(channel._id)}
+                      >
                         <Trash2 className="mr-2 h-5 w-5" />
                         <span className="text-base font-semibold">Delete</span>
                       </DropdownMenuItem>
@@ -764,7 +1149,12 @@ export default function TelegramManagement() {
               <CardContent>
                 <div className="space-y-3">
                   {channel.link && (
-                    <a href={channel.link} target="_blank" rel="noopener noreferrer" className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-base font-medium transition">
+                    <a
+                      href={channel.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-base font-medium transition"
+                    >
                       ▶ Join Channel
                     </a>
                   )}
@@ -772,9 +1162,16 @@ export default function TelegramManagement() {
                     {channel?.telegtamPlan?.map((plan: any, idx: number) => (
                       <Card className="p-3">
                         <CardContent className="p-0">
-                          <div key={idx} className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground font-lexend">{plan.planType}</p>
-                            <p className="text-sm font-medium">${plan.initialPrice}</p>
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between"
+                          >
+                            <p className="text-sm text-muted-foreground font-lexend">
+                              {plan.planType}
+                            </p>
+                            <p className="text-sm font-medium">
+                              ${plan.initialPrice}
+                            </p>
                           </div>
                         </CardContent>
                       </Card>

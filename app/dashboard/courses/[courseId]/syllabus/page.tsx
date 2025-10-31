@@ -48,7 +48,6 @@ export default function CourseSyllabus() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // ✅ Validate syllabus form
   const validateSyllabus = (data: Syllabus) => {
     const err: Record<string, string> = {};
     if (!data.title.trim()) err.title = "Title is required";
@@ -57,10 +56,9 @@ export default function CourseSyllabus() {
     return err;
   };
 
-  // ✅ Fetch syllabus list
   const fetchSyllabus = async () => {
     try {
-      const response = await getAllSyllabus();
+      const response = await getAllSyllabus(courseId);
       if (response.success) {
         const allSyllabus = response.payload?.data || [];
         const courseSyllabus = allSyllabus.filter((s: any) =>
@@ -80,7 +78,6 @@ export default function CourseSyllabus() {
     }
   };
 
-  // ✅ Fetch course name
   const fetchCourseName = async () => {
     try {
       const res = await getCourses();
@@ -98,7 +95,6 @@ export default function CourseSyllabus() {
     }
   }, [courseId]);
 
-  // ✅ Save syllabus (Create or Update)
   const handleSaveSyllabus = async (syllabus: Syllabus) => {
     const validationErrors = validateSyllabus(syllabus);
     if (Object.keys(validationErrors).length > 0) {
@@ -142,7 +138,6 @@ export default function CourseSyllabus() {
     }
   };
 
-  // ✅ Delete syllabus
   const handleDeleteSyllabus = async (id: string) => {
     setIsDeleting(true);
     try {

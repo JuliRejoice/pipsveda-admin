@@ -75,6 +75,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BatchDatePickerRow } from "@/components/course/BatchDatePickerRow";
+import SyllabusFormList from "@/components/course/SyllabusFormList";
+import SyllabusSection from "@/components/course/SyllabusFormList";
+import {
+  createSyllabus,
+  deleteSyllabus,
+  updateSyllabus,
+} from "@/components/api/syllabus";
 
 type Batch = {
   _id?: string;
@@ -128,6 +135,7 @@ export default function Courses() {
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
   const [isLiveBatchVisible, setIsLiveBatchVisible] = useState(false);
   const [isPhysicalBatchVisible, setIsPhysicalBatchVisible] = useState(false);
+  const [isSyllabusVisible, setIsSyllabusVisible] = useState(false);
   const [latestCourse, setLatestCourse] = useState<Course | null>(null);
   const [liveBatches, setLiveBatches] = useState<Batch[]>([
     {
@@ -140,6 +148,7 @@ export default function Courses() {
     },
   ]);
   const [batchErrors, setBatchErrors] = useState<Record<number, any>>({});
+  const [syllabusList, setSyllabusList] = useState<any[]>([]);
   const [physicalBatches, setPhysicalBatches] = useState<Batch[]>([
     {
       id: "",
@@ -178,7 +187,6 @@ export default function Courses() {
     if (latestCourse) fetchCenters();
   }, [latestCourse]);
 
-  // Fetch categories on component mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -291,7 +299,7 @@ export default function Courses() {
       const res = await updateBatch(id, updatedData);
       if (res.success) {
         toast.success("Batch updated successfully");
-        const updated = await getAllBatch();
+        const updated = await getAllBatch(latestCourse?._id || "");
         setBatches(updated.payload || []);
       } else {
         toast.error(res.message || "Failed to update batch");
@@ -771,23 +779,42 @@ export default function Courses() {
                     </Link>
                   </>
                 ) : (
-                  <Link
-                    href={`/dashboard/courses/${course._id}/syllabus?type=live`}
-                    className="w-full"
-                  >
-                    <DropdownMenuItem
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        setPopoverOpen(false);
-                      }}
-                      className="cursor-pointer"
+                  <>
+                    <Link
+                      href={`/dashboard/courses/${course._id}`}
+                      className="w-full"
                     >
-                      <BookAIcon className="mr-2 h-5 w-5" />
-                      <span className="text-base font-semibold text-gray-500 font-lexend">
-                        Add Syllabus
-                      </span>
-                    </DropdownMenuItem>
-                  </Link>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setPopoverOpen(false);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <BookPlus className="mr-2 h-5 w-5" />
+                        <span className="text-base font-semibold text-gray-500 font-lexend">
+                          Add Chapters
+                        </span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link
+                      href={`/dashboard/courses/${course._id}/syllabus?type=live`}
+                      className="w-full"
+                    >
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setPopoverOpen(false);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <BookAIcon className="mr-2 h-5 w-5" />
+                        <span className="text-base font-semibold text-gray-500 font-lexend">
+                          Add Syllabus
+                        </span>
+                      </DropdownMenuItem>
+                    </Link>
+                  </>
                 )}
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -795,6 +822,7 @@ export default function Courses() {
                     setEditCourse(course);
                     setOpen(true);
                     setPopoverOpen(false);
+                    setIsSyllabusVisible(false);
                   }}
                 >
                   <Edit className="mr-2 h-5 w-5" />
@@ -931,7 +959,7 @@ export default function Courses() {
             apiFormData.append("courseIntroVideo", videoResponse.payload);
           } else {
             throw new Error("Failed to upload video: Invalid response");
-          }   
+          }
         } catch (error) {
           console.error("Error uploading video:", error);
           toast.error("Failed to upload video");
@@ -990,11 +1018,12 @@ export default function Courses() {
 
         if (data.success) {
           setLatestCourse(data.payload);
-          if (formActiveTab === "recorded") setOpen(false);
-          else if (formActiveTab === "live") setIsLiveBatchVisible(true);
-          else if (formActiveTab === "physical")
-            setIsPhysicalBatchVisible(true);
-          setEditCourse(null);
+          if (!editCourse) {
+            setIsSyllabusVisible(true);
+          } else {
+            setOpen(false);
+            setEditCourse(null);
+          }
           toast.success(
             editCourse
               ? "Course updated successfully"
@@ -1065,6 +1094,7 @@ export default function Courses() {
   const handleFormTabChange = (value: string) => {
     setIsLiveBatchVisible(false);
     setIsPhysicalBatchVisible(false);
+    setIsSyllabusVisible(false);
     if (editCourse && editCourse.courseType !== value) {
       // Don't allow changing tabs when editing a course
       return;
@@ -1175,245 +1205,33 @@ export default function Courses() {
               </TabsTrigger>
             </TabsList>
             {/* Recorded Course Form */}
-            <TabsContent value="recorded">
-              <form
-                className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
-                onSubmit={handleCourseSubmit}
-              >
-                <input type="hidden" name="courseType" value="recorded" />
-                <div>
-                  <label className="block font-medium mb-1">
-                    Course Thumbnail Image
-                  </label>
-                  <ImageUpload
-                    name="image"
-                    id="course-thumbnail"
-                    error={formErrors.image}
-                    onChange={handleImageChange}
-                    initialImage={editCourse?.courseVideo || null}
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Course Name</label>
-                  <Input
-                    placeholder="Course Name"
-                    name="name"
-                    defaultValue={editCourse?.CourseName || ""}
-                    onBlur={handleTrimInput}
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === " " &&
-                        !(e.target as HTMLInputElement).value.trim()
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                  />
-                  {formErrors.name && (
-                    <div className="text-red-500">{formErrors.name}</div>
-                  )}
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">
-                    Course Description
-                  </label>
-                  <Input
-                    placeholder="Course Description"
-                    name="description"
-                    defaultValue={editCourse?.description || ""}
-                    onBlur={handleTrimInput}
-                    onKeyDown={(e) => {
-                      if (
-                        e.key === " " &&
-                        !(e.target as HTMLInputElement).value.trim()
-                      ) {
-                        e.preventDefault();
-                      }
-                    }}
-                  />
-                  {formErrors.description && (
-                    <div className="text-red-500">{formErrors.description}</div>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+            {!isSyllabusVisible && (
+              <TabsContent value="recorded">
+                <form
+                  className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
+                  onSubmit={handleCourseSubmit}
+                >
+                  <input type="hidden" name="courseType" value="recorded" />
                   <div>
                     <label className="block font-medium mb-1">
-                      Instructor Name
+                      Course Thumbnail Image
                     </label>
-                    {/* <Input
-                      placeholder="Instructor Name"
-                      name="instructor"
-                      defaultValue={editCourse?.instructor || ""}
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
-                          e.preventDefault();
-                        }
-                      }}
-                    /> */}
-                    <Select
-                      name="instructor"
-                      defaultValue={
-                        editCourse?.instructor?._id || editCourse?.instructor
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an instructor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {instructors.map((instructor) => (
-                          <SelectItem
-                            key={instructor._id}
-                            value={instructor._id}
-                          >
-                            {instructor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {formErrors.instructor && (
-                      <div className="text-red-500">
-                        {formErrors.instructor}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Language</label>
-                    <select
-                      name="language"
-                      className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      defaultValue={editCourse?.language || "english"}
-                    >
-                      <option value="english">English</option>
-                      <option value="spanish">Spanish</option>
-                      <option value="french">French</option>
-                      <option value="german">German</option>
-                      <option value="hindi">Hindi</option>
-                    </select>
-                  </div>
-                </div>
-                {/* Start and End Date in one row */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                  <div className="flex-1">
-                    <label className="block font-medium mb-1">Start Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full h-[55px] justify-start text-left font-normal px-4 group"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4 group-hover:text-gray-900" />
-                          {recordedStartDate ? (
-                            <span className="text-base font-semibold text-gray-900">
-                              {format(recordedStartDate, "PPP")}
-                            </span>
-                          ) : (
-                            <>
-                              <input
-                                placeholder="Pick a date"
-                                className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                              />
-                              {/* <span className="text-base font-semibold">Pick a date</span> */}
-                            </>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 calendar-gray">
-                        <Calendar
-                          mode="single"
-                          selected={recordedStartDate}
-                          onSelect={(date) => {
-                            setRecordedStartDate(date);
-                            // Close the popover after selection
-                            const popoverTrigger = document.querySelector(
-                              '[aria-haspopup="dialog"][data-state="open"]'
-                            ) as HTMLElement;
-                            if (popoverTrigger) popoverTrigger.click();
-                          }}
-                          initialFocus
-                          disabled={(date) =>
-                            date < new Date(new Date().setHours(0, 0, 0, 0))
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {formErrors.startDate && (
-                      <div className="text-red-500">{formErrors.startDate}</div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <label className="block font-medium mb-1">End Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full h-[55px] justify-start text-left font-normal px-4 group"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4 group-hover:text-gray-900" />
-                          {recordedEndDate ? (
-                            <span className="text-base font-semibold text-gray-900">
-                              {format(recordedEndDate, "PPP")}
-                            </span>
-                          ) : (
-                            <>
-                              <input
-                                placeholder="Pick a date"
-                                className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                              />
-                              {/* <span className="text-base font-semibold">Pick a date</span> */}
-                            </>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 calendar-gray">
-                        <Calendar
-                          mode="single"
-                          selected={recordedEndDate}
-                          onSelect={(date) => {
-                            setRecordedEndDate(date);
-                            // Close the popover after selection
-                            const popoverTrigger = document.querySelector(
-                              '[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])'
-                            ) as HTMLElement;
-                            if (popoverTrigger) popoverTrigger.click();
-                          }}
-                          initialFocus
-                          disabled={(date) =>
-                            date < new Date(new Date().setHours(0, 0, 0, 0))
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {formErrors.endDate && (
-                      <div className="text-red-500">{formErrors.endDate}</div>
-                    )}
-                  </div>
-                </div>
-                {formErrors.dateRange && (
-                  <div className="text-red-500">{formErrors.dateRange}</div>
-                )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Course Price
-                    </label>
-                    <Input
-                      placeholder="Course Price"
-                      type="number"
-                      name="price"
-                      defaultValue={editCourse?.price || ""}
+                    <ImageUpload
+                      name="image"
+                      id="course-thumbnail"
+                      error={formErrors.image}
+                      onChange={handleImageChange}
+                      initialImage={editCourse?.courseVideo || null}
                     />
-                    {formErrors.price && (
-                      <div className="text-red-500">{formErrors.price}</div>
-                    )}
                   </div>
                   <div>
-                    <label className="block font-medium mb-1">Hours</label>
+                    <label className="block font-medium mb-1">
+                      Course Name
+                    </label>
                     <Input
-                      placeholder="Hours"
-                      type="text"
-                      name="hours"
-                      defaultValue={editCourse?.hours || ""}
+                      placeholder="Course Name"
+                      name="name"
+                      defaultValue={editCourse?.CourseName || ""}
                       onBlur={handleTrimInput}
                       onKeyDown={(e) => {
                         if (
@@ -1424,82 +1242,307 @@ export default function Courses() {
                         }
                       }}
                     />
-                    {formErrors.hours && (
-                      <div className="text-red-500">{formErrors.hours}</div>
+                    {formErrors.name && (
+                      <div className="text-red-500">{formErrors.name}</div>
                     )}
                   </div>
-                </div>
-                <div className="flex flex-col">
-                  <label className="block font-medium mb-1">Course Level</label>
-                  <Input
-                    type="text"
-                    name="courseLevel"
-                    placeholder="Enter course level"
-                    defaultValue={editCourse?.courseLevel || ""}
-                    className="h-[55px] w-full"
-                    required
-                    onBlur={handleTrimInput}
-                  />
-                  {formErrors.courseLevel && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formErrors.courseLevel}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-col">
-                  <label className="block font-medium mb-1">Intro Video</label>
-
-                  <div className="relative w-full">
+                  <div>
+                    <label className="block font-medium mb-1">
+                      Course Description
+                    </label>
                     <Input
-                      type="file"
-                      name="courseIntroVideo"
-                      accept="video/*"
-                      className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0 file:text-white text-gray-600 text-center"
-                      onChange={handleIntroVideoChange}
-                      id="courseIntroVideo"
+                      placeholder="Course Description"
+                      name="description"
+                      defaultValue={editCourse?.description || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === " " &&
+                          !(e.target as HTMLInputElement).value.trim()
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
-                    {/* Add this to show current video when editing */}
-                    {editCourse?.courseIntroVideo && !videoFile && (
-                      <div className="mt-2">
-                        <video
-                          src={editCourse?.courseIntroVideo}
-                          controls
-                          className="max-w-full h-auto max-h-20 rounded-md"
-                        />
-                        <p className="text-sm text-gray-500 mt-1">
-                          Current video
-                        </p>
+                    {formErrors.description && (
+                      <div className="text-red-500">
+                        {formErrors.description}
                       </div>
                     )}
-                    {/* Show selected file name when a new video is selected */}
-                    {videoFile && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        Selected: {videoFile.name}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1">
+                        Instructor Name
+                      </label>
+                      {/* <Input
+                      placeholder="Instructor Name"
+                      name="instructor"
+                      defaultValue={editCourse?.instructor || ""}
+                      onBlur={handleTrimInput}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' && !(e.target as HTMLInputElement).value.trim()) {
+                          e.preventDefault();
+                        }
+                      }}
+                    /> */}
+                      <Select
+                        name="instructor"
+                        defaultValue={
+                          editCourse?.instructor?._id || editCourse?.instructor
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an instructor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {instructors.map((instructor) => (
+                            <SelectItem
+                              key={instructor._id}
+                              value={instructor._id}
+                            >
+                              {instructor.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {formErrors.instructor && (
+                        <div className="text-red-500">
+                          {formErrors.instructor}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">Language</label>
+                      <select
+                        name="language"
+                        className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        defaultValue={editCourse?.language || "english"}
+                      >
+                        <option value="english">English</option>
+                        <option value="spanish">Spanish</option>
+                        <option value="french">French</option>
+                        <option value="german">German</option>
+                        <option value="hindi">Hindi</option>
+                      </select>
+                    </div>
+                  </div>
+                  {/* Start and End Date in one row */}
+                  <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="flex-1">
+                      <label className="block font-medium mb-1">
+                        Start Date
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full h-[55px] justify-start text-left font-normal px-4 group"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 group-hover:text-gray-900" />
+                            {recordedStartDate ? (
+                              <span className="text-base font-semibold text-gray-900">
+                                {format(recordedStartDate, "PPP")}
+                              </span>
+                            ) : (
+                              <>
+                                <input
+                                  placeholder="Pick a date"
+                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
+                                />
+                                {/* <span className="text-base font-semibold">Pick a date</span> */}
+                              </>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 calendar-gray">
+                          <Calendar
+                            mode="single"
+                            selected={recordedStartDate}
+                            onSelect={(date) => {
+                              setRecordedStartDate(date);
+                              // Close the popover after selection
+                              const popoverTrigger = document.querySelector(
+                                '[aria-haspopup="dialog"][data-state="open"]'
+                              ) as HTMLElement;
+                              if (popoverTrigger) popoverTrigger.click();
+                            }}
+                            initialFocus
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {formErrors.startDate && (
+                        <div className="text-red-500">
+                          {formErrors.startDate}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="block font-medium mb-1">End Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full h-[55px] justify-start text-left font-normal px-4 group"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 group-hover:text-gray-900" />
+                            {recordedEndDate ? (
+                              <span className="text-base font-semibold text-gray-900">
+                                {format(recordedEndDate, "PPP")}
+                              </span>
+                            ) : (
+                              <>
+                                <input
+                                  placeholder="Pick a date"
+                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
+                                />
+                                {/* <span className="text-base font-semibold">Pick a date</span> */}
+                              </>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 calendar-gray">
+                          <Calendar
+                            mode="single"
+                            selected={recordedEndDate}
+                            onSelect={(date) => {
+                              setRecordedEndDate(date);
+                              // Close the popover after selection
+                              const popoverTrigger = document.querySelector(
+                                '[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])'
+                              ) as HTMLElement;
+                              if (popoverTrigger) popoverTrigger.click();
+                            }}
+                            initialFocus
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {formErrors.endDate && (
+                        <div className="text-red-500">{formErrors.endDate}</div>
+                      )}
+                    </div>
+                  </div>
+                  {formErrors.dateRange && (
+                    <div className="text-red-500">{formErrors.dateRange}</div>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1">
+                        Course Price
+                      </label>
+                      <Input
+                        placeholder="Course Price"
+                        type="number"
+                        name="price"
+                        defaultValue={editCourse?.price || ""}
+                      />
+                      {formErrors.price && (
+                        <div className="text-red-500">{formErrors.price}</div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">Hours</label>
+                      <Input
+                        placeholder="Hours"
+                        type="text"
+                        name="hours"
+                        defaultValue={editCourse?.hours || ""}
+                        onBlur={handleTrimInput}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === " " &&
+                            !(e.target as HTMLInputElement).value.trim()
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                      {formErrors.hours && (
+                        <div className="text-red-500">{formErrors.hours}</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="block font-medium mb-1">
+                      Course Level
+                    </label>
+                    <Input
+                      type="text"
+                      name="courseLevel"
+                      placeholder="Enter course level"
+                      defaultValue={editCourse?.courseLevel || ""}
+                      className="h-[55px] w-full"
+                      required
+                      onBlur={handleTrimInput}
+                    />
+                    {formErrors.courseLevel && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.courseLevel}
                       </p>
                     )}
                   </div>
-                </div>
 
-                <div>
-                  <label className="block font-medium mb-1">
-                    Course Category
-                  </label>
-                  <select
-                    name="courseCategory"
-                    className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    defaultValue={editCourse?.courseCategory || ""}
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((category) => (
-                      <option key={category._id} value={category._id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* <div>
+                  <div className="flex flex-col">
+                    <label className="block font-medium mb-1">
+                      Intro Video
+                    </label>
+
+                    <div className="relative w-full">
+                      <Input
+                        type="file"
+                        name="courseIntroVideo"
+                        accept="video/*"
+                        className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0 file:text-white text-gray-600 text-center"
+                        onChange={handleIntroVideoChange}
+                        id="courseIntroVideo"
+                      />
+                      {/* Add this to show current video when editing */}
+                      {editCourse?.courseIntroVideo && !videoFile && (
+                        <div className="mt-2">
+                          <video
+                            src={editCourse?.courseIntroVideo}
+                            controls
+                            className="max-w-full h-auto max-h-20 rounded-md"
+                          />
+                          <p className="text-sm text-gray-500 mt-1">
+                            Current video
+                          </p>
+                        </div>
+                      )}
+                      {/* Show selected file name when a new video is selected */}
+                      {videoFile && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Selected: {videoFile.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-1">
+                      Course Category
+                    </label>
+                    <select
+                      name="courseCategory"
+                      className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      defaultValue={editCourse?.courseCategory || ""}
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* <div>
                   <label className="block font-medium mb-1">Define Course</label>
                   <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || ""}>
                     <option value="">Choose Option</option>
@@ -1507,20 +1550,43 @@ export default function Courses() {
                     <option value="trending">Trending</option>
                   </select>
                 </div> */}
-                <DialogFooter>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting
-                      ? "Saving..."
-                      : editCourse
-                      ? "Update Course"
-                      : "Create Recorded Course"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </TabsContent>
+                  <DialogFooter>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting
+                        ? "Saving..."
+                        : editCourse
+                        ? "Update Course"
+                        : "Next"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </TabsContent>
+            )}
+            {isSyllabusVisible && (
+              <SyllabusSection
+                courseId={latestCourse?._id}
+                onAdd={(data: any) => createSyllabus(data)}
+                onUpdate={(data: any) => updateSyllabus(data.id, data)}
+                onDelete={(id: string) => deleteSyllabus(id)}
+                setOpen={() =>
+                  activeTab === "recorded" ? setOpen(false) : setOpen(true)
+                }
+                setIsSyllabusVisible={() => setIsSyllabusVisible(false)}
+                setIsLiveBatchVisible={() =>
+                  activeTab === "live"
+                    ? setIsLiveBatchVisible(true)
+                    : setIsLiveBatchVisible(false)
+                }
+                setIsPhysicalBatchVisible={() =>
+                  activeTab === "physical"
+                    ? setIsPhysicalBatchVisible(true)
+                    : setIsPhysicalBatchVisible(false)
+                }
+              />
+            )}
             {/* Live Course Form */}
             <TabsContent value="live">
-              {!isLiveBatchVisible && (
+              {!isLiveBatchVisible && !isSyllabusVisible && (
                 <form
                   className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
                   onSubmit={handleCourseSubmit}
@@ -1776,6 +1842,26 @@ export default function Courses() {
                       <div className="text-red-500">{formErrors.zoomLink}</div>
                     )}
                   </div>
+                  <div className="flex flex-col">
+                    <label className="block font-medium mb-1">
+                      Course Level
+                    </label>
+                    <Input
+                      type="text"
+                      name="courseLevel"
+                      placeholder="Enter course level"
+                      defaultValue={editCourse?.courseLevel || ""}
+                      className="h-[55px] w-full"
+                      required
+                      onBlur={handleTrimInput}
+                    />
+                    {formErrors.courseLevel && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.courseLevel}
+                      </p>
+                    )}
+                  </div>
+
                   <div>
                     <label className="block font-medium mb-1">
                       Intro Video
@@ -1877,6 +1963,7 @@ export default function Courses() {
                         ]);
                       }}
                     >
+                      <Plus className="w-4 h-4 mr-2" />
                       Add Live Batch
                     </Button>
 
@@ -1905,11 +1992,18 @@ export default function Courses() {
                             );
                           }
                         }}
-                        removeBatch={(index) =>
-                          handleDeleteBatch(
-                            liveBatches?.[index]?._id as string,
-                            setLiveBatches
-                          )
+                        removeBatch={
+                          liveBatches.length > 1
+                            ? async (index) => {
+                                const currentBatch = liveBatches[index];
+                                if (currentBatch._id) {
+                                  await handleDeleteBatch(
+                                    currentBatch._id,
+                                    setLiveBatches
+                                  );
+                                }
+                              }
+                            : undefined
                         }
                         errors={batchErrors[index]}
                       />
@@ -1925,7 +2019,7 @@ export default function Courses() {
             </TabsContent>
             {/* Physical Course Form */}
             <TabsContent value="physical">
-              {!isPhysicalBatchVisible && (
+              {!isPhysicalBatchVisible && !isSyllabusVisible && (
                 <form
                   className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
                   onSubmit={handleCourseSubmit}
@@ -2282,6 +2376,25 @@ export default function Courses() {
                       <div className="text-red-500">{formErrors.country}</div>
                     )}
                   </div>
+                  <div className="flex flex-col">
+                    <label className="block font-medium mb-1">
+                      Course Level
+                    </label>
+                    <Input
+                      type="text"
+                      name="courseLevel"
+                      placeholder="Enter course level"
+                      defaultValue={editCourse?.courseLevel || ""}
+                      className="h-[55px] w-full"
+                      required
+                      onBlur={handleTrimInput}
+                    />
+                    {formErrors.courseLevel && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.courseLevel}
+                      </p>
+                    )}
+                  </div>
 
                   <div>
                     <label className="block font-medium mb-1">
@@ -2486,6 +2599,9 @@ export default function Courses() {
             resetForm();
             setOpen(true);
             setFormActiveTab(activeTab);
+            setIsSyllabusVisible(false);
+            setIsLiveBatchVisible(false);
+            setIsPhysicalBatchVisible(false);
           }}
           className="text-base font-semibold"
         >

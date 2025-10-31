@@ -390,9 +390,9 @@ export const createNewBatch = async (payload: any) => {
 };
 
 //  Get all batches
-export const getAllBatch = async () => {
+export const getAllBatch = async (courseId: string) => {
   try {
-    const res = await axios.get(`${BaseUrl}/batch/getAllBatch`, {
+    const res = await axios.get(`${BaseUrl}/batch/getAllBatch?courseId=${courseId}`, {
       headers: getHeaders(),
     });
     return res.data;

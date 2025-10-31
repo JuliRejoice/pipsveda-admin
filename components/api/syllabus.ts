@@ -33,7 +33,6 @@ export const createSyllabus = async (syllabusData: any[]) => {
   }
 };
 
-// ✅ Update Existing Syllabus (by ID)
 export const updateSyllabus = async (id: string, data: any) => {
   try {
     const res = await axios.put(
@@ -48,10 +47,9 @@ export const updateSyllabus = async (id: string, data: any) => {
   }
 };
 
-// ✅ Get All Syllabus
-export const getAllSyllabus = async () => {
+export const getAllSyllabus = async (courseId: string) => {
   try {
-    const res = await axios.get(`${BaseUrl}/syllabus/getAllSyllabus`, {
+    const res = await axios.get(`${BaseUrl}/syllabus/getAllSyllabus/?courseId=${courseId}`, {
       headers: getHeaders(),
     });
     return res.data;
@@ -61,7 +59,6 @@ export const getAllSyllabus = async () => {
   }
 };
 
-// ✅ Delete Syllabus (by ID)
 export const deleteSyllabus = async (id: string) => {
   try {
     const res = await axios.delete(

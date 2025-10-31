@@ -108,7 +108,7 @@ export default function CourseBatches() {
 
   const fetchBatches = async () => {
     try {
-      const response = await getAllBatch();
+      const response = await getAllBatch(courseId);
       if (response.success) {
         const allBatches = response.payload?.data || [];
         const courseBatches = allBatches.filter((b: any) =>
