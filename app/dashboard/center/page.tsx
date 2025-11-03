@@ -140,6 +140,7 @@ export default function CenterPage() {
     null
   );
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   const form = useForm<CenterFormValues>({
     resolver: zodResolver(centerFormSchema),
@@ -158,7 +159,7 @@ export default function CenterPage() {
       const response = (await getAllCenter({
         page: currentPage,
         limit: itemsPerPage,
-        search: searchTerm,
+        search: debouncedSearchTerm,
       })) as unknown as CenterApiResponse;
 
       setCenters(response.payload.data);
@@ -173,8 +174,17 @@ export default function CenterPage() {
   };
 
   useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page on new search
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timerId);
+  }, [searchTerm]);
+
+  useEffect(() => {
     fetchCentersData();
-  }, [currentPage, itemsPerPage, searchTerm]);
+  }, [currentPage, itemsPerPage, debouncedSearchTerm]);
 
   const handleEdit = (center: Center) => {
     setIsEditMode(true);
@@ -259,7 +269,7 @@ export default function CenterPage() {
             placeholder="Search centers..."
             className="pl-8 w-[200px] lg:w-[300px]"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
           />
         </div>
         <Button onClick={() => setIsAddCenterOpen(true)}>
@@ -512,7 +522,7 @@ export default function CenterPage() {
                               form.setValue("city", "");
                               form.clearErrors(["state", "city"]);
                             }}
-                            onFocus={handleStateFocus}                    
+                            onFocus={handleStateFocus}
                             placeHolder="Select State"
                             disabled={!selectedCountryId}
                             value={field.value}

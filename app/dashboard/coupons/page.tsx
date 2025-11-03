@@ -196,11 +196,11 @@ export default function CouponPage() {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+      setCurrentPage(page);
   };
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setSearchTerm(e.target.value.trimStart());
   };
 
   const filteredCoupons = coupons.filter((coupon) => coupon.couponCode.toLowerCase().includes(searchTerm.toLowerCase()));

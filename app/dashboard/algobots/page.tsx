@@ -6,7 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/dashboard/RichTextEditor";
@@ -14,10 +20,41 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { createAlgoBot, getAllAlgoBots, deleteAlgoBot, updateAlgoBot, getCategoryDropdown, getBotProviderDropDown, getBotDropDown, uploadAlgoBotImage, createAlgoBotPlan, updateAlgoBotPlan, deleteAlgoBotPlan, getLanguageDropDown } from "@/components/api/algobot";
-import { Search, Plus, Bot, Calendar, Download, Edit, Trash2, MoreVertical, AlertTriangle, ChevronDown, Pencil, Eye } from "lucide-react";
+import {
+  createAlgoBot,
+  getAllAlgoBots,
+  deleteAlgoBot,
+  updateAlgoBot,
+  getCategoryDropdown,
+  getBotProviderDropDown,
+  getBotDropDown,
+  uploadAlgoBotImage,
+  createAlgoBotPlan,
+  updateAlgoBotPlan,
+  deleteAlgoBotPlan,
+  getLanguageDropDown,
+} from "@/components/api/algobot";
+import {
+  Search,
+  Plus,
+  Bot,
+  Calendar,
+  Download,
+  Edit,
+  Trash2,
+  MoreVertical,
+  AlertTriangle,
+  ChevronDown,
+  Pencil,
+  Eye,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 
 // Form validation schema
@@ -27,11 +64,18 @@ const formSchema = z.object({
     .nonempty("Strategy title is required")
     .min(2, "Strategy name must be at least 2 characters")
     .max(50, "Strategy name must be at most 50 characters")
-    .regex(/^[a-zA-Z0-9\s\-()]+$/, "Strategy name can only contain letters, numbers, spaces, hyphens, and parentheses"),
+    .regex(
+      /^[a-zA-Z0-9\s\-()]+$/,
+      "Strategy name can only contain letters, numbers, spaces, hyphens, and parentheses"
+    ),
 
   categoryId: z.string().min(1, "Category is required"),
 
-  shortDescription: z.string().nonempty("Short Description is required").min(10, "Short description must be at least 10 characters").max(200, "Short description must be at most 200 characters"),
+  shortDescription: z
+    .string()
+    .nonempty("Short Description is required")
+    .min(10, "Short description must be at least 10 characters")
+    .max(200, "Short description must be at most 200 characters"),
 
   description: z
     .string()
@@ -62,7 +106,14 @@ const formSchema = z.object({
           .min(1, "Video link URL is required")
           .refine(
             (val) => {
-              const videoPlatforms = [/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/, /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/, /^(https?:\/\/)?(www\.)?dailymotion\.com\/.+$/, /^(https?:\/\/)?(www\.)?facebook\.com\/.*\/videos\/.+$/, /^(https?:\/\/)?(www\.)?drive\.google\.com\/file\/.+$/, /^(https?:\/\/)?(www\.)?streamable\.com\/.+$/];
+              const videoPlatforms = [
+                /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/,
+                /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/,
+                /^(https?:\/\/)?(www\.)?dailymotion\.com\/.+$/,
+                /^(https?:\/\/)?(www\.)?facebook\.com\/.*\/videos\/.+$/,
+                /^(https?:\/\/)?(www\.)?drive\.google\.com\/file\/.+$/,
+                /^(https?:\/\/)?(www\.)?streamable\.com\/.+$/,
+              ];
               return videoPlatforms.some((regex) => regex.test(val));
             },
             {
@@ -156,7 +207,9 @@ export default function AlgoBots() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [step, setStep] = useState(1);
   const [step1, setStep1] = useState({ links: [{ url: "", language: "" }] });
-  const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(null);
+  const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(
+    null
+  );
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isFetchingCategories, setIsFetchingCategories] = useState(false);
@@ -173,11 +226,15 @@ export default function AlgoBots() {
   const [planEdit, setPlanEdit] = useState(false);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   // Handle click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setOpenDropdownIndex(null);
       }
     }
@@ -188,7 +245,9 @@ export default function AlgoBots() {
     };
   }, []);
 
-  const [languages, setLanguages] = useState<{ _id: string; languageName: string }[]>([]);
+  const [languages, setLanguages] = useState<
+    { _id: string; languageName: string }[]
+  >([]);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedBot, setSelectedBot] = useState<AlgoBot | null>(null);
 
@@ -274,7 +333,9 @@ export default function AlgoBots() {
       return;
     }
 
-    const fb = bots.filter((b) => !b.botProviderId || b.botProviderId === providerId);
+    const fb = bots.filter(
+      (b) => !b.botProviderId || b.botProviderId === providerId
+    );
     // setFilteredBots(fb);
   }, [bots, getValues]);
 
@@ -283,7 +344,9 @@ export default function AlgoBots() {
     const subscription = form.watch((values, { name }) => {
       if (name === "botProviderId") {
         const providerId = values.botProviderId || "";
-        const fb = bots.filter((b) => !b.botProviderId || b.botProviderId === providerId);
+        const fb = bots.filter(
+          (b) => !b.botProviderId || b.botProviderId === providerId
+        );
         setFilteredBots(fb);
         setValue("botId", "");
       }
@@ -311,7 +374,7 @@ export default function AlgoBots() {
       const response = await getAllAlgoBots({
         page: currentPage,
         limit: itemsPerPage,
-        search: searchTerm,
+        search: debouncedSearchTerm,
       });
       if (response.success) {
         setAlgobots(response.payload.data);
@@ -327,7 +390,7 @@ export default function AlgoBots() {
 
   useEffect(() => {
     fetchBots();
-  }, [currentPage, itemsPerPage, searchTerm]);
+  }, [currentPage, itemsPerPage, debouncedSearchTerm]);
 
   useEffect(() => {
     if (planEdit && editingPlanId) {
@@ -456,7 +519,9 @@ export default function AlgoBots() {
         // If bot already exists, just move to step 2
         setStep(2);
       } else {
-        toast.error(error.response?.data?.message || "Failed to proceed to next step");
+        toast.error(
+          error.response?.data?.message || "Failed to proceed to next step"
+        );
         return false;
       }
     } finally {
@@ -615,13 +680,24 @@ export default function AlgoBots() {
         {selectedBot && (
           <div className="space-y-4">
             <div className="relative h-64 w-full overflow-hidden rounded-lg">
-              <img src={selectedBot.imageUrl || "/images/logo.svg"} alt={selectedBot.title} className="h-full w-full object-cover" />
+              <img
+                src={selectedBot.imageUrl || "/images/logo.svg"}
+                alt={selectedBot.title}
+                className="h-full w-full object-cover"
+              />
             </div>
 
             <div className="space-y-2">
               <h3 className="text-xl font-semibold">{selectedBot.title}</h3>
-              <p className="text-sm text-muted-foreground font-lexend">{selectedBot.shortDescription}</p>
-              <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: marked(selectedBot.description || "") }} />
+              <p className="text-sm text-muted-foreground font-lexend">
+                {selectedBot.shortDescription}
+              </p>
+              <div
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: marked(selectedBot.description || ""),
+                }}
+              />
             </div>
 
             <div className="space-y-2">
@@ -631,7 +707,11 @@ export default function AlgoBots() {
                   <div key={index} className="py-3">
                     <span className="font-medium">{links.language} : </span>
 
-                    <a href={links.url} target="_blank" className="text-sm text-blue-500 mr-2">
+                    <a
+                      href={links.url}
+                      target="_blank"
+                      className="text-sm text-blue-500 mr-2"
+                    >
                       {links.url}
                     </a>
                   </div>
@@ -647,7 +727,9 @@ export default function AlgoBots() {
                     <div className="flex justify-between">
                       <span className="font-medium">{plan.planType}</span>
                       <div>
-                        <span className="text-sm text-muted-foreground mr-2">${plan.initialPrice}</span>
+                        <span className="text-sm text-muted-foreground mr-2">
+                          ${plan.initialPrice}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -690,6 +772,14 @@ export default function AlgoBots() {
     setPlanEdit(false);
     setEditingPlanId(null);
   };
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page on new search
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timerId);
+  }, [searchTerm]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -703,35 +793,68 @@ export default function AlgoBots() {
     let hasError = false;
 
     if (!plan || String(plan).trim() === "") {
-      setError("plan" as any, { type: "manual", message: "Plan duration is required" } as any);
+      setError(
+        "plan" as any,
+        { type: "manual", message: "Plan duration is required" } as any
+      );
       hasError = true;
     }
 
     if (!price || String(price).trim() === "") {
       setPriceError("Price is required");
-      setError("price" as any, { type: "manual", message: "Price is required" } as any);
+      setError(
+        "price" as any,
+        { type: "manual", message: "Price is required" } as any
+      );
       hasError = true;
-    } else if (isNaN(parseFloat(price as any)) || parseFloat(price as any) <= 0) {
+    } else if (
+      isNaN(parseFloat(price as any)) ||
+      parseFloat(price as any) <= 0
+    ) {
       setPriceError("Price must be a valid positive number");
-      setError("price" as any, { type: "manual", message: "Price must be a valid positive number" } as any);
+      setError(
+        "price" as any,
+        {
+          type: "manual",
+          message: "Price must be a valid positive number",
+        } as any
+      );
       hasError = true;
     } else if (parseFloat(price as any) > 1000000) {
       setPriceError("Price must be less than 1,000,000");
-      setError("price" as any, { type: "manual", message: "Price must be less than 1,000,000" } as any);
+      setError(
+        "price" as any,
+        { type: "manual", message: "Price must be less than 1,000,000" } as any
+      );
       hasError = true;
-    } else if ((price as string).includes(".") && (price as string).split(".")[1].length > 2) {
+    } else if (
+      (price as string).includes(".") &&
+      (price as string).split(".")[1].length > 2
+    ) {
       setPriceError("Price can have maximum 2 decimal places");
-      setError("price" as any, { type: "manual", message: "Price can have maximum 2 decimal places" } as any);
+      setError(
+        "price" as any,
+        {
+          type: "manual",
+          message: "Price can have maximum 2 decimal places",
+        } as any
+      );
       hasError = true;
     }
 
     if (!botProviderId || String(botProviderId).trim() === "") {
-      setError("botProviderId" as any, { type: "manual", message: "Bot Provider Company is required" } as any);
+      setError(
+        "botProviderId" as any,
+        { type: "manual", message: "Bot Provider Company is required" } as any
+      );
       hasError = true;
     }
 
     if (!botId || String(botId).trim() === "") {
-      setError("botId" as any, { type: "manual", message: "Bot Name is required" } as any);
+      setError(
+        "botId" as any,
+        { type: "manual", message: "Bot Name is required" } as any
+      );
       hasError = true;
     }
 
@@ -757,7 +880,11 @@ export default function AlgoBots() {
           } as any
         );
         hasError = true;
-      } else if (price && parseFloat(price as any) > 0 && discountValue > parseFloat(price as any)) {
+      } else if (
+        price &&
+        parseFloat(price as any) > 0 &&
+        discountValue > parseFloat(price as any)
+      ) {
         setError(
           "discount" as any,
           {
@@ -772,7 +899,10 @@ export default function AlgoBots() {
     if (hasError) return;
 
     const newPlan: any = {
-      _id: planEdit && editingPlanId ? editingPlanId : `temp_${Date.now()}_${Math.random()}`, // Generate temp ID for new plans
+      _id:
+        planEdit && editingPlanId
+          ? editingPlanId
+          : `temp_${Date.now()}_${Math.random()}`, // Generate temp ID for new plans
       planType: plan || "",
       price: String(price),
       botProviderId: botProviderId || "",
@@ -816,7 +946,7 @@ export default function AlgoBots() {
                       //   },
                       //   name: "",
                       // },
-                      botId : newPlan.botId
+                      botId: newPlan.botId,
                     }
                   : p
               )
@@ -853,7 +983,10 @@ export default function AlgoBots() {
           if (isEditMode && botPlanId) {
             // For existing bots, save the plan immediately via API
             try {
-              const response = await createAlgoBotPlan(botPlanId as string, step2Data);
+              const response = await createAlgoBotPlan(
+                botPlanId as string,
+                step2Data
+              );
               // Add the plan to local state with the real ID from API response
               if (response?.payload?._id) {
                 const savedPlan = { ...newPlan, _id: response.payload._id };
@@ -883,7 +1016,13 @@ export default function AlgoBots() {
           botProviderId: "",
           botId: "",
         });
-        clearErrors(["plan", "price", "discount", "botProviderId", "botId"] as any);
+        clearErrors([
+          "plan",
+          "price",
+          "discount",
+          "botProviderId",
+          "botId",
+        ] as any);
       }
     } catch (error) {
       console.error("Error saving plan:", error);
@@ -901,7 +1040,10 @@ export default function AlgoBots() {
 
     // Set form values for editing
     setValue("plan", plan.planType);
-    setValue("price", plan.initialPrice?.toString() || plan.price?.toString() || "");
+    setValue(
+      "price",
+      plan.initialPrice?.toString() || plan.price?.toString() || ""
+    );
     setValue("discount", plan.discount?.toString() || "0");
 
     // Handle nested bot and provider structure
@@ -918,11 +1060,13 @@ export default function AlgoBots() {
           setValue("botId", botId);
 
           // Filter bots for the selected provider
-          const fb = bots.filter((b) => b.botProviderId === providerId || !b.botProviderId);
+          const fb = bots.filter(
+            (b) => b.botProviderId === providerId || !b.botProviderId
+          );
           setFilteredBots(fb);
         }, 0);
       }
-    }else{
+    } else {
       const botId = plan?.botId;
       const providerId = plan?.botProviderId;
 
@@ -935,7 +1079,9 @@ export default function AlgoBots() {
           setValue("botId", botId);
 
           // Filter bots for the selected provider
-          const fb = bots.filter((b) => b.botProviderId === providerId || !b.botProviderId);
+          const fb = bots.filter(
+            (b) => b.botProviderId === providerId || !b.botProviderId
+          );
           setFilteredBots(fb);
         }, 0);
       }
@@ -950,7 +1096,9 @@ export default function AlgoBots() {
     }, 100);
   };
 
-  const handleRemovePlan: (indexToRemove: number) => void = async (indexToRemove) => {
+  const handleRemovePlan: (indexToRemove: number) => void = async (
+    indexToRemove
+  ) => {
     const planToDelete = plans[indexToRemove];
 
     try {
@@ -1005,9 +1153,15 @@ export default function AlgoBots() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="relative">
-        <Search className="absolute left-2.5 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-        <Input type="search" placeholder="Search bots..." className="w-full bg-background pl-8 md:w-[300px] font-normal" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-      </div>
+          <Search className="absolute left-2.5 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search bots..."
+            className="w-full bg-background pl-8 md:w-[300px] font-normal"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
+          />
+        </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
@@ -1022,15 +1176,31 @@ export default function AlgoBots() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>{isEditMode ? "Edit AlgoBot" : "Create New AlgoBot"}</DialogTitle>
+              <DialogTitle>
+                {isEditMode ? "Edit AlgoBot" : "Create New AlgoBot"}
+              </DialogTitle>
             </DialogHeader>
             {/* <form onSubmit={handleSubmit(onSubmit)} className="space-y-4"> */}
             {/* LEFT: Step Sidebar */}
             <div className="flex space-x-6">
-              <div onClick={() => setStep(1)} className={`pb-2 font-semibold cursor-pointer ${step === 1 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}>
+              <div
+                onClick={() => setStep(1)}
+                className={`pb-2 font-semibold cursor-pointer ${
+                  step === 1
+                    ? "text-foreground border-b-2 border-primary"
+                    : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"
+                }`}
+              >
                 Bot Details
               </div>
-              <div onClick={() => setStep(2)} className={`pb-2 font-semibold cursor-pointer ${step === 2 ? "text-foreground border-b-2 border-primary" : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"}`}>
+              <div
+                onClick={() => setStep(2)}
+                className={`pb-2 font-semibold cursor-pointer ${
+                  step === 2
+                    ? "text-foreground border-b-2 border-primary"
+                    : "text-gray-400 border-b-2 border-transparent hover:text-foreground/80"
+                }`}
+              >
                 Plans
               </div>
             </div>
@@ -1057,47 +1227,88 @@ export default function AlgoBots() {
                         }}
                         className={errors.title ? "border-red-500" : ""}
                       />
-                      {errors.title && <p className="text-sm font-semibold text-red-500">{errors.title.message}</p>}
+                      {errors.title && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.title.message}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label>Tutorial Video Links</Label>
                         {step1.links.map((link: any, index) => (
                           <>
-                            <div key={link._id || index} className="flex gap-2 items-start">
+                            <div
+                              key={link._id || index}
+                              className="flex gap-2 items-start"
+                            >
                               <div className="flex-1 flex gap-2 items-start">
                                 <Input
                                   value={link?.url || ""}
-                                  onChange={(e) => handleLinkChange(index, e.target.value)}
+                                  onChange={(e) =>
+                                    handleLinkChange(index, e.target.value)
+                                  }
                                   onBlur={(e) => {
                                     const value = e.target.value.trim();
                                     handleLinkChange(index, value);
                                   }}
                                   onKeyDown={(e) => {
-                                    if (e.key === " " && !e.currentTarget.value.trim()) {
+                                    if (
+                                      e.key === " " &&
+                                      !e.currentTarget.value.trim()
+                                    ) {
                                       e.preventDefault();
                                     }
                                   }}
                                   placeholder="Enter Tutorial Video Links..."
                                   className="w-full h-[55px] px-4 text-base font-semibold"
                                 />
-                                <div className="relative h-[55px]" ref={dropdownRef}>
+                                <div
+                                  className="relative h-[55px]"
+                                  ref={dropdownRef}
+                                >
                                   <div
                                     className="flex items-center justify-between h-[55px] px-4 border rounded-md w-36 cursor-pointer bg-background"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setOpenDropdownIndex(openDropdownIndex === index ? null : index);
+                                      setOpenDropdownIndex(
+                                        openDropdownIndex === index
+                                          ? null
+                                          : index
+                                      );
                                     }}
                                   >
-                                    <span className="text-base font-semibold text-gray-900">{languages.find((opt) => opt.languageName === link?.language)?.languageName || "English"}</span>
-                                    <ChevronDown className={`h-4 w-4 transition-all duration-500 ease-in-out ${openDropdownIndex === index ? "rotate-180" : ""}`} />
+                                    <span className="text-base font-semibold text-gray-900">
+                                      {languages.find(
+                                        (opt) =>
+                                          opt.languageName === link?.language
+                                      )?.languageName || "English"}
+                                    </span>
+                                    <ChevronDown
+                                      className={`h-4 w-4 transition-all duration-500 ease-in-out ${
+                                        openDropdownIndex === index
+                                          ? "rotate-180"
+                                          : ""
+                                      }`}
+                                    />
                                   </div>
                                   {openDropdownIndex === index && (
                                     <div className="max-h-[300px] absolute top-full border-input rounded-lg border-[1px] shadow-sm left-0 z-10 w-full transition-all duration-500 ease-in-out overflow-hidden">
                                       <div className="px-2 py-1 bg-background rounded-lg">
                                         {languages.map((option) => (
-                                          <div key={option?._id} className="bg-background group hover:bg-gray-100 px-3 py-2 transition-all duration-500 ease-in-out flex flex-col" onClick={() => handleLanguageChange(index, option.languageName)}>
-                                            <span className="text-base font-semibold text-gray-900  rounded-md cursor-pointer">{option.languageName}</span>
+                                          <div
+                                            key={option?._id}
+                                            className="bg-background group hover:bg-gray-100 px-3 py-2 transition-all duration-500 ease-in-out flex flex-col"
+                                            onClick={() =>
+                                              handleLanguageChange(
+                                                index,
+                                                option.languageName
+                                              )
+                                            }
+                                          >
+                                            <span className="text-base font-semibold text-gray-900  rounded-md cursor-pointer">
+                                              {option.languageName}
+                                            </span>
                                           </div>
                                         ))}
                                       </div>
@@ -1107,25 +1318,48 @@ export default function AlgoBots() {
                               </div>
                               <div className="flex gap-2 h-10">
                                 {index === step1.links.length - 1 && (
-                                  <Button type="button" variant="outline" size="icon" onClick={handleAddLink} className="h-[55px] w-12">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={handleAddLink}
+                                    className="h-[55px] w-12"
+                                  >
                                     <Plus className="h-5 w-5" />
                                   </Button>
                                 )}
                                 {step1.links.length > 1 && (
-                                  <Button type="button" variant="outline" size="icon" onClick={() => handleRemoveLink(index)} className="h-[55px] w-12">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleRemoveLink(index)}
+                                    className="h-[55px] w-12"
+                                  >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 )}
                               </div>
                             </div>
-                            {errors.links?.[index]?.url && <p className="text-sm font-semibold text-red-500">{errors.links[index]?.url?.message}</p>}
+                            {errors.links?.[index]?.url && (
+                              <p className="text-sm font-semibold text-red-500">
+                                {errors.links[index]?.url?.message}
+                              </p>
+                            )}
                           </>
                         ))}
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="categoryId">Category</Label>
-                      <select id="categoryId" {...register("categoryId")} className={`flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.categoryId ? "border-red-500" : ""}`} disabled={isFetchingCategories}>
+                      <select
+                        id="categoryId"
+                        {...register("categoryId")}
+                        className={`flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                          errors.categoryId ? "border-red-500" : ""
+                        }`}
+                        disabled={isFetchingCategories}
+                      >
                         <option value="">Select a category</option>
                         {categories.map((categoryId) => (
                           <option key={categoryId._id} value={categoryId._id}>
@@ -1133,27 +1367,66 @@ export default function AlgoBots() {
                           </option>
                         ))}
                       </select>
-                      {isFetchingCategories && <p className="text-sm text-muted-foreground font-lexend">Loading categories...</p>}
-                      {errors.categoryId && <p className="text-sm font-semibold text-red-500">{errors.categoryId.message}</p>}
+                      {isFetchingCategories && (
+                        <p className="text-sm text-muted-foreground font-lexend">
+                          Loading categories...
+                        </p>
+                      )}
+                      {errors.categoryId && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.categoryId.message}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="imageUrl">Image</Label>
-                      <label htmlFor="imageUrl" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`flex items-center justify-center w-full h-40 border-2 border-dashed rounded-md cursor-pointer transition hover:border-primary relative ${uploading ? "opacity-50 cursor-not-allowed" : ""} ${isDragging ? "border-primary bg-muted/30" : ""}`}>
+                      <label
+                        htmlFor="imageUrl"
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`flex items-center justify-center w-full h-40 border-2 border-dashed rounded-md cursor-pointer transition hover:border-primary relative ${
+                          uploading ? "opacity-50 cursor-not-allowed" : ""
+                        } ${isDragging ? "border-primary bg-muted/30" : ""}`}
+                      >
                         {imagePreview ? (
                           <div className="relative">
-                            <img src={imagePreview} alt="Preview" className="w-60 h-32 object-cover rounded-md" />
-                            <Button type="button" variant="destructive" size="sm" className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0" onClick={removeImage}>
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-60 h-32 object-cover rounded-md"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                              onClick={removeImage}
+                            >
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground font-lexend">Click or drag and drop to upload</span>
+                          <span className="text-sm text-muted-foreground font-lexend">
+                            Click or drag and drop to upload
+                          </span>
                         )}
                       </label>
 
-                      <Input id="imageUrl" type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
+                      <Input
+                        id="imageUrl"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        disabled={uploading}
+                      />
 
-                      {errors.imageUrl && <p className="text-sm font-semibold text-red-500">{String(errors.imageUrl.message)}</p>}
+                      {errors.imageUrl && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {String(errors.imageUrl.message)}
+                        </p>
+                      )}
 
                       {uploading && (
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -1163,24 +1436,34 @@ export default function AlgoBots() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="shortDescription">Short Description</Label>
+                      <Label htmlFor="shortDescription">
+                        Short Description
+                      </Label>
                       <Textarea
                         id="shortDescription"
                         placeholder="Enter a brief description (10-50 characters)"
                         {...register("shortDescription")}
                         onBlur={(e) => {
                           const value = e.target.value.trim();
-                          setValue("shortDescription", value, { shouldValidate: true });
+                          setValue("shortDescription", value, {
+                            shouldValidate: true,
+                          });
                         }}
                         onKeyDown={(e) => {
                           if (e.key === " " && !e.currentTarget.value.trim()) {
                             e.preventDefault();
                           }
                         }}
-                        className={errors.shortDescription ? "border-red-500" : ""}
+                        className={
+                          errors.shortDescription ? "border-red-500" : ""
+                        }
                         rows={2}
                       />
-                      {errors.shortDescription && <p className="text-sm font-semibold text-red-500">{errors.shortDescription.message}</p>}
+                      {errors.shortDescription && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.shortDescription.message}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
@@ -1194,19 +1477,40 @@ export default function AlgoBots() {
                         placeholder="Enter detailed bot description"
                         className={errors.description ? "border-red-500" : ""}
                       />
-                      {errors.description && <p className="text-sm font-semibold text-red-500">{errors.description.message}</p>}
+                      {errors.description && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.description.message}
+                        </p>
+                      )}
                     </div>
                     <div className="flex justify-end space-x-2 py-4">
-                      <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsOpen(false)}
+                        disabled={isLoading}
+                      >
                         Cancel
                       </Button>
                       <Button
                         type="button"
                         onClick={async (e) => {
-                          const isStepValid = await trigger(["title", "categoryId", "shortDescription", "description", "links"]);
+                          const isStepValid = await trigger([
+                            "title",
+                            "categoryId",
+                            "shortDescription",
+                            "description",
+                            "links",
+                          ]);
                           // Enforce image presence manually: allow existing preview OR new file
                           if (!imagePreview) {
-                            setError("imageUrl" as any, { type: "manual", message: "Image is required" } as any);
+                            setError(
+                              "imageUrl" as any,
+                              {
+                                type: "manual",
+                                message: "Image is required",
+                              } as any
+                            );
                             return;
                           } else {
                             clearErrors("imageUrl");
@@ -1230,7 +1534,10 @@ export default function AlgoBots() {
 
               {step === 2 && (
                 <>
-                  <form onSubmit={handleSubmit(onSubmitSecond)} className="space-y-4">
+                  <form
+                    onSubmit={handleSubmit(onSubmitSecond)}
+                    className="space-y-4"
+                  >
                     <div className="space-y-2">
                       <Label htmlFor="plan">Plan Duration</Label>
                       <select
@@ -1241,10 +1548,18 @@ export default function AlgoBots() {
                           setValue("plan", e.target.value);
                           // If in edit mode, update the editing plan's planType
                           if (planEdit && editingPlanId) {
-                            setPlans((prev) => prev.map((plan) => (plan._id === editingPlanId ? { ...plan, planType: e.target.value } : plan)));
+                            setPlans((prev) =>
+                              prev.map((plan) =>
+                                plan._id === editingPlanId
+                                  ? { ...plan, planType: e.target.value }
+                                  : plan
+                              )
+                            );
                           }
                         }}
-                        className={`flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.plan ? "border-red-500" : ""}`}
+                        className={`flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                          errors.plan ? "border-red-500" : ""
+                        }`}
                       >
                         <option value="">Select a plan</option>
                         {[
@@ -1256,34 +1571,79 @@ export default function AlgoBots() {
                         ]
                           .filter((planOption) => {
                             if (planEdit && editingPlanId) {
-                              const editingPlan = plans.find((p) => p._id === editingPlanId);
-                              if (editingPlan && editingPlan.planType === planOption.value) {
+                              const editingPlan = plans.find(
+                                (p) => p._id === editingPlanId
+                              );
+                              if (
+                                editingPlan &&
+                                editingPlan.planType === planOption.value
+                              ) {
                                 return true;
                               }
                             }
-                            return !plans.some((p) => p.planType === planOption.value);
+                            return !plans.some(
+                              (p) => p.planType === planOption.value
+                            );
                           })
                           .map((planOption) => (
-                            <option key={planOption.value} value={planOption.value}>
+                            <option
+                              key={planOption.value}
+                              value={planOption.value}
+                            >
                               {planOption.label}
                             </option>
                           ))}
                       </select>
-                      {errors.plan && <p className="text-sm font-semibold text-red-500">{String((errors as any).plan?.message || "")}</p>}
+                      {errors.plan && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {String((errors as any).plan?.message || "")}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="price">Price</Label>
-                      <Input id="price" type="number" placeholder="0.00" {...register("price")} className={`h-[55px] px-4 text-base font-semibold ${errors.price ? "border-red-500" : ""}`} />
-                      {errors.price && <p className="text-sm font-semibold text-red-500">{String((errors as any).price?.message || "")}</p>}
+                      <Input
+                        id="price"
+                        type="number"
+                        placeholder="0.00"
+                        {...register("price")}
+                        className={`h-[55px] px-4 text-base font-semibold ${
+                          errors.price ? "border-red-500" : ""
+                        }`}
+                      />
+                      {errors.price && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {String((errors as any).price?.message || "")}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="discount">Discount</Label>
-                      <Input id="discount" type="number" placeholder="0" {...register("discount")} className="h-[55px] px-4 text-base font-semibold" />
-                      {errors.discount && <p className="text-sm font-semibold text-red-500">{String(errors.discount.message || "")}</p>}
+                      <Input
+                        id="discount"
+                        type="number"
+                        placeholder="0"
+                        {...register("discount")}
+                        className="h-[55px] px-4 text-base font-semibold"
+                      />
+                      {errors.discount && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {String(errors.discount.message || "")}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="botProviderId">Bot Provider Company</Label>
-                      <select id="botProviderId" {...register("botProviderId")} className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.botProviderId ? "border-red-500" : ""}`} disabled={isFetchingProviders}>
+                      <Label htmlFor="botProviderId">
+                        Bot Provider Company
+                      </Label>
+                      <select
+                        id="botProviderId"
+                        {...register("botProviderId")}
+                        className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          errors.botProviderId ? "border-red-500" : ""
+                        }`}
+                        disabled={isFetchingProviders}
+                      >
                         <option value="">Select a provider</option>
                         {providers.map((prov) => (
                           <option key={prov._id} value={prov._id}>
@@ -1291,26 +1651,60 @@ export default function AlgoBots() {
                           </option>
                         ))}
                       </select>
-                      {isFetchingProviders && <p className="text-sm text-muted-foreground font-lexend">Loading providers...</p>}
-                      {errors.botProviderId && <p className="text-sm font-semibold text-red-500">{errors.botProviderId.message}</p>}
+                      {isFetchingProviders && (
+                        <p className="text-sm text-muted-foreground font-lexend">
+                          Loading providers...
+                        </p>
+                      )}
+                      {errors.botProviderId && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.botProviderId.message}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="botId">Bot Name</Label>
-                      <select id="botId" {...register("botId")} className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.botId ? "border-red-500" : ""}`} disabled={!getValues().botProviderId || isFetchingBotsList}>
-                        <option value="">{getValues().botProviderId ? "Select a bot" : "Select a provider first"}</option>
+                      <select
+                        id="botId"
+                        {...register("botId")}
+                        className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          errors.botId ? "border-red-500" : ""
+                        }`}
+                        disabled={
+                          !getValues().botProviderId || isFetchingBotsList
+                        }
+                      >
+                        <option value="">
+                          {getValues().botProviderId
+                            ? "Select a bot"
+                            : "Select a provider first"}
+                        </option>
                         {filteredBots.map((b) => (
                           <option key={b._id} value={b._id}>
                             {b.name}
                           </option>
                         ))}
                       </select>
-                      {isFetchingBotsList && <p className="text-sm text-muted-foreground font-lexend">Loading bots...</p>}
-                      {errors.botId && <p className="text-sm font-semibold text-red-500">{errors.botId.message}</p>}
+                      {isFetchingBotsList && (
+                        <p className="text-sm text-muted-foreground font-lexend">
+                          Loading bots...
+                        </p>
+                      )}
+                      {errors.botId && (
+                        <p className="text-sm font-semibold text-red-500">
+                          {errors.botId.message}
+                        </p>
+                      )}
                     </div>
 
                     <div className="pt-2">
-                      <Button type="button" onClick={handleAddPlan} id="plan-form" disabled={isLoading}>
+                      <Button
+                        type="button"
+                        onClick={handleAddPlan}
+                        id="plan-form"
+                        disabled={isLoading}
+                      >
                         {planEdit ? "Update Plan" : "Add Plan"}
                       </Button>
                     </div>
@@ -1320,20 +1714,38 @@ export default function AlgoBots() {
                       <div className="space-y-3">
                         <h4 className="font-semibold">Added Plans</h4>
                         {plans.map((plan, index) => (
-                          <div key={index} className="border rounded-md p-3 bg-background text-sm flex justify-between items-center">
+                          <div
+                            key={index}
+                            className="border rounded-md p-3 bg-background text-sm flex justify-between items-center"
+                          >
                             <div>
                               <p>
                                 <strong>Duration:</strong> {plan.planType}
                               </p>
                               <p>
-                                <strong>Price:</strong> {plan?._id ? `$${plan.initialPrice}` : `$${plan.price}`}
+                                <strong>Price:</strong>{" "}
+                                {plan?._id
+                                  ? `$${plan.initialPrice}`
+                                  : `$${plan.price}`}
                               </p>
                             </div>
                             <div className="flex gap-2">
-                              <Button type="button" variant="ghost" size="sm" onClick={() => handleEditPlan(index)} className="text-blue-500 hover:text-blue-700">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditPlan(index)}
+                                className="text-blue-500 hover:text-blue-700"
+                              >
                                 <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button type="button" variant="ghost" size="sm" onClick={() => handleRemovePlan(index)} className="text-red-500 hover:text-red-700">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemovePlan(index)}
+                                className="text-red-500 hover:text-red-700"
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -1343,7 +1755,12 @@ export default function AlgoBots() {
                     )}
 
                     <div className="flex justify-end gap-2 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsOpen(false)}
+                        disabled={isLoading}
+                      >
                         Cancel
                       </Button>
                       <Button type="submit" disabled={isLoading}>
@@ -1359,8 +1776,6 @@ export default function AlgoBots() {
         </Dialog>
       </div>
 
-      
-
       {isFetching ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -1372,26 +1787,45 @@ export default function AlgoBots() {
               <Bot className="h-12 w-12 text-muted-foreground" />
               <div>
                 <h3 className="text-lg font-medium">No algobots found</h3>
-                <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating a new algobot"}</p>
+                <p className="text-sm text-muted-foreground font-lexend">
+                  {searchTerm
+                    ? "Try a different search term"
+                    : "Get started by creating a new algobot"}
+                </p>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-4 laptop:grid-cols-3 tab:grid-cols-2 mobile:grid-cols-1 gap-6">
               {algobots.map((bot) => (
-                <Card key={bot._id} className="hover:shadow-lg transition-shadow overflow-hidden">
-                  <img src={bot.imageUrl || "/images/logo.svg"} alt={bot.title} className="w-full h-[210px] object-cover" />
+                <Card
+                  key={bot._id}
+                  className="hover:shadow-lg transition-shadow overflow-hidden"
+                >
+                  <img
+                    src={bot.imageUrl || "/images/logo.svg"}
+                    alt={bot.title}
+                    className="w-full h-[210px] object-cover"
+                  />
                   <CardHeader className="pb-0">
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-lg font-semibold line-clamp-1">{bot.title}</CardTitle>
+                      <CardTitle className="text-lg font-semibold line-clamp-1">
+                        {bot.title}
+                      </CardTitle>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
                             <MoreVertical className="h-4 w-4" />
                             <span className="sr-only">More</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewDetails(bot)}>
+                          <DropdownMenuItem
+                            onClick={() => handleViewDetails(bot)}
+                          >
                             <Eye className="mr-2 h-4 w-4 text-blacktheme" />
                             <span>View Details</span>
                           </DropdownMenuItem>
@@ -1399,7 +1833,10 @@ export default function AlgoBots() {
                             <Edit className="mr-2 h-4 w-4 text-blacktheme" />
                             <span>Edit</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteClick(bot._id)}>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDeleteClick(bot._id)}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             <span>Delete</span>
                           </DropdownMenuItem>
@@ -1410,16 +1847,25 @@ export default function AlgoBots() {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="min-h-[40px] flex items-start">
-                        <p className="text-base text-muted-foreground line-clamp-2">{bot.shortDescription}</p>
+                        <p className="text-base text-muted-foreground line-clamp-2">
+                          {bot.shortDescription}
+                        </p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         {bot?.strategyPlan?.map((plan: any, idx: number) => (
                           <Card className="p-3">
                             <CardContent className="p-0">
-                              <div key={idx} className="flex items-center justify-between">
-                                <p className="text-sm text-muted-foreground font-lexend">{plan.planType}</p>
-                                <p className="text-sm font-medium">${plan.initialPrice}</p>
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between"
+                              >
+                                <p className="text-sm text-muted-foreground font-lexend">
+                                  {plan.planType}
+                                </p>
+                                <p className="text-sm font-medium">
+                                  ${plan.initialPrice}
+                                </p>
                               </div>
                             </CardContent>
                           </Card>
@@ -1461,13 +1907,24 @@ export default function AlgoBots() {
           <div className="space-y-4">
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>Are you sure you want to delete this bot? This action cannot be undone.</AlertDescription>
+              <AlertDescription>
+                Are you sure you want to delete this bot? This action cannot be
+                undone.
+              </AlertDescription>
             </Alert>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
                 {isDeleting ? "Deleting..." : "Delete"}
               </Button>
             </div>

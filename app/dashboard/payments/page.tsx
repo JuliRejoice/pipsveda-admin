@@ -8,8 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, AlertCircle, CreditCard, DownloadIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { toast } from "sonner";
 
@@ -82,7 +95,9 @@ export default function Payments() {
   const [itemsPerPage, setItemsPerPage] = useState(8);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [loadingInvoices, setLoadingInvoices] = useState<Record<string, boolean>>({});
+  const [loadingInvoices, setLoadingInvoices] = useState<
+    Record<string, boolean>
+  >({});
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -123,16 +138,19 @@ export default function Payments() {
 
     fetchPayments();
   }, [currentPage, itemsPerPage, activeTab]);
+  useEffect(() => {
+    setSearchTerm("");
+  }, [activeTab]);
 
   const calculateExpiryDate = (purchaseDate: string, planDuration: string) => {
-    if (!planDuration || planDuration === 'N/A') return null;
+    if (!planDuration || planDuration === "N/A") return null;
 
     const purchase = new Date(purchaseDate);
     const duration = parseInt(planDuration);
 
-    if (planDuration.includes('Month')) {
+    if (planDuration.includes("Month")) {
       purchase.setMonth(purchase.getMonth() + duration);
-    } else if (planDuration.includes('year')) {
+    } else if (planDuration.includes("year")) {
       purchase.setFullYear(purchase.getFullYear() + duration);
     }
     return purchase.toLocaleDateString("en-US");
@@ -142,15 +160,18 @@ export default function Payments() {
     if (loadingInvoices[payment._id]) return; // Prevent multiple clicks
 
     try {
-      setLoadingInvoices(prev => ({ ...prev, [payment._id]: true }));
-      const expiryDate = payment.planExpiry || 
-                       calculateExpiryDate(payment.createdAt, payment.planType); 
+      setLoadingInvoices((prev) => ({ ...prev, [payment._id]: true }));
+      const expiryDate =
+        payment.planExpiry ||
+        calculateExpiryDate(payment.createdAt, payment.planType);
 
       // Handle date safely
-      let purchaseDate = 'N/A';
+      let purchaseDate = "N/A";
       if (payment.createdAt) {
         const date = new Date(payment.createdAt);
-        purchaseDate = !isNaN(date.getTime()) ? date.toLocaleDateString("en-US") : 'Invalid date';
+        purchaseDate = !isNaN(date.getTime())
+          ? date.toLocaleDateString("en-US")
+          : "Invalid date";
       }
 
       const invoicePayload = {
@@ -165,12 +186,14 @@ export default function Payments() {
               payment.courseId?.CourseName ||
               "N/A",
             planDuration: payment.planType || "N/A",
-            metaNo: payment.telegramAccountNo || payment.metaAccountNo?.[0] || "N/A",
+            metaNo:
+              payment.telegramAccountNo || payment.metaAccountNo?.[0] || "N/A",
             qty: payment.noOfBots || 1,
             amount: payment.price || 0,
           },
         ],
-        couponDiscount: payment.couponDiscount > 0 ? `-${payment.couponDiscount}` : "-",
+        couponDiscount:
+          payment.couponDiscount > 0 ? `-${payment.couponDiscount}` : "-",
         planDiscount: payment.discount > 0 ? `-${payment.discount}` : "-",
         totalValue: payment.initialPrice || 0,
         total: payment.price || 0,
@@ -179,7 +202,6 @@ export default function Payments() {
       const response = await downloadInvoice(invoicePayload as any);
 
       if (response?.success && response?.payload) {
-
         const pdfRes = await fetch(response.payload);
         const blob = await pdfRes.blob();
 
@@ -204,9 +226,9 @@ export default function Payments() {
       console.error("Error generating invoice:", error);
       toast.error(error.message || "Failed to generate invoice");
     } finally {
-      setLoadingInvoices(prev => ({ ...prev, [payment._id]: false }));
+      setLoadingInvoices((prev) => ({ ...prev, [payment._id]: false }));
     }
-  }
+  };
 
   const filterPaymentsByTab = (payments: Payment[]) => {
     return payments.filter((payment) => {
@@ -214,12 +236,18 @@ export default function Payments() {
         case "payments":
           return filterType === "all" || payment.itemType === filterType;
         case "courses":
-          const hasCourseData = !!payment.courseId?.CourseName || payment.itemType === "course";
+          const hasCourseData =
+            !!payment.courseId?.CourseName || payment.itemType === "course";
           return payment.itemType === "course" || hasCourseData;
         case "algobots":
-          return payment.itemType === "algobot" || !!payment.botId?.strategyId?.title;
+          return (
+            payment.itemType === "algobot" || !!payment.botId?.strategyId?.title
+          );
         case "telegram":
-          return payment.itemType === "telegram" || !!payment.telegramId?.telegramId?.channelName;
+          return (
+            payment.itemType === "telegram" ||
+            !!payment.telegramId?.telegramId?.channelName
+          );
         default:
           return true;
       }
@@ -236,18 +264,37 @@ export default function Payments() {
 
     const searchTerm = term.toLowerCase();
     return payments.filter((payment) => {
-      return payment.uid.name?.toLowerCase().includes(searchTerm) || payment.itemName?.toLowerCase().includes(searchTerm) || payment.paymentId?.toLowerCase().includes(searchTerm) || payment.orderId?.toLowerCase().includes(searchTerm) || payment.userEmail?.toLowerCase().includes(searchTerm) || payment.courseId?.CourseName?.toLowerCase().includes(searchTerm) || payment.botId?.strategyId?.title?.toLowerCase().includes(searchTerm) || payment.telegramId?.telegramId?.channelName?.toLowerCase().includes(searchTerm) || payment.planType?.toLowerCase().includes(searchTerm);
+      return (
+        payment.uid.name?.toLowerCase().includes(searchTerm) ||
+        payment.itemName?.toLowerCase().includes(searchTerm) ||
+        payment.paymentId?.toLowerCase().includes(searchTerm) ||
+        payment.orderId?.toLowerCase().includes(searchTerm) ||
+        payment.userEmail?.toLowerCase().includes(searchTerm) ||
+        payment.courseId?.CourseName?.toLowerCase().includes(searchTerm) ||
+        payment.botId?.strategyId?.title?.toLowerCase().includes(searchTerm) ||
+        payment.telegramId?.telegramId?.channelName
+          ?.toLowerCase()
+          .includes(searchTerm) ||
+        payment.planType?.toLowerCase().includes(searchTerm)
+      );
     });
   };
 
   const filteredByTab = filterPaymentsByTab(payments);
-  const filteredPayments = searchTerm ? searchPayments(filteredByTab, searchTerm) : filteredByTab;
+  const filteredPayments = searchTerm
+    ? searchPayments(filteredByTab, searchTerm)
+    : filteredByTab;
 
   const renderSearchInput = (placeholder: string = "Search...") => (
     <div className="mb-4">
       <div className="relative max-w-xs">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input placeholder={placeholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 font-normal" />
+        <Input
+          placeholder={placeholder}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value.trimStart())}
+          className="pl-10 font-normal"
+        />
       </div>
     </div>
   );
@@ -255,7 +302,11 @@ export default function Payments() {
   const renderNoData = (isSearch: boolean) => (
     <div className="text-center py-12 text-gray-500">
       <p className="text-2xl text-gray-500 font-medium">No data found</p>
-      <p className="text-lg text-gray-900 font-lexend">{isSearch ? "Try a different search term" : "There are no records to display"}</p>
+      <p className="text-lg text-gray-900 font-lexend">
+        {isSearch
+          ? "Try a different search term"
+          : "There are no records to display"}
+      </p>
     </div>
   );
 
@@ -267,9 +318,13 @@ export default function Payments() {
     const renderStatusBadge = (status: string) => {
       switch (status.toLowerCase()) {
         case "completed":
-          return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+          return (
+            <Badge className="bg-green-100 text-green-800">Completed</Badge>
+          );
         case "pending":
-          return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+          return (
+            <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+          );
         case "failed":
           return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
         case "refunded":
@@ -294,7 +349,9 @@ export default function Payments() {
                       <TableHead className="text-base">Course Name</TableHead>
                       <TableHead className="text-base">Course Type</TableHead>
                       <TableHead className="text-base">Amount</TableHead>
-                      <TableHead className="text-base">Transaction ID</TableHead>
+                      <TableHead className="text-base">
+                        Transaction ID
+                      </TableHead>
                       <TableHead className="text-base">Status</TableHead>
                       <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
@@ -306,7 +363,9 @@ export default function Payments() {
                           <div className="flex items-center justify-center py-8">
                             <div className="text-center">
                               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                              <p className="text-muted-foreground">Loading payments...</p>
+                              <p className="text-muted-foreground">
+                                Loading payments...
+                              </p>
                             </div>
                           </div>
                         </TableCell>
@@ -317,9 +376,17 @@ export default function Payments() {
                           <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
                             <AlertCircle className="h-12 w-12 text-destructive" />
                             <div>
-                              <h3 className="text-lg font-medium">Error loading payments</h3>
-                              <p className="text-sm text-muted-foreground font-lexend">Please try again later</p>
-                              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                              <h3 className="text-lg font-medium">
+                                Error loading payments
+                              </h3>
+                              <p className="text-sm text-muted-foreground font-lexend">
+                                Please try again later
+                              </p>
+                              <Button
+                                variant="outline"
+                                className="mt-4"
+                                onClick={() => window.location.reload()}
+                              >
                                 Retry
                               </Button>
                             </div>
@@ -332,8 +399,14 @@ export default function Payments() {
                           <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
                             <CreditCard className="h-12 w-12 text-muted-foreground" />
                             <div>
-                              <h3 className="text-lg font-medium">No payments found</h3>
-                              <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "No matching payments found" : "No payment records available"}</p>
+                              <h3 className="text-lg font-medium">
+                                No payments found
+                              </h3>
+                              <p className="text-sm text-muted-foreground font-lexend">
+                                {searchTerm
+                                  ? "No matching payments found"
+                                  : "No payment records available"}
+                              </p>
                             </div>
                           </div>
                         </TableCell>
@@ -343,31 +416,47 @@ export default function Payments() {
                         <TableRow key={payment._id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{payment?.uid?.name}</TableCell>
-                          <TableCell>{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
-                          <TableCell>{payment.courseId?.CourseName || "-"}</TableCell>
-                          <TableCell className="capitalize">{payment.courseId?.courseType || "-"}</TableCell>
+                          <TableCell>
+                            {payment.createdAt
+                              ? formatDate(payment.createdAt)
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            {payment.courseId?.CourseName || "-"}
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {payment.courseId?.courseType || "-"}
+                          </TableCell>
                           <TableCell>${payment.price || "0.00"}</TableCell>
                           <TableCell>{payment.orderId || "N/A"}</TableCell>
-                          <TableCell>{renderStatusBadge(payment.status)}</TableCell>
+                          <TableCell>
+                            {renderStatusBadge(payment.status)}
+                          </TableCell>
                           <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => downloadPaymentInvoice(payment)}
-                            disabled={loadingInvoices[payment._id]}
-                            className="border-none"
-                          >
-                            {loadingInvoices[payment._id] ? (
-                              <>
-                                <DownloadIcon className={`h-4 w-4 animate-pulse ${loadingInvoices[payment._id] ? "cursor-not-allowed" : ""}`} />
-                              </>
-                            ) : (
-                              <>
-                                <DownloadIcon className="h-4 w-4" />
-                              </>
-                            )}
-                          </Button>
-                        </TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadPaymentInvoice(payment)}
+                              disabled={loadingInvoices[payment._id]}
+                              className="border-none"
+                            >
+                              {loadingInvoices[payment._id] ? (
+                                <>
+                                  <DownloadIcon
+                                    className={`h-4 w-4 animate-pulse ${
+                                      loadingInvoices[payment._id]
+                                        ? "cursor-not-allowed"
+                                        : ""
+                                    }`}
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <DownloadIcon className="h-4 w-4" />
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -407,7 +496,9 @@ export default function Payments() {
                       <TableHead className="text-base">AlgoBot Name</TableHead>
                       <TableHead className="text-base">Plan Type</TableHead>
                       <TableHead className="text-base">Amount</TableHead>
-                      <TableHead className="text-base">Transaction ID</TableHead>
+                      <TableHead className="text-base">
+                        Transaction ID
+                      </TableHead>
                       <TableHead className="text-base">Meta Acc No.</TableHead>
                       <TableHead className="text-base">Status</TableHead>
                       <TableHead className="text-base">Invoice</TableHead>
@@ -420,7 +511,9 @@ export default function Payments() {
                           <div className="flex items-center justify-center py-8">
                             <div className="text-center">
                               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                              <p className="text-muted-foreground">Loading algobots...</p>
+                              <p className="text-muted-foreground">
+                                Loading algobots...
+                              </p>
                             </div>
                           </div>
                         </TableCell>
@@ -431,9 +524,17 @@ export default function Payments() {
                           <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
                             <AlertCircle className="h-12 w-12 text-destructive" />
                             <div>
-                              <h3 className="text-lg font-medium">Error loading algobots</h3>
-                              <p className="text-sm text-muted-foreground font-lexend">Please try again later</p>
-                              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                              <h3 className="text-lg font-medium">
+                                Error loading algobots
+                              </h3>
+                              <p className="text-sm text-muted-foreground font-lexend">
+                                Please try again later
+                              </p>
+                              <Button
+                                variant="outline"
+                                className="mt-4"
+                                onClick={() => window.location.reload()}
+                              >
                                 Retry
                               </Button>
                             </div>
@@ -446,8 +547,14 @@ export default function Payments() {
                           <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
                             <CreditCard className="h-12 w-12 text-muted-foreground" />
                             <div>
-                              <h3 className="text-lg font-medium">No Algobot found</h3>
-                              <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "No matching algobots found" : "No algobot records available"}</p>
+                              <h3 className="text-lg font-medium">
+                                No Algobot found
+                              </h3>
+                              <p className="text-sm text-muted-foreground font-lexend">
+                                {searchTerm
+                                  ? "No matching algobots found"
+                                  : "No algobot records available"}
+                              </p>
                             </div>
                           </div>
                         </TableCell>
@@ -457,21 +564,44 @@ export default function Payments() {
                         <TableRow key={payment._id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{payment?.uid?.name}</TableCell>
-                          <TableCell>{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
-                          <TableCell>{payment?.botId?.strategyId?.title || "-"}</TableCell>
-                          <TableCell className="capitalize">{payment?.botId?.planType || "N/A"}</TableCell>
+                          <TableCell>
+                            {payment.createdAt
+                              ? formatDate(payment.createdAt)
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            {payment?.botId?.strategyId?.title || "-"}
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {payment?.botId?.planType || "N/A"}
+                          </TableCell>
                           <TableCell>${payment?.price || "0.00"}</TableCell>
-                          <TableCell className="font-mono">{payment.orderId || "N/A"}</TableCell>
+                          <TableCell className="font-mono">
+                            {payment.orderId || "N/A"}
+                          </TableCell>
                           <TableCell>
                             <Dialog>
                               <DialogTrigger asChild>
-                                <div className="cursor-pointer" onClick={() => setSelectedPayment(payment)}>
+                                <div
+                                  className="cursor-pointer"
+                                  onClick={() => setSelectedPayment(payment)}
+                                >
                                   {payment?.metaAccountNo?.length > 0 ? (
-                                    <Badge variant="outline" className="hover:bg-gray-100">
-                                      View {payment.metaAccountNo.length} Account{payment.metaAccountNo.length !== 1 ? "s" : ""}
+                                    <Badge
+                                      variant="outline"
+                                      className="hover:bg-gray-100"
+                                    >
+                                      View {payment.metaAccountNo.length}{" "}
+                                      Account
+                                      {payment.metaAccountNo.length !== 1
+                                        ? "s"
+                                        : ""}
                                     </Badge>
                                   ) : (
-                                    <Badge variant="outline" className="text-gray-400">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-gray-400"
+                                    >
                                       No Accounts
                                     </Badge>
                                   )}
@@ -479,45 +609,66 @@ export default function Payments() {
                               </DialogTrigger>
                               <DialogContent className="sm:max-w-[425px]">
                                 <DialogHeader>
-                                  <DialogTitle>Meta Account Numbers</DialogTitle>
+                                  <DialogTitle>
+                                    Meta Account Numbers
+                                  </DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4 py-4">
                                   {payment?.metaAccountNo?.length > 0 ? (
                                     <div className="space-y-2">
-                                      {payment.metaAccountNo.map((account, idx) => (
-                                        <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-md">
-                                          <span className="font-medium">Account {idx + 1}:</span>
-                                          <span className="font-mono px-3">{account}</span>
-                                        </div>
-                                      ))}
+                                      {payment.metaAccountNo.map(
+                                        (account, idx) => (
+                                          <div
+                                            key={idx}
+                                            className="flex items-center p-3 bg-gray-50 rounded-md"
+                                          >
+                                            <span className="font-medium">
+                                              Account {idx + 1}:
+                                            </span>
+                                            <span className="font-mono px-3">
+                                              {account}
+                                            </span>
+                                          </div>
+                                        )
+                                      )}
                                     </div>
                                   ) : (
-                                    <p className="text-gray-500 text-center py-4">No meta account numbers found</p>
+                                    <p className="text-gray-500 text-center py-4">
+                                      No meta account numbers found
+                                    </p>
                                   )}
                                 </div>
                               </DialogContent>
                             </Dialog>
                           </TableCell>
-                          <TableCell>{renderStatusBadge(payment.status)}</TableCell>
+                          <TableCell>
+                            {renderStatusBadge(payment.status)}
+                          </TableCell>
                           <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => downloadPaymentInvoice(payment)}
-                            disabled={loadingInvoices[payment._id]}
-                            className="border-none"
-                          >
-                            {loadingInvoices[payment._id] ? (
-                              <>
-                                <DownloadIcon className={`h-4 w-4 animate-pulse ${loadingInvoices[payment._id] ? "cursor-not-allowed" : ""}`} />
-                              </>
-                            ) : (
-                              <>
-                                <DownloadIcon className="h-4 w-4" />
-                              </>
-                            )}
-                          </Button>
-                        </TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadPaymentInvoice(payment)}
+                              disabled={loadingInvoices[payment._id]}
+                              className="border-none"
+                            >
+                              {loadingInvoices[payment._id] ? (
+                                <>
+                                  <DownloadIcon
+                                    className={`h-4 w-4 animate-pulse ${
+                                      loadingInvoices[payment._id]
+                                        ? "cursor-not-allowed"
+                                        : ""
+                                    }`}
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <DownloadIcon className="h-4 w-4" />
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -554,11 +705,17 @@ export default function Payments() {
                       <TableHead className="text-base">Sr. No</TableHead>
                       <TableHead className="text-base">User Name</TableHead>
                       <TableHead className="text-base">Purchase Date</TableHead>
-                      <TableHead className="text-base">Telegram User Name</TableHead>
-                      <TableHead className="text-base">Telegram Channel</TableHead>
+                      <TableHead className="text-base">
+                        Telegram User Name
+                      </TableHead>
+                      <TableHead className="text-base">
+                        Telegram Channel
+                      </TableHead>
                       <TableHead className="text-base">Plan Type</TableHead>
                       <TableHead className="text-base">Amount</TableHead>
-                      <TableHead className="text-base">Transaction ID</TableHead>
+                      <TableHead className="text-base">
+                        Transaction ID
+                      </TableHead>
                       <TableHead className="text-base">Status</TableHead>
                       <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
@@ -570,7 +727,9 @@ export default function Payments() {
                           <div className="flex items-center justify-center py-8">
                             <div className="text-center">
                               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                              <p className="text-muted-foreground">Loading Telegram Subscriptions...</p>
+                              <p className="text-muted-foreground">
+                                Loading Telegram Subscriptions...
+                              </p>
                             </div>
                           </div>
                         </TableCell>
@@ -581,9 +740,17 @@ export default function Payments() {
                           <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
                             <AlertCircle className="h-12 w-12 text-destructive" />
                             <div>
-                              <h3 className="text-lg font-medium">Error loading Telegram Subscriptions</h3>
-                              <p className="text-sm text-muted-foreground font-lexend">Please try again later</p>
-                              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                              <h3 className="text-lg font-medium">
+                                Error loading Telegram Subscriptions
+                              </h3>
+                              <p className="text-sm text-muted-foreground font-lexend">
+                                Please try again later
+                              </p>
+                              <Button
+                                variant="outline"
+                                className="mt-4"
+                                onClick={() => window.location.reload()}
+                              >
                                 Retry
                               </Button>
                             </div>
@@ -596,8 +763,14 @@ export default function Payments() {
                           <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
                             <CreditCard className="h-12 w-12 text-muted-foreground" />
                             <div>
-                              <h3 className="text-lg font-medium">No telegram subscriptions found</h3>
-                              <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "No matching telegram subscriptions found" : "No telegram subscriptions records available"}</p>
+                              <h3 className="text-lg font-medium">
+                                No telegram subscriptions found
+                              </h3>
+                              <p className="text-sm text-muted-foreground font-lexend">
+                                {searchTerm
+                                  ? "No matching telegram subscriptions found"
+                                  : "No telegram subscriptions records available"}
+                              </p>
                             </div>
                           </div>
                         </TableCell>
@@ -607,32 +780,51 @@ export default function Payments() {
                         <TableRow key={payment._id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{payment?.uid?.name || "-"}</TableCell>
-                          <TableCell>{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
-                          <TableCell>{payment?.telegramAccountNo || "-"}</TableCell>
-                          <TableCell>{payment?.telegramId?.telegramId?.channelName || "N/A"}</TableCell>
-                          <TableCell className="capitalize">{payment?.planType || "N/A"}</TableCell>
+                          <TableCell>
+                            {payment.createdAt
+                              ? formatDate(payment.createdAt)
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            {payment?.telegramAccountNo || "-"}
+                          </TableCell>
+                          <TableCell>
+                            {payment?.telegramId?.telegramId?.channelName ||
+                              "N/A"}
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {payment?.planType || "N/A"}
+                          </TableCell>
                           <TableCell>${payment?.price || "0.00"}</TableCell>
                           <TableCell>{payment?.orderId || "N/A"}</TableCell>
-                          <TableCell>{renderStatusBadge(payment?.status)}</TableCell>
+                          <TableCell>
+                            {renderStatusBadge(payment?.status)}
+                          </TableCell>
                           <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => downloadPaymentInvoice(payment)}
-                            disabled={loadingInvoices[payment._id]}
-                            className="border-none"
-                          >
-                            {loadingInvoices[payment._id] ? (
-                              <>
-                                <DownloadIcon className={`h-4 w-4 animate-pulse ${loadingInvoices[payment._id] ? "cursor-not-allowed" : ""}`} />
-                              </>
-                            ) : (
-                              <>
-                                <DownloadIcon className="h-4 w-4" />
-                              </>
-                            )}
-                          </Button>
-                        </TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadPaymentInvoice(payment)}
+                              disabled={loadingInvoices[payment._id]}
+                              className="border-none"
+                            >
+                              {loadingInvoices[payment._id] ? (
+                                <>
+                                  <DownloadIcon
+                                    className={`h-4 w-4 animate-pulse ${
+                                      loadingInvoices[payment._id]
+                                        ? "cursor-not-allowed"
+                                        : ""
+                                    }`}
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <DownloadIcon className="h-4 w-4" />
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -666,19 +858,45 @@ export default function Payments() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-base px-6 text-left w-[80px]">Sr. No</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[200px]">User Name</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[200px]">Purchase Date</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[250px]">Course Name</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[250px]">Strategy Name</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[200px]">Telegram Channel</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[150px]">Course Type</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[120px]">Plan</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[100px]">Amount</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[300px]">Transaction ID</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[180px]">Meta Account No</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[100px]">Status</TableHead>
-                    <TableHead className="text-base px-6 text-left w-[100px]">Invoice</TableHead>
+                    <TableHead className="text-base px-6 text-left w-[80px]">
+                      Sr. No
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[200px]">
+                      User Name
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[200px]">
+                      Purchase Date
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[250px]">
+                      Course Name
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[250px]">
+                      Strategy Name
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[200px]">
+                      Telegram Channel
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[150px]">
+                      Course Type
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[120px]">
+                      Plan
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[100px]">
+                      Amount
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[300px]">
+                      Transaction ID
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[180px]">
+                      Meta Account No
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[100px]">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-base px-6 text-left w-[100px]">
+                      Invoice
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -695,9 +913,17 @@ export default function Payments() {
                       <TableCell colSpan={11} className="py-8 px-6 text-center">
                         <div className="flex flex-col items-center justify-center space-y-4 h-64">
                           <AlertCircle className="h-12 w-12 text-destructive" />
-                          <h3 className="text-lg font-medium">Error loading data</h3>
-                          <p className="text-sm text-muted-foreground font-lexend">Please try again later</p>
-                          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                          <h3 className="text-lg font-medium">
+                            Error loading data
+                          </h3>
+                          <p className="text-sm text-muted-foreground font-lexend">
+                            Please try again later
+                          </p>
+                          <Button
+                            variant="outline"
+                            className="mt-4"
+                            onClick={() => window.location.reload()}
+                          >
                             Retry
                           </Button>
                         </div>
@@ -708,27 +934,62 @@ export default function Payments() {
                       <TableCell colSpan={11} className="py-8 px-6 text-center">
                         <CreditCard className="h-12 w-12 text-muted-foreground" />
                         <h3 className="text-lg font-medium">No data found</h3>
-                        <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "No matching data found" : "No data records available"}</p>
+                        <p className="text-sm text-muted-foreground font-lexend">
+                          {searchTerm
+                            ? "No matching data found"
+                            : "No data records available"}
+                        </p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredPayments.map((payment, index) => (
                       <TableRow key={payment._id}>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{index + 1}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.uid?.name || "-"}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment.createdAt ? formatDate(payment.createdAt) : "N/A"}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap capitalize">{payment?.courseId?.CourseName || "-"}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.botId?.strategyId?.title || "-"}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.telegramId?.telegramId?.channelName || "-"}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.courseId?.courseType || "-"}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.botId?.planType || payment?.telegramId?.planType || "-"}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">${payment?.price || "0.00"}</TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{payment?.orderId || "N/A"}</TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          {payment?.uid?.name || "-"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          {payment.createdAt
+                            ? formatDate(payment.createdAt)
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap capitalize">
+                          {payment?.courseId?.CourseName || "-"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          {payment?.botId?.strategyId?.title || "-"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          {payment?.telegramId?.telegramId?.channelName || "-"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          {payment?.courseId?.courseType || "-"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          {payment?.botId?.planType ||
+                            payment?.telegramId?.planType ||
+                            "-"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          ${payment?.price || "0.00"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          {payment?.orderId || "N/A"}
+                        </TableCell>
                         <TableCell className="px-6 py-4 text-left whitespace-nowrap">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <div className="cursor-pointer" onClick={() => setSelectedPayment(payment)}>
-                                <span className="text-base font-semibold">{payment?.botId ? renderStatusBadge("View More") : "-"}</span>
+                              <div
+                                className="cursor-pointer"
+                                onClick={() => setSelectedPayment(payment)}
+                              >
+                                <span className="text-base font-semibold">
+                                  {payment?.botId
+                                    ? renderStatusBadge("View More")
+                                    : "-"}
+                                </span>
                               </div>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px]">
@@ -738,32 +999,51 @@ export default function Payments() {
                               <div className="space-y-4 py-4">
                                 {payment?.metaAccountNo?.length > 0 ? (
                                   <div className="space-y-2">
-                                    {payment.metaAccountNo.map((account, idx) => (
-                                      <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-md">
-                                        <span className="font-medium">Account {idx + 1}:</span>
-                                        <span className="font-mono px-3">{account}</span>
-                                      </div>
-                                    ))}
+                                    {payment.metaAccountNo.map(
+                                      (account, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="flex items-center p-3 bg-gray-50 rounded-md"
+                                        >
+                                          <span className="font-medium">
+                                            Account {idx + 1}:
+                                          </span>
+                                          <span className="font-mono px-3">
+                                            {account}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
                                   </div>
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No meta account numbers found</p>
+                                  <p className="text-gray-500 text-center py-4">
+                                    No meta account numbers found
+                                  </p>
                                 )}
                               </div>
                             </DialogContent>
                           </Dialog>
                         </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">{renderStatusBadge(payment?.status)}</TableCell>
                         <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          {renderStatusBadge(payment?.status)}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => downloadPaymentInvoice(payment)}
                             disabled={loadingInvoices[payment._id]}
                             className="border-none"
                           >
                             {loadingInvoices[payment._id] ? (
                               <>
-                                <DownloadIcon className={`h-4 w-4 animate-pulse ${loadingInvoices[payment._id] ? "cursor-not-allowed" : ""}`} />
+                                <DownloadIcon
+                                  className={`h-4 w-4 animate-pulse ${
+                                    loadingInvoices[payment._id]
+                                      ? "cursor-not-allowed"
+                                      : ""
+                                  }`}
+                                />
                               </>
                             ) : (
                               <>
@@ -783,7 +1063,7 @@ export default function Payments() {
         <DataTablePagination
           currentPage={currentPage}
           totalPages={totalPages}
-          totalItems={totalItems} 
+          totalItems={totalItems}
           itemsPerPage={itemsPerPage}
           onPageChange={handlePageChange}
           onItemsPerPageChange={(value) => {
@@ -798,8 +1078,6 @@ export default function Payments() {
 
   return (
     <div className="space-y-6">
-      
-
       <Tabs
         value={activeTab}
         onValueChange={(value) => {
@@ -827,12 +1105,16 @@ export default function Payments() {
               ) : error ? (
                 <div className="text-center py-12 text-gray-500">
                   <p className="text-lg font-medium">No data found</p>
-                  <p className="text-sm mt-1">No payment records available at the moment.</p>
+                  <p className="text-sm mt-1">
+                    No payment records available at the moment.
+                  </p>
                 </div>
               ) : (
                 <>
                   {renderSearchInput("Search payments...")}
-                  {filteredPayments.length > 0 ? renderTable() : renderNoData(!!searchTerm)}
+                  {filteredPayments.length > 0
+                    ? renderTable()
+                    : renderNoData(!!searchTerm)}
                 </>
               )}
             </CardContent>
@@ -852,12 +1134,16 @@ export default function Payments() {
               ) : error ? (
                 <div className="text-center py-12 text-gray-500">
                   <p className="text-lg font-medium">No data found</p>
-                  <p className="text-sm mt-1">No payment records available at the moment.</p>
+                  <p className="text-sm mt-1">
+                    No payment records available at the moment.
+                  </p>
                 </div>
               ) : (
                 <>
                   {renderSearchInput("Search courses...")}
-                  {filteredPayments.length > 0 ? renderTable() : renderNoData(!!searchTerm)}
+                  {filteredPayments.length > 0
+                    ? renderTable()
+                    : renderNoData(!!searchTerm)}
                 </>
               )}
             </CardContent>
@@ -877,12 +1163,16 @@ export default function Payments() {
               ) : error ? (
                 <div className="text-center py-12 text-gray-500">
                   <p className="text-lg font-medium">No data found</p>
-                  <p className="text-sm mt-1">No payment records available at the moment.</p>
+                  <p className="text-sm mt-1">
+                    No payment records available at the moment.
+                  </p>
                 </div>
               ) : (
                 <>
                   {renderSearchInput("Search algobots...")}
-                  {filteredPayments.length > 0 ? renderTable() : renderNoData(!!searchTerm)}
+                  {filteredPayments.length > 0
+                    ? renderTable()
+                    : renderNoData(!!searchTerm)}
                 </>
               )}
             </CardContent>
@@ -902,12 +1192,16 @@ export default function Payments() {
               ) : error ? (
                 <div className="text-center py-12 text-gray-500">
                   <p className="text-lg font-medium">No data found</p>
-                  <p className="text-sm mt-1">No payment records available at the moment.</p>
+                  <p className="text-sm mt-1">
+                    No payment records available at the moment.
+                  </p>
                 </div>
               ) : (
                 <>
                   {renderSearchInput("Search telegram subscriptions...")}
-                  {filteredPayments.length > 0 ? renderTable() : renderNoData(!!searchTerm)}
+                  {filteredPayments.length > 0
+                    ? renderTable()
+                    : renderNoData(!!searchTerm)}
                 </>
               )}
             </CardContent>

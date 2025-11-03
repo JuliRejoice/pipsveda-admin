@@ -172,7 +172,7 @@ export default function CompanyPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search company..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-8 font-normal" />
+          <Input type="search" placeholder="Search company..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value.trimStart())} className="pl-8 font-normal" />
         </div>
       </div>
 

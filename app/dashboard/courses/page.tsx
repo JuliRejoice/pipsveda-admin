@@ -160,6 +160,7 @@ export default function Courses() {
       courseId: "",
     },
   ]);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   // Add error state
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -186,6 +187,15 @@ export default function Courses() {
   useEffect(() => {
     if (latestCourse) fetchCenters();
   }, [latestCourse]);
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
+    }, 500);
+
+    return () => clearTimeout(timerId);
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -523,7 +533,7 @@ export default function Courses() {
       const response = await getCourses({
         page: currentPage,
         limit: itemsPerPage,
-        search: searchTerm,
+        search: debouncedSearchTerm,
         courseType: activeTab,
       });
 
@@ -573,7 +583,7 @@ export default function Courses() {
   // Fetch courses when pagination or filters change
   useEffect(() => {
     fetchCourses();
-  }, [currentPage, itemsPerPage, searchTerm, activeTab]);
+  }, [currentPage, itemsPerPage, debouncedSearchTerm, activeTab]);
 
   // Function to reset form and date states
   const resetForm = () => {
@@ -2588,9 +2598,10 @@ export default function Courses() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
+            type="search"
             placeholder="Search courses..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
             className="pl-10 font-normal"
           />
         </div>

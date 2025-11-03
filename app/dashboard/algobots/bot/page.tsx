@@ -221,7 +221,7 @@ export default function BotPage() {
 
   // Search functionality
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setSearchTerm(e.target.value.trimStart());
   };
 
   return (
@@ -292,7 +292,7 @@ export default function BotPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search bots..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
+          <Input type="search" placeholder="Search bots..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
         </div>
       </div>
 

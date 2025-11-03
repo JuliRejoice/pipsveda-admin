@@ -48,6 +48,7 @@ import {
   deleteChannelPlan,
 } from "@/components/api/telegram";
 import { initScriptLoader } from "next/script";
+import { uploadImage } from "@/components/api/course";
 
 // Form validation schema
 const formSchema = z.object({
@@ -78,8 +79,8 @@ const formSchema = z.object({
   discount: z.string().optional(),
   botProviderId: z.string().optional(),
   botId: z.string().optional(),
-  imageUrl: z.string().optional(),
-  logoUrl: z.string().optional(),
+  image: z.string().optional(),
+  logo: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -141,8 +142,8 @@ export default function TelegramManagement() {
       discount: "",
       botProviderId: "",
       botId: "",
-      imageUrl: "",
-      logoUrl: "",
+      image: "",
+      logo: "",
     },
   });
 
@@ -158,34 +159,68 @@ export default function TelegramManagement() {
     formState: { errors },
   } = form;
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-      setValue("imageUrl", URL.createObjectURL(file));
+      try {
+        setIsLoading(true);
+        const response: any = await uploadImage(file);
+        console.log("Upload response:", response);
+
+        if (response?.success) {
+          setImageFile(file);
+          // Use the server-returned URL for the preview
+          setImagePreview(response.payload);
+          setValue("image", response.payload, { shouldValidate: true });
+          toast.success("Image uploaded successfully");
+        } else {
+          toast.error("Failed to upload image");
+        }
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        toast.error("Error uploading image");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-      setValue("logoUrl", URL.createObjectURL(file));
+      try {
+        setIsLoading(true);
+        const response: any = await uploadImage(file);
+        console.log("Upload response:", response);
+
+        if (response?.success) {
+          setLogoFile(file);
+          // Use the server-returned URL for the preview
+          setLogoPreview(response.payload);
+          setValue("logo", response.payload, { shouldValidate: true });
+          toast.success("Logo uploaded successfully");
+        } else {
+          toast.error("Failed to upload logo");
+        }
+      } catch (error) {
+        console.error("Error uploading logo:", error);
+        toast.error("Error uploading logo");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   const removeImage = () => {
     setImageFile(null);
     setImagePreview(null);
-    setValue("imageUrl", "");
+    setValue("image", "");
   };
 
   const removeLogo = () => {
     setLogoFile(null);
     setLogoPreview(null);
-    setValue("logoUrl", "");
+    setValue("logo", "");
   };
 
   // Fetch channels on component mount
@@ -208,7 +243,6 @@ export default function TelegramManagement() {
     fetchChannels();
   }, []);
 
-  // Handle form submission for step 1 (Channel Details)
   const onSubmitStep1 = async (data: FormValues) => {
     try {
       setIsLoading(true);
@@ -222,12 +256,12 @@ export default function TelegramManagement() {
 
       // For edit mode, include existing image/logo if they exist
       if (isEditMode && currentChannelId) {
-        channelData.image = data.imageUrl || null;
-        channelData.logo = data.logoUrl || null;
+        channelData.image = data.image || null;
+        channelData.logo = data.logo || null;
       } else {
         // For create mode, only include if files were actually selected
-        channelData.image = imageFile ? data.imageUrl : null;
-        channelData.logo = logoFile ? data.logoUrl : null;
+        channelData.image = imageFile ? data.image : null;
+        channelData.logo = logoFile ? data.logo : null;
       }
 
       if (isEditMode && currentChannelId) {
@@ -261,13 +295,14 @@ export default function TelegramManagement() {
       setIsLoading(false);
     }
   };
+  console.log("imageFile", imageFile);
+  console.log("logoFile", logoFile);
 
   const onSubmitSecond = async (data: FormValues) => {
     try {
       setIsLoading(true);
 
       if (isEditMode && currentChannelId) {
-        // Update each plan individually
         const updatePlanPromises = plans.map((plan) => {
           const planData = {
             telegramId: currentChannelId,
@@ -276,15 +311,12 @@ export default function TelegramManagement() {
             discount: parseFloat(plan.discount) || 0,
           };
 
-          // If plan has an _id, it's an existing plan that needs updating
           if (plan._id && !plan._id.startsWith("temp_")) {
             return updateChannelPlan(plan._id, planData);
           }
-          // Otherwise, it's a new plan that needs to be created
           return createChannelPlan(planData);
         });
 
-        // Wait for all plan updates/creations to complete
         const results = await Promise.all(updatePlanPromises);
         const allSuccessful = results.every((result) => result?.success);
 
@@ -295,7 +327,6 @@ export default function TelegramManagement() {
           return;
         }
       } else if (currentChannelId) {
-        // Create each plan individually
         const createPlanPromises = plans.map((plan) => {
           const planData = {
             telegramId: currentChannelId,
@@ -354,8 +385,8 @@ export default function TelegramManagement() {
       discount: "",
       botProviderId: "",
       botId: "",
-      imageUrl: channel.image || "",
-      logoUrl: channel.logo || "",
+      image: channel.image || "",
+      logo: channel.logo || "",
     });
 
     try {
@@ -420,8 +451,8 @@ export default function TelegramManagement() {
       discount: "",
       botProviderId: "",
       botId: "",
-      imageUrl: "",
-      logoUrl: "",
+      image: "",
+      logo: "",
     });
     setPlans([]);
     setCurrentChannelId(null);
@@ -611,6 +642,8 @@ export default function TelegramManagement() {
       </div>
     );
   }
+  console.log(getValues("image"));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -751,10 +784,10 @@ export default function TelegramManagement() {
                             htmlFor="image-upload"
                             className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50"
                           >
-                            {imagePreview || getValues("imageUrl") ? (
+                            {imagePreview || getValues("image") ? (
                               <div className="relative w-full h-full">
                                 <img
-                                  src={imagePreview || getValues("imageUrl")}
+                                  src={imagePreview || getValues("image")}
                                   alt="Channel preview"
                                   className="object-cover w-full h-full rounded-lg"
                                 />
@@ -799,10 +832,10 @@ export default function TelegramManagement() {
                             htmlFor="logo-upload"
                             className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed rounded-full cursor-pointer hover:bg-gray-50"
                           >
-                            {logoPreview || getValues("logoUrl") ? (
+                            {logoPreview || getValues("logo") ? (
                               <div className="relative w-full h-full">
                                 <img
-                                  src={logoPreview || getValues("logoUrl")}
+                                  src={logoPreview || getValues("logo")}
                                   alt="Logo preview"
                                   className="object-cover w-full h-full rounded-full"
                                 />
@@ -1100,9 +1133,14 @@ export default function TelegramManagement() {
               <CardHeader className="pb-4">
                 <div className="w-full rounded-md overflow-hidden border-2 border-white shadow-sm">
                   <img
-                    src={channel.image}
-                    alt={`${channel.channelName} logo`}
-                    className="w-full h-full object-cover"
+                    src={
+                      channel?.image?.startsWith("blob:") ? "" : channel?.image
+                    }
+                    alt={channel.channelName}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
                   />
                 </div>
                 <div className="flex items-start justify-between">
@@ -1111,7 +1149,11 @@ export default function TelegramManagement() {
                       <CardTitle className="text-lg flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
                           <img
-                            src={channel.logo}
+                            src={
+                              channel?.logo?.startsWith("blob:")
+                                ? ""
+                                : channel?.logo
+                            }
                             alt={`${channel.channelName} logo`}
                             className="w-full h-full object-cover"
                           />

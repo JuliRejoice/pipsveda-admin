@@ -62,7 +62,7 @@ export default function SubSidebar({
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
+    const query = e.target.value.trimStart();
     setSearchQuery(query);
     onSearch?.(query);
   };
@@ -98,6 +98,7 @@ export default function SubSidebar({
           <div className="relative w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
+              type="search"
               placeholder="Search..."
               value={searchQuery}
               onChange={handleSearch}

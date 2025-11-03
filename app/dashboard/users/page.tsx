@@ -6,26 +6,82 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Plus, MoreHorizontal, Edit, Trash2, UserCheck, UserX, Phone, User } from "lucide-react";
-import { getCustomers, updateCustomer, deleteCustomer, setCustomerStatus, createCustomer } from "@/components/api/customer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  UserCheck,
+  UserX,
+  Phone,
+  User,
+  X,
+} from "lucide-react";
+import {
+  getCustomers,
+  updateCustomer,
+  deleteCustomer,
+  setCustomerStatus,
+  createCustomer,
+} from "@/components/api/customer";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 
 const classNames = {
-  dropdown_root: cn("relative rounded-md border border-border bg-muted text-foreground px-2 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"),
+  dropdown_root: cn(
+    "relative rounded-md border border-border bg-muted text-foreground px-2 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+  ),
   dropdown: "absolute inset-0 opacity-0 appearance-none",
   // other class overrides...
 };
@@ -77,7 +133,10 @@ const customerFormSchema = z.object({
     .string()
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name must be at most 100 characters")
-    .regex(/^[a-zA-Z\s-']+$/, "Name can only contain letters, spaces, hyphens, and apostrophes"),
+    .regex(
+      /^[a-zA-Z\s-']+$/,
+      "Name can only contain letters, spaces, hyphens, and apostrophes"
+    ),
 
   email: z
     .string()
@@ -103,14 +162,20 @@ const customerFormSchema = z.object({
       required_error: "A date of birth is required.",
       invalid_type_error: "Please enter a valid date",
     })
-    .max(new Date(new Date().setFullYear(new Date().getFullYear() - 13)), "You must be at least 13 years old")
+    .max(
+      new Date(new Date().setFullYear(new Date().getFullYear() - 13)),
+      "You must be at least 13 years old"
+    )
     .min(new Date("1900-01-01"), "Birth date cannot be before 1900"),
 
   location: z
     .string()
     .min(2, "Location must be at least 2 characters")
     .max(100, "Location must be at most 100 characters")
-    .regex(/^[a-zA-Z\s,-]+$/, "Location can only contain letters, spaces, commas, and hyphens"),
+    .regex(
+      /^[a-zA-Z\s,-]+$/,
+      "Location can only contain letters, spaces, commas, and hyphens"
+    ),
 
   // roleId: z.string().min(1, "Please select a role"),
 });
@@ -182,6 +247,15 @@ export default function Users() {
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput.trimStart());
+      setCurrentPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
     fetchCustomersData();
   }, [currentPage, itemsPerPage, searchTerm]);
 
@@ -208,7 +282,10 @@ export default function Users() {
       email: customer.email,
       phone: customer.phone,
       gender: customer.gender as "male" | "female" | "other",
-      birthday: customer.birthday && !isNaN(new Date(customer.birthday).getTime()) ? new Date(customer.birthday) : undefined,
+      birthday:
+        customer.birthday && !isNaN(new Date(customer.birthday).getTime())
+          ? new Date(customer.birthday)
+          : undefined,
       location: customer.location,
       // roleId: customer.roleId._id,
     });
@@ -227,7 +304,7 @@ export default function Users() {
 
   const confirmDelete = async () => {
     if (!selectedCustomer) return;
-    
+
     try {
       setDeletingId(selectedCustomer.id);
       await deleteCustomer(selectedCustomer.id);
@@ -261,18 +338,24 @@ export default function Users() {
       await setCustomerStatus(selectedCustomer.id, newStatus);
 
       // Update the customers list with the new status
-      setCustomers(prevCustomers => 
-        prevCustomers.map(customer => 
-          customer._id === selectedCustomer.id 
-            ? { ...customer, isActive: newStatus } 
+      setCustomers((prevCustomers) =>
+        prevCustomers.map((customer) =>
+          customer._id === selectedCustomer.id
+            ? { ...customer, isActive: newStatus }
             : customer
         )
       );
 
       // Update the selected customer status for the dialog
-      setSelectedCustomer(prev => prev ? { ...prev, currentStatus: newStatus } : null);
-      
-      toast.success(`Customer "${selectedCustomer.name}" has been ${newStatus ? "activated" : "deactivated"}.`);
+      setSelectedCustomer((prev) =>
+        prev ? { ...prev, currentStatus: newStatus } : null
+      );
+
+      toast.success(
+        `Customer "${selectedCustomer.name}" has been ${
+          newStatus ? "activated" : "deactivated"
+        }.`
+      );
     } catch (error) {
       console.error("Error updating customer status:", error);
       toast.error("Failed to update customer status. Please try again.");
@@ -316,7 +399,9 @@ export default function Users() {
       }
     } catch (error) {
       console.error("Error saving customer:", error);
-      toast.error(`Failed to ${isEditMode ? "update" : "add"} customer. Please try again.`);
+      toast.error(
+        `Failed to ${isEditMode ? "update" : "add"} customer. Please try again.`
+      );
     }
   };
 
@@ -325,10 +410,14 @@ export default function Users() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const filteredCustomers = customers.filter((customer) => customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || customer.email.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(e.target.value);
+    setSearchInput(e.target.value.trimStart());
   };
 
   if (isLoading) {
@@ -351,7 +440,13 @@ export default function Users() {
             {/* <CardTitle>All Customers</CardTitle> */}
             <div className="relative w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input placeholder="Search by name, email, or phone..." value={searchInput} onChange={handleSearchInputChange} className="pl-10 font-normal" />
+              <Input
+                type="search"
+                placeholder="Search by name, email, or phone..."
+                value={searchInput}
+                onChange={handleSearchInputChange}
+                className="pl-10 font-normal"
+              />
             </div>
 
             {/* <Button onClick={() => setIsAddCustomerOpen(true)}>
@@ -382,7 +477,9 @@ export default function Users() {
                       <TableCell colSpan={8} className="py-8 text-center">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
-                          <p className="text-muted-foreground">Searching customers...</p>
+                          <p className="text-muted-foreground">
+                            Searching customers...
+                          </p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -402,38 +499,61 @@ export default function Users() {
                             </Avatar>
                             <div>
                               <div className="font-lexend">{customer.name}</div>
-                              <div className="text-xs text-muted-foreground font-lexend">{customer.location}</div>
+                              <div className="text-xs text-muted-foreground font-lexend">
+                                {customer.location}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm font-lexend">{customer.email}</div>
-                          {customer.phone && <div className="text-xs text-muted-foreground flex items-center gap-1 font-lexend">{customer.phone}</div>}
+                          <div className="text-sm font-lexend">
+                            {customer.email}
+                          </div>
+                          {customer.phone && (
+                            <div className="text-xs text-muted-foreground flex items-center gap-1 font-lexend">
+                              {customer.phone}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
-                          <span className="capitalize font-lexend">{customer.gender?.toLowerCase() || "N/A"}</span>
+                          <span className="capitalize font-lexend">
+                            {customer.gender?.toLowerCase() || "N/A"}
+                          </span>
                         </TableCell>
                         <TableCell>
-                          {customer.birthday && !isNaN(new Date(customer.birthday).getTime())
-                            ? new Date(customer.birthday).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })
+                          {customer.birthday &&
+                          !isNaN(new Date(customer.birthday).getTime())
+                            ? new Date(customer.birthday).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )
                             : "N/A"}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={customer.isActive ? "default" : "secondary"} className="outline-hide">
+                          <Badge
+                            variant={
+                              customer.isActive ? "default" : "secondary"
+                            }
+                            className="outline-hide"
+                          >
                             {customer.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {customer.createdAt && !isNaN(new Date(customer.createdAt).getTime())
-                            ? new Date(customer.createdAt).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })
+                          {customer.createdAt &&
+                          !isNaN(new Date(customer.createdAt).getTime())
+                            ? new Date(customer.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )
                             : "N/A"}
                         </TableCell>
                         <TableCell>
@@ -445,26 +565,38 @@ export default function Users() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEdit(customer)}>
+                              <DropdownMenuItem
+                                onClick={() => handleEdit(customer)}
+                              >
                                 <Edit className="mr-2 h-5 w-5 text-blacktheme" />
-                                <span className="text-base font-semibold text-gray-500 font-lexend">Edit</span>
+                                <span className="text-base font-semibold text-gray-500 font-lexend">
+                                  Edit
+                                </span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleStatusToggleClick(customer);
                                 }}
-                                className={customer.isActive ? "text-red-600" : "text-foreground"}
+                                className={
+                                  customer.isActive
+                                    ? "text-red-600"
+                                    : "text-foreground"
+                                }
                               >
                                 {customer.isActive ? (
                                   <>
                                     <UserX className="mr-2 h-5 w-5" />
-                                    <span className="text-base font-semibold text-red-600">Inactive</span>
+                                    <span className="text-base font-semibold text-red-600">
+                                      Inactive
+                                    </span>
                                   </>
                                 ) : (
                                   <>
                                     <UserCheck className="mr-2 h-5 w-5" />
-                                    <span className="text-base font-semibold text-gray-500 font-lexend">Activate</span>
+                                    <span className="text-base font-semibold text-gray-500 font-lexend">
+                                      Activate
+                                    </span>
                                   </>
                                 )}
                               </DropdownMenuItem>
@@ -480,12 +612,16 @@ export default function Users() {
                                 {deletingId === customer._id ? (
                                   <>
                                     <div className="mr-2 h-5 w-5 animate-spin border-2 border-red-600 border-t-transparent rounded-full"></div>
-                                    <span className="text-base font-semibold text-red-600">Deleting...</span>
+                                    <span className="text-base font-semibold text-red-600">
+                                      Deleting...
+                                    </span>
                                   </>
                                 ) : (
                                   <>
                                     <Trash2 className="mr-2 h-5 w-5" />
-                                    <span className="text-base font-semibold text-red-600">Delete</span>
+                                    <span className="text-base font-semibold text-red-600">
+                                      Delete
+                                    </span>
                                   </>
                                 )}
                               </DropdownMenuItem>
@@ -499,10 +635,16 @@ export default function Users() {
                       <TableCell colSpan={8} className="h-24 text-center">
                         <div className="flex flex-col items-center justify-center py-8">
                           <div className="text-gray-400 mb-2">
-                           <User className="h-12 w-12"/>
+                            <User className="h-12 w-12" />
                           </div>
-                          <h3 className="text-lg font-medium text-gray-900">No customers found</h3>
-                          <p className="text-base font-semibold text-gray-500 font-lexend">{searchTerm ? "Try adjusting your search or filter to find what you're looking for." : "Get started by adding a new customer."}</p>
+                          <h3 className="text-lg font-medium text-gray-900">
+                            No customers found
+                          </h3>
+                          <p className="text-base font-semibold text-gray-500 font-lexend">
+                            {searchTerm
+                              ? "Try adjusting your search or filter to find what you're looking for."
+                              : "Get started by adding a new customer."}
+                          </p>
                           {!searchTerm && (
                             <Button className="mt-4">
                               <Plus className="h-4 w-4 mr-2" />
@@ -538,31 +680,66 @@ export default function Users() {
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedCustomer?.currentStatus ? "Inactive Customer" : "Activate Customer"}</DialogTitle>
+            <DialogTitle>
+              {selectedCustomer?.currentStatus
+                ? "Inactive Customer"
+                : "Activate Customer"}
+            </DialogTitle>
             <DialogDescription>
-              Are you sure you want to {selectedCustomer?.currentStatus ? "inactive" : "activate"}
-              <span className="font-semibold"> {selectedCustomer?.name}</span>?{selectedCustomer?.currentStatus ? " They will no longer be able to access their account." : " They will regain access to their account."}
+              Are you sure you want to{" "}
+              {selectedCustomer?.currentStatus ? "inactive" : "activate"}
+              <span className="font-semibold"> {selectedCustomer?.name}</span>?
+              {selectedCustomer?.currentStatus
+                ? " They will no longer be able to access their account."
+                : " They will regain access to their account."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setStatusDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button 
-              variant={selectedCustomer?.currentStatus ? "destructive" : "default"} 
+            <Button
+              variant={
+                selectedCustomer?.currentStatus ? "destructive" : "default"
+              }
               onClick={confirmStatusToggle}
               disabled={statusLoading}
               className="min-w-[100px]"
             >
               {statusLoading ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
-                  {selectedCustomer?.currentStatus ? 'Inactivating...' : 'Activating...'}
+                  {selectedCustomer?.currentStatus
+                    ? "Inactivating..."
+                    : "Activating..."}
                 </>
-              ) : selectedCustomer?.currentStatus ? 'Inactive' : 'Activate'}
+              ) : selectedCustomer?.currentStatus ? (
+                "Inactive"
+              ) : (
+                "Activate"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -575,19 +752,21 @@ export default function Users() {
             <DialogTitle>Delete Customer</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete
-              <span className="font-semibold"> {selectedCustomer?.name}</span>? This action cannot be undone and all associated data will be permanently removed.
+              <span className="font-semibold"> {selectedCustomer?.name}</span>?
+              This action cannot be undone and all associated data will be
+              permanently removed.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={!!deletingId}
             >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmDelete}
               disabled={!!deletingId}
               className="min-w-[120px]"
@@ -597,7 +776,9 @@ export default function Users() {
                   <div className="mr-2 h-4 w-4 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
                   Deleting...
                 </>
-              ) : 'Delete Permanently'}
+              ) : (
+                "Delete Permanently"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -625,8 +806,13 @@ export default function Users() {
       >
         <DialogContent className="sm:max-w-[750px]">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold">{isEditMode ? "Edit Customer" : "Add New Customer"}</DialogTitle>
-            <DialogDescription className="text-base">Fill in the details below to {isEditMode ? "edit" : "add"} a new customer.</DialogDescription>
+            <DialogTitle className="text-2xl font-semibold">
+              {isEditMode ? "Edit Customer" : "Add New Customer"}
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Fill in the details below to {isEditMode ? "edit" : "add"} a new
+              customer.
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -639,9 +825,9 @@ export default function Users() {
                       <FormItem>
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="John Doe" 
-                            {...field} 
+                          <Input
+                            placeholder="John Doe"
+                            {...field}
                             onBlur={(e) => {
                               const trimmedValue = e.target.value.trim();
                               field.onChange(trimmedValue);
@@ -659,7 +845,12 @@ export default function Users() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input disabled={isEditMode} type="email" placeholder="john@example.com" {...field} />
+                          <Input
+                            disabled={isEditMode}
+                            type="email"
+                            placeholder="john@example.com"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -687,7 +878,10 @@ export default function Users() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Gender</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select gender" />
@@ -712,14 +906,39 @@ export default function Users() {
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
-                              <Button variant={"outline"} className={cn("w-full h-[55px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                <span className="text-base font-semibold">{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}</span>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full h-[55px] pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                <span className="text-base font-semibold">
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                </span>
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar captionLayout="dropdown" defaultMonth={field.value} mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} fromYear={1900} toYear={new Date().getFullYear()} classNames={classNames} />
+                            <Calendar
+                              captionLayout="dropdown"
+                              defaultMonth={field.value}
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) =>
+                                date > new Date() ||
+                                date < new Date("1900-01-01")
+                              }
+                              fromYear={1900}
+                              toYear={new Date().getFullYear()}
+                              classNames={classNames}
+                            />
                           </PopoverContent>
                         </Popover>
                         <FormMessage />
@@ -764,11 +983,20 @@ export default function Users() {
                 </div>
               </div>
               <DialogFooter className="mt-6">
-                <Button type="button" className="text-base font-semibold mt-3" variant="outline" onClick={() => setIsAddCustomerOpen(false)}>
+                <Button
+                  type="button"
+                  className="text-base font-semibold mt-3"
+                  variant="outline"
+                  onClick={() => setIsAddCustomerOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" className="text-base font-semibold mt-3">
-                  {isEditMode ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  {isEditMode ? (
+                    <Edit className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
                   {isEditMode ? "Save Changes" : "Add Customer"}
                 </Button>
               </DialogFooter>

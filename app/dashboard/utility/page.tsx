@@ -3,12 +3,24 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { SquarePen, Phone, Mail, Search, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { getUtility, updateUtility } from "@/components/api/utility";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 
 type UtilitySettings = {
@@ -37,7 +49,9 @@ export default function Utility() {
     days: "",
   });
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [currentField, setCurrentField] = useState<keyof UtilitySettings | null>(null);
+  const [currentField, setCurrentField] = useState<
+    keyof UtilitySettings | null
+  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,7 +70,10 @@ export default function Utility() {
     }
   };
 
-  const updateUtilitySetting = async (field: keyof UtilitySettings, value: string) => {
+  const updateUtilitySetting = async (
+    field: keyof UtilitySettings,
+    value: string
+  ) => {
     try {
       setIsLoading(true);
       const updateData = { [field]: value };
@@ -66,9 +83,9 @@ export default function Utility() {
 
       const response = await updateUtility(utilityId, updateData);
 
-      setUtilitySettings(prev => ({
+      setUtilitySettings((prev) => ({
         ...prev,
-        ...response.payload  // Assuming the API returns the updated settings
+        ...response.payload, // Assuming the API returns the updated settings
       }));
       toast.success(`${field} updated successfully`);
       setIsEditDialogOpen(false);
@@ -98,7 +115,7 @@ export default function Utility() {
     updateUtilitySetting(currentField, value);
   };
 
-  const fieldLabels: Record<keyof Omit<UtilitySettings, '_id'>, string> = {
+  const fieldLabels: Record<keyof Omit<UtilitySettings, "_id">, string> = {
     email: "Email",
     phoneNo: "Phone Number",
     facebookLink: "Facebook Link",
@@ -112,21 +129,25 @@ export default function Utility() {
 
   // Filter and prepare table data
   const tableData = Object.entries(utilitySettings)
-    .filter(([key]) => !['_id', 'deletedAt', 'updatedAt', 'lastEmailSentDate'].includes(key))
+    .filter(
+      ([key]) =>
+        !["_id", "deletedAt", "updatedAt", "lastEmailSentDate"].includes(key)
+    )
     .map(([key, value], index) => ({
       id: key,
       serial: index + 1,
       field: key,
-      label: fieldLabels[key as keyof Omit<UtilitySettings, '_id'>],
+      label: fieldLabels[key as keyof Omit<UtilitySettings, "_id">],
       value: value || "Not set",
     }));
 
   // Apply search filter
   const filteredData = searchTerm
-    ? tableData.filter(item =>
-      item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(item.value).toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    ? tableData.filter(
+        (item) =>
+          item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          String(item.value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
     : tableData;
 
   // Apply pagination
@@ -137,9 +158,6 @@ export default function Utility() {
 
   return (
     <div className="space-y-6">
-
-      
-
       {/* Search */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
@@ -149,8 +167,9 @@ export default function Utility() {
             placeholder="Search settings..."
             className="pl-8 w-[200px] lg:w-[300px] font-normal"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          /></div>
+            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
+          />
+        </div>
       </div>
 
       <div className="rounded-md border">
@@ -180,7 +199,9 @@ export default function Utility() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEditClick(item.field as keyof UtilitySettings)}
+                      onClick={() =>
+                        handleEditClick(item.field as keyof UtilitySettings)
+                      }
                       className="h-8 w-8 p-0"
                     >
                       <SquarePen className="h-4 w-4" />
@@ -191,7 +212,10 @@ export default function Utility() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-lg text-gray-900 font-lexend">
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-lg text-gray-900 font-lexend"
+                >
                   No results found
                 </TableCell>
               </TableRow>
@@ -213,18 +237,28 @@ export default function Utility() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {currentField && fieldLabels[currentField as keyof Omit<UtilitySettings, '_id'>]}
+              {currentField &&
+                fieldLabels[currentField as keyof Omit<UtilitySettings, "_id">]}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor={currentField || ""}>
-                {currentField && fieldLabels[currentField as keyof Omit<UtilitySettings, '_id'>]}
+                {currentField &&
+                  fieldLabels[
+                    currentField as keyof Omit<UtilitySettings, "_id">
+                  ]}
               </Label>
               <Input
                 name={currentField || ""}
                 defaultValue={currentField ? utilitySettings[currentField] : ""}
-                placeholder={`Enter ${currentField ? fieldLabels[currentField as keyof Omit<UtilitySettings, '_id'>].toLowerCase() : 'value'}`}
+                placeholder={`Enter ${
+                  currentField
+                    ? fieldLabels[
+                        currentField as keyof Omit<UtilitySettings, "_id">
+                      ].toLowerCase()
+                    : "value"
+                }`}
                 required
               />
             </div>
