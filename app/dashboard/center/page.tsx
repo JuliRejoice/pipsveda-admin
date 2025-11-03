@@ -82,7 +82,7 @@ interface CenterApiResponse {
   };
 }
 
-export const centerFormSchema = z
+const centerFormSchema = z
   .object({
     centerName: z
       .string()
