@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   CalendarClock,
   BookAIcon,
+  VideoIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -82,6 +83,7 @@ import {
   deleteSyllabus,
   updateSyllabus,
 } from "@/components/api/syllabus";
+import { Label } from "@radix-ui/react-label";
 
 type Batch = {
   _id?: string;
@@ -97,7 +99,12 @@ type Batch = {
 export default function Courses() {
   const [searchTerm, setSearchTerm] = useState("");
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("recorded");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("coursesActiveTab") || "recorded";
+    }
+    return "recorded";
+  });
   const [formActiveTab, setFormActiveTab] = useState("recorded");
   const [isTabSwitching, setIsTabSwitching] = useState(false);
 
@@ -160,6 +167,7 @@ export default function Courses() {
       courseId: "",
     },
   ]);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   // Add error state
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -186,6 +194,15 @@ export default function Courses() {
   useEffect(() => {
     if (latestCourse) fetchCenters();
   }, [latestCourse]);
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
+    }, 500);
+
+    return () => clearTimeout(timerId);
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -336,16 +353,29 @@ export default function Courses() {
   };
 
   const handleIntroVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Clear any previous errors first
+    setFormErrors((prev) => ({ ...prev, introVideo: "" }));
+
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const maxSize = 50 * 1024 * 1024;
+      if (!file) {
+        setFormErrors((prev) => ({
+          ...prev,
+          introVideo: "Please select a video file",
+        }));
+        e.target.value = "";
+        setVideoFile(null);
+        return;
+      }
 
       if (!file.type.startsWith("video/")) {
         setFormErrors((prev) => ({
           ...prev,
-          introVideo: "Please upload a valid video file",
+          introVideo: "Please upload a valid video file (MP4, WebM, etc.)",
         }));
         e.target.value = "";
+        setVideoFile(null);
         return;
       }
 
@@ -355,11 +385,14 @@ export default function Courses() {
           introVideo: "Video file size must be less than 50MB",
         }));
         e.target.value = "";
+        setVideoFile(null);
         return;
       }
 
       setVideoFile(file);
-      setFormErrors((prev) => ({ ...prev, introVideo: "" }));
+    } else {
+      // If no file is selected, clear the video file
+      setVideoFile(null);
     }
   };
 
@@ -381,6 +414,7 @@ export default function Courses() {
     const description = formData.get("description")?.toString().trim() || "";
     const instructor = formData.get("instructor")?.toString().trim() || "";
     const courseLevel = formData.get("courseLevel")?.toString().trim() || "";
+    const introVideo = formData.get("introVideo")?.toString().trim() || "";
 
     if (!courseLevel) {
       errors.courseLevel = "Course level is required";
@@ -433,6 +467,10 @@ export default function Courses() {
     // Image required on create (skip when editing)
     if (!editCourse && !imageFile) {
       errors.image = "Please upload an image";
+    }
+
+    if (!editCourse && !videoFile) {
+      errors.videoFile = "Please upload an video";
     }
 
     // Course type specific validations
@@ -523,7 +561,7 @@ export default function Courses() {
       const response = await getCourses({
         page: currentPage,
         limit: itemsPerPage,
-        search: searchTerm,
+        search: debouncedSearchTerm,
         courseType: activeTab,
       });
 
@@ -573,7 +611,7 @@ export default function Courses() {
   // Fetch courses when pagination or filters change
   useEffect(() => {
     fetchCourses();
-  }, [currentPage, itemsPerPage, searchTerm, activeTab]);
+  }, [currentPage, itemsPerPage, debouncedSearchTerm, activeTab]);
 
   // Function to reset form and date states
   const resetForm = () => {
@@ -707,7 +745,7 @@ export default function Courses() {
                 {activeTab === "live" ? (
                   <>
                     <Link
-                      href={`/dashboard/courses/${course._id}/batches?type=live`}
+                      href={`/dashboard/courses/${course._id}/batches?type=${activeTab}`}
                       className="w-full"
                     >
                       <DropdownMenuItem
@@ -724,7 +762,7 @@ export default function Courses() {
                       </DropdownMenuItem>
                     </Link>
                     <Link
-                      href={`/dashboard/courses/${course._id}/syllabus?type=live`}
+                      href={`/dashboard/courses/${course._id}/syllabus?type=${activeTab}`}
                       className="w-full"
                     >
                       <DropdownMenuItem
@@ -736,7 +774,7 @@ export default function Courses() {
                       >
                         <BookAIcon className="mr-2 h-5 w-5" />
                         <span className="text-base font-semibold text-gray-500 font-lexend">
-                          Add Syllabus
+                          Edit Syllabus
                         </span>
                       </DropdownMenuItem>
                     </Link>
@@ -744,7 +782,7 @@ export default function Courses() {
                 ) : activeTab === "physical" ? (
                   <>
                     <Link
-                      href={`/dashboard/courses/${course._id}/batches?type=physical`}
+                      href={`/dashboard/courses/${course._id}/batches?type=${activeTab}`}
                       className="w-full"
                     >
                       <DropdownMenuItem
@@ -761,7 +799,7 @@ export default function Courses() {
                       </DropdownMenuItem>
                     </Link>
                     <Link
-                      href={`/dashboard/courses/${course._id}/syllabus?type=physical`}
+                      href={`/dashboard/courses/${course._id}/syllabus?type=${activeTab}`}
                       className="w-full"
                     >
                       <DropdownMenuItem
@@ -773,7 +811,7 @@ export default function Courses() {
                       >
                         <BookAIcon className="mr-2 h-5 w-5" />
                         <span className="text-base font-semibold text-gray-500 font-lexend">
-                          Add Syllabus
+                          Edit Syllabus
                         </span>
                       </DropdownMenuItem>
                     </Link>
@@ -793,12 +831,12 @@ export default function Courses() {
                       >
                         <BookPlus className="mr-2 h-5 w-5" />
                         <span className="text-base font-semibold text-gray-500 font-lexend">
-                          Add Chapters
+                          Edit Chapters
                         </span>
                       </DropdownMenuItem>
                     </Link>
                     <Link
-                      href={`/dashboard/courses/${course._id}/syllabus?type=live`}
+                      href={`/dashboard/courses/${course._id}/syllabus?type=${activeTab}`}
                       className="w-full"
                     >
                       <DropdownMenuItem
@@ -810,7 +848,7 @@ export default function Courses() {
                       >
                         <BookAIcon className="mr-2 h-5 w-5" />
                         <span className="text-base font-semibold text-gray-500 font-lexend">
-                          Add Syllabus
+                          Edit Syllabus
                         </span>
                       </DropdownMenuItem>
                     </Link>
@@ -1081,6 +1119,7 @@ export default function Courses() {
   const handleTabChange = (value: string) => {
     setIsTabSwitching(true);
     setActiveTab(value);
+    localStorage.setItem("coursesActiveTab", value);
     setTimeout(() => {
       setIsTabSwitching(false);
     }, 500);
@@ -1126,6 +1165,7 @@ export default function Courses() {
       );
     }
   };
+  console.log(formErrors);
 
   return (
     <div>
@@ -1214,7 +1254,7 @@ export default function Courses() {
                   <input type="hidden" name="courseType" value="recorded" />
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Thumbnail Image
+                      Course Thumbnail Image *
                     </label>
                     <ImageUpload
                       name="image"
@@ -1226,7 +1266,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Name
+                      Course Name *
                     </label>
                     <Input
                       placeholder="Course Name"
@@ -1248,7 +1288,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Description
+                      Course Description *
                     </label>
                     <Input
                       placeholder="Course Description"
@@ -1273,7 +1313,7 @@ export default function Courses() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-medium mb-1">
-                        Instructor Name
+                        Instructor Name *
                       </label>
                       {/* <Input
                       placeholder="Instructor Name"
@@ -1331,7 +1371,7 @@ export default function Courses() {
                   <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <div className="flex-1">
                       <label className="block font-medium mb-1">
-                        Start Date
+                        Start Date *
                       </label>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -1381,7 +1421,9 @@ export default function Courses() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <label className="block font-medium mb-1">End Date</label>
+                      <label className="block font-medium mb-1">
+                        End Date *
+                      </label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -1434,7 +1476,7 @@ export default function Courses() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-medium mb-1">
-                        Course Price
+                        Course Price *
                       </label>
                       <Input
                         placeholder="Course Price"
@@ -1447,7 +1489,7 @@ export default function Courses() {
                       )}
                     </div>
                     <div>
-                      <label className="block font-medium mb-1">Hours</label>
+                      <label className="block font-medium mb-1">Hours *</label>
                       <Input
                         placeholder="Hours"
                         type="text"
@@ -1468,9 +1510,10 @@ export default function Courses() {
                       )}
                     </div>
                   </div>
+
                   <div className="flex flex-col">
                     <label className="block font-medium mb-1">
-                      Course Level
+                      Course Level *
                     </label>
                     <Input
                       type="text"
@@ -1478,47 +1521,60 @@ export default function Courses() {
                       placeholder="Enter course level"
                       defaultValue={editCourse?.courseLevel || ""}
                       className="h-[55px] w-full"
-                      required
                       onBlur={handleTrimInput}
                     />
                     {formErrors.courseLevel && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors.courseLevel}
-                      </p>
+                      <p className="text-red-500">{formErrors.courseLevel}</p>
                     )}
                   </div>
 
                   <div className="flex flex-col">
                     <label className="block font-medium mb-1">
-                      Intro Video
+                      Intro Video *
                     </label>
 
-                    <div className="relative w-full">
-                      <Input
-                        type="file"
-                        name="courseIntroVideo"
-                        accept="video/*"
-                        className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0 file:text-white text-gray-600 text-center"
-                        onChange={handleIntroVideoChange}
-                        id="courseIntroVideo"
-                      />
-                      {/* Add this to show current video when editing */}
-                      {editCourse?.courseIntroVideo && !videoFile && (
-                        <div className="mt-2">
-                          <video
-                            src={editCourse?.courseIntroVideo}
-                            controls
-                            className="max-w-full h-auto max-h-20 rounded-md"
-                          />
-                          <p className="text-sm text-gray-500 mt-1">
-                            Current video
-                          </p>
-                        </div>
-                      )}
-                      {/* Show selected file name when a new video is selected */}
-                      {videoFile && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Selected: {videoFile.name}
+                    <div className="w-full">
+                      <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
+                        {editCourse?.courseIntroVideo ? (
+                          <div className="flex justify-center mb-2 items-center">
+                            <video
+                              src={editCourse?.courseIntroVideo}
+                              controls
+                              className=" h-auto max-h-20 rounded-md"
+                            />
+                          </div>
+                        ) : (
+                          <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                        )}
+                        <p className="text-sm text-gray-600 mb-2">
+                          {videoFile
+                            ? videoFile.name
+                            : editCourse?.courseIntroVideo
+                            ? "Video file selected"
+                            : "No video file selected"}
+                        </p>
+
+                        <Input
+                          type="file"
+                          name="courseIntroVideo"
+                          accept="video/mp4,video/webm,video/quicktime"
+                          className="hidden"
+                          onChange={handleIntroVideoChange}
+                          id="courseIntroVideo"
+                        />
+
+                        <Label
+                          htmlFor="courseIntroVideo"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                        >
+                          {videoFile || editCourse?.courseIntroVideo
+                            ? "Change Video"
+                            : "Upload Video"}
+                        </Label>
+                      </div>
+                      {formErrors.videoFile && (
+                        <p className="text-sm font-semibold text-red-500 mt-1">
+                          {formErrors.videoFile}
                         </p>
                       )}
                     </div>
@@ -1526,7 +1582,7 @@ export default function Courses() {
 
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Category
+                      Course Category *
                     </label>
                     <select
                       name="courseCategory"
@@ -1582,6 +1638,7 @@ export default function Courses() {
                     ? setIsPhysicalBatchVisible(true)
                     : setIsPhysicalBatchVisible(false)
                 }
+                saveTitle={activeTab == "recorded" ? "Save All" : "Next"}
               />
             )}
             {/* Live Course Form */}
@@ -1594,7 +1651,7 @@ export default function Courses() {
                   <input type="hidden" name="courseType" value="live" />
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Thumbnail Image
+                      Course Thumbnail Image *
                     </label>
                     <ImageUpload
                       name="image"
@@ -1606,7 +1663,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Name
+                      Course Name *
                     </label>
                     <Input
                       placeholder="Course Name"
@@ -1628,7 +1685,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Description
+                      Course Description *
                     </label>
                     <Input
                       placeholder="Course Description"
@@ -1653,7 +1710,7 @@ export default function Courses() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-medium mb-1">
-                        Instructor Name
+                        Instructor Name *
                       </label>
                       <Select
                         name="instructor"
@@ -1700,7 +1757,7 @@ export default function Courses() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-medium mb-1">
-                        Course Price
+                        Course Price *
                       </label>
                       <Input
                         placeholder="Course Price"
@@ -1738,7 +1795,7 @@ export default function Courses() {
                   <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <div className="flex-1">
                       <label className="block font-medium mb-1">
-                        Start Date
+                        Start Date *
                       </label>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -1779,7 +1836,9 @@ export default function Courses() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <label className="block font-medium mb-1">End Date</label>
+                      <label className="block font-medium mb-1">
+                        End Date *
+                      </label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -1822,7 +1881,7 @@ export default function Courses() {
                   )}
                   <div>
                     <label className="block font-medium mb-1">
-                      Zoom Meeting Link
+                      Zoom Meeting Link *
                     </label>
                     <Input
                       placeholder="Zoom Meeting Link"
@@ -1844,7 +1903,7 @@ export default function Courses() {
                   </div>
                   <div className="flex flex-col">
                     <label className="block font-medium mb-1">
-                      Course Level
+                      Course Level *
                     </label>
                     <Input
                       type="text"
@@ -1852,58 +1911,65 @@ export default function Courses() {
                       placeholder="Enter course level"
                       defaultValue={editCourse?.courseLevel || ""}
                       className="h-[55px] w-full"
-                      required
                       onBlur={handleTrimInput}
                     />
                     {formErrors.courseLevel && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors.courseLevel}
-                      </p>
+                      <p className="text-red-500">{formErrors.courseLevel}</p>
                     )}
                   </div>
 
                   <div>
                     <label className="block font-medium mb-1">
-                      Intro Video
+                      Intro Video *
                     </label>
-                    <div className="relative w-full">
-                      <Input
-                        type="file"
-                        name="courseIntroVideo"
-                        accept="video/*"
-                        className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0 file:text-white text-gray-600 text-center"
-                        onChange={handleIntroVideoChange}
-                        id="courseIntroVideo"
-                      />
-                      {/* Add this to show current video when editing */}
-                      {editCourse?.courseIntroVideo && !videoFile && (
-                        <div className="mt-2">
-                          <video
-                            src={editCourse?.courseIntroVideo}
-                            controls
-                            className="max-w-full h-auto max-h-20 rounded-md"
-                          />
-                          <p className="text-sm text-gray-500 mt-1">
-                            Current video
-                          </p>
-                        </div>
-                      )}
-                      {/* Show selected file name when a new video is selected */}
-                      {videoFile && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Selected: {videoFile.name}
+
+                    <div className="w-full">
+                      <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
+                        {editCourse?.courseIntroVideo ? (
+                          <div className="flex justify-center mb-2 items-center">
+                            <video
+                              src={editCourse?.courseIntroVideo}
+                              controls
+                              className=" h-auto max-h-20 rounded-md"
+                            />
+                          </div>
+                        ) : (
+                          <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                        )}{" "}
+                        <p className="text-sm text-gray-600 mb-2">
+                          {videoFile
+                            ? videoFile.name
+                            : editCourse?.courseIntroVideo
+                            ? "Video file selected"
+                            : "No video file selected"}
+                        </p>
+                        <Input
+                          type="file"
+                          name="courseIntroVideo"
+                          accept="video/mp4,video/webm,video/quicktime"
+                          className="hidden"
+                          onChange={handleIntroVideoChange}
+                          id="courseIntroVideo"
+                        />
+                        <Label
+                          htmlFor="courseIntroVideo"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                        >
+                          {videoFile || editCourse?.courseIntroVideo
+                            ? "Change Video"
+                            : "Upload Video"}
+                        </Label>
+                      </div>
+                      {formErrors.videoFile && (
+                        <p className="text-sm font-semibold text-red-500 mt-1">
+                          {formErrors.videoFile}
                         </p>
                       )}
                     </div>
-                    {formErrors.introVideo && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors.introVideo}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Category
+                      Course Category *
                     </label>
                     <select
                       name="courseCategory"
@@ -2027,7 +2093,7 @@ export default function Courses() {
                   <input type="hidden" name="courseType" value="physical" />
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Thumbnail Image
+                      Course Thumbnail Image *
                     </label>
                     <ImageUpload
                       name="image"
@@ -2039,7 +2105,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Name
+                      Course Name *
                     </label>
                     <Input
                       placeholder="Course Name"
@@ -2061,7 +2127,7 @@ export default function Courses() {
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Description
+                      Course Description *
                     </label>
                     <Input
                       placeholder="Course Description"
@@ -2086,7 +2152,7 @@ export default function Courses() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-medium mb-1">
-                        Instructor Name
+                        Instructor Name *
                       </label>
                       <Select
                         name="instructor"
@@ -2132,7 +2198,7 @@ export default function Courses() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-medium mb-1">
-                        Course Price
+                        Course Price *
                       </label>
                       <Input
                         placeholder="Course Price"
@@ -2145,7 +2211,7 @@ export default function Courses() {
                       )}
                     </div>
                     <div>
-                      <label className="block font-medium mb-1">Hours</label>
+                      <label className="block font-medium mb-1">Hours *</label>
                       <Input
                         placeholder="Hours"
                         type="text"
@@ -2170,7 +2236,7 @@ export default function Courses() {
                   <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <div className="flex-1">
                       <label className="block font-medium mb-1">
-                        Start Date
+                        Start Date *
                       </label>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -2211,7 +2277,9 @@ export default function Courses() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <label className="block font-medium mb-1">End Date</label>
+                      <label className="block font-medium mb-1">
+                        End Date *{" "}
+                      </label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -2244,6 +2312,7 @@ export default function Courses() {
                           />
                         </PopoverContent>
                       </Popover>
+
                       {formErrors.endDate && (
                         <div className="text-red-500">{formErrors.endDate}</div>
                       )}
@@ -2258,7 +2327,7 @@ export default function Courses() {
                 </div> */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="block font-medium">Email</label>
+                      <label className="block font-medium">Email *</label>
                       <Input
                         type="email"
                         placeholder="Email"
@@ -2280,7 +2349,7 @@ export default function Courses() {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <label className="block font-medium">Phone No.</label>
+                      <label className="block font-medium">Phone No. *</label>
                       <Input
                         type="tel"
                         placeholder="Phone Number"
@@ -2316,7 +2385,7 @@ export default function Courses() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-medium mb-1">City</label>
+                      <label className="block font-medium mb-1">City *</label>
                       <Input
                         placeholder="City"
                         name="city"
@@ -2336,7 +2405,7 @@ export default function Courses() {
                       )}
                     </div>
                     <div>
-                      <label className="block font-medium mb-1">State</label>
+                      <label className="block font-medium mb-1">State *</label>
                       <Input
                         placeholder="State"
                         name="state"
@@ -2386,58 +2455,65 @@ export default function Courses() {
                       placeholder="Enter course level"
                       defaultValue={editCourse?.courseLevel || ""}
                       className="h-[55px] w-full"
-                      required
                       onBlur={handleTrimInput}
                     />
                     {formErrors.courseLevel && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors.courseLevel}
-                      </p>
+                      <p className="text-red-500">{formErrors.courseLevel}</p>
                     )}
                   </div>
 
                   <div>
                     <label className="block font-medium mb-1">
-                      Intro Video
+                      Intro Video *
                     </label>
-                    <div className="relative w-full">
-                      <Input
-                        type="file"
-                        name="courseIntroVideo"
-                        accept="video/*"
-                        className="file:cursor-pointer file:text-base file:py-4 file:rounded-md file:border-0 file:text-white text-gray-600 text-center"
-                        onChange={handleIntroVideoChange}
-                        id="courseIntroVideo"
-                      />
-                      {/* Add this to show current video when editing */}
-                      {editCourse?.courseIntroVideo && !videoFile && (
-                        <div className="mt-2">
-                          <video
-                            src={editCourse?.courseIntroVideo}
-                            controls
-                            className="max-w-full h-auto max-h-20 rounded-md"
-                          />
-                          <p className="text-sm text-gray-500 mt-1">
-                            Current video
-                          </p>
-                        </div>
-                      )}
-                      {/* Show selected file name when a new video is selected */}
-                      {videoFile && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Selected: {videoFile.name}
+
+                    <div className="w-full">
+                      <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
+                        {editCourse?.courseIntroVideo ? (
+                          <div className="flex justify-center mb-2 items-center">
+                            <video
+                              src={editCourse?.courseIntroVideo}
+                              controls
+                              className=" h-auto max-h-20 rounded-md"
+                            />
+                          </div>
+                        ) : (
+                          <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                        )}{" "}
+                        <p className="text-sm text-gray-600 mb-2">
+                          {videoFile
+                            ? videoFile.name
+                            : editCourse?.courseIntroVideo
+                            ? "Video file selected"
+                            : "No video file selected"}
+                        </p>
+                        <Input
+                          type="file"
+                          name="courseIntroVideo"
+                          accept="video/mp4,video/webm,video/quicktime"
+                          className="hidden"
+                          onChange={handleIntroVideoChange}
+                          id="courseIntroVideo"
+                        />
+                        <Label
+                          htmlFor="courseIntroVideo"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                        >
+                          {videoFile || editCourse?.courseIntroVideo
+                            ? "Change Video"
+                            : "Upload Video"}
+                        </Label>
+                      </div>
+                      {formErrors.videoFile && (
+                        <p className="text-sm font-semibold text-red-500 mt-1">
+                          {formErrors.videoFile}
                         </p>
                       )}
                     </div>
-                    {formErrors.introVideo && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors.introVideo}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
-                      Course Category
+                      Course Category *
                     </label>
                     <select
                       name="courseCategory"
@@ -2588,9 +2664,10 @@ export default function Courses() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
+            type="search"
             placeholder="Search courses..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
             className="pl-10 font-normal"
           />
         </div>

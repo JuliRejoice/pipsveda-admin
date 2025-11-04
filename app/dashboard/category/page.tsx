@@ -3,38 +3,80 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Search, Plus, Tag, Edit, Trash2, AlertTriangle, Upload, X, MoreVertical } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Tag,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  Upload,
+  X,
+  MoreVertical,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
-import { createCategory, getAllCategory, updateCategory, deleteCategory } from "@/components/api/algobot";
-import { createCourseCategory, deleteCourseCategory, getAllCourseCategory, updateCourseCategory } from "@/components/api/category";
+import {
+  createCategory,
+  getAllCategory,
+  updateCategory,
+  deleteCategory,
+} from "@/components/api/algobot";
+import {
+  createCourseCategory,
+  deleteCourseCategory,
+  getAllCourseCategory,
+  updateCourseCategory,
+} from "@/components/api/category";
 
-// Form validation schema with category name and image
 const formSchema = z.object({
   name: z
     .string()
     .min(2, "Category name must be at least 2 characters")
     .max(50, "Category name must be at most 50 characters")
-    .regex(/^[a-zA-Z0-9\s-]+$/, "Category name can only contain letters, numbers, spaces, and hyphens"),
-    image: z.any()
-    .refine((file) => file instanceof File || file === null || typeof file === 'string', {
-      message: 'Please upload an image file',
+    .regex(
+      /^[a-zA-Z0-9\s-]+$/,
+      "Category name can only contain letters, numbers, spaces, and hyphens"
+    ),
+  image: z
+    .any()
+    .refine((file) => file !== null && file !== undefined, {
+      message: "Image is required",
     })
     .refine(
+      (file) =>
+        typeof file === "string" ||
+        (file instanceof File && file.type.startsWith("image/")),
+      {
+        message: "Please upload a valid image file",
+      }
+    )
+    .refine(
       (file) => {
-        if (!file) return false; // Changed from true to false to make it required
-        if (typeof file === 'string') return true; // Allow existing image URLs
-        return file.size <= 5 * 1024 * 1024; // 5MB max size
+        if (typeof file === "string") return true;
+        if (file instanceof File) return file.size <= 5 * 1024 * 1024;
+        return true;
       },
       {
-        message: 'Please upload an image file',
+        message: "Image size must be less than 5MB",
       }
     ),
 });
@@ -53,7 +95,9 @@ interface CategoryItem {
 export default function Category() {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null);
+  const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -83,7 +127,7 @@ export default function Category() {
     formState: { errors },
   } = form;
 
-  const imageFile = watch('image');
+  const imageFile = watch("image");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,17 +143,36 @@ export default function Category() {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setValue('image', file, { shouldValidate: true });
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File must be an image");
+      return;
     }
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    setValue("image", file, { shouldValidate: true });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setValue('image', file, { shouldValidate: true });
+    if (!file) return;
+    if (file && !file.type.startsWith("image/"))
+      toast.error("File must be Image");
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    if (file && file.type.startsWith("image/")) {
+      setValue("image", file, { shouldValidate: true });
     }
   };
 
@@ -118,14 +181,16 @@ export default function Category() {
   };
 
   const removeImage = () => {
-    setValue('image', null, { shouldValidate: true });
+    setValue("image", null, { shouldValidate: true });
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const [allCategories, setAllCategories] = useState<CategoryItem[]>([]);
-  const [filteredCategories, setFilteredCategories] = useState<CategoryItem[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<CategoryItem[]>(
+    []
+  );
 
   const fetchCategories = async () => {
     try {
@@ -155,7 +220,7 @@ export default function Category() {
     }
 
     const searchLower = search.toLowerCase();
-    const filtered = categories.filter(category =>
+    const filtered = categories.filter((category) =>
       category.name.toLowerCase().includes(searchLower)
     );
 
@@ -171,46 +236,71 @@ export default function Category() {
   useEffect(() => {
     fetchCategories();
   }, []);
-  // Handle form submission for both create and update
+
   const onSubmit = async (data: FormValues) => {
     try {
       setIsLoading(true);
-      
-      // Create FormData to handle file upload
       const formData = new FormData();
-      formData.append('name', data.name);
-      
-      // Only append image if it's a File object (not a string URL)
-      if (data.image && data.image instanceof File) {
-        formData.append('image', data.image);
-      } else if (isEditMode && typeof data.image === 'string') {
-        // If it's an edit and image is a string (existing URL), we don't need to send it again
-        // unless it was changed, but we'll handle that in the API
-        formData.append('imageUrl', data.image);
+
+      // Always append the name
+      formData.append("name", data.name.trim());
+
+      // Handle image
+      if (data.image) {
+        if (data.image instanceof File) {
+          // If it's a File object, append it directly
+          formData.append("image", data.image);
+        } else if (isEditMode && typeof data.image === "string") {
+          // If it's a string (URL or base64), we need to fetch it
+          try {
+            // Check if it's a base64 string
+            if (data.image.startsWith("data:image")) {
+              // Convert base64 to blob
+              const response = await fetch(data.image);
+              const blob = await response.blob();
+              const file = new File([blob], "category-image.jpg", {
+                type: blob.type,
+              });
+              formData.append("image", file);
+            } else {
+              // It's a URL, fetch the image
+              const response = await fetch(data.image);
+              const blob = await response.blob();
+              const file = new File([blob], "category-image.jpg", {
+                type: blob.type,
+              });
+              formData.append("image", file);
+            }
+          } catch (error) {
+            console.error("Error processing image:", error);
+            // Continue without the image if there's an error
+          }
+        }
       }
+
+      console.log("Form data to submit:", {
+        name: formData.get("name"),
+        hasImage: formData.has("image"),
+      });
 
       if (isEditMode && currentCategoryId) {
-        const response = await updateCourseCategory(currentCategoryId, formData);
+        const response = await updateCourseCategory(
+          currentCategoryId,
+          formData
+        );
         if (response.success) {
           toast.success("Category updated successfully!");
+          setIsOpen(false);
+          reset();
+          fetchCategories();
         } else {
-          toast.error(response.message);
-        }
-      } else {
-        const response = await createCourseCategory(formData);
-        if (response.success) {
-          toast.success("Category created successfully!");
-        } else {
-          toast.error(response.message);
+          toast.error(response.message || "Failed to update category");
         }
       }
-
-      setIsOpen(false);
-      reset();
-      fetchCategories();
+      // ... rest of the function
     } catch (error) {
-      console.error("Error saving category:", error);
-      toast.error("Failed to save category");
+      console.error("Error:", error);
+      toast.error("An error occurred while saving the category");
     } finally {
       setIsLoading(false);
     }
@@ -219,16 +309,14 @@ export default function Category() {
   // Set up form for editing
   const handleEdit = (category: CategoryItem) => {
     setCurrentCategoryId(category._id);
-    setValue("name", category.name, { shouldValidate: true });
-    
-    // Set the image if it exists in the category data
-    if (category.image) {
-      setValue("image", category.image, { shouldValidate: true });
-    } else {
-      setValue("image", null, { shouldValidate: true });
-    }
-    
     setIsEditMode(true);
+
+    // Reset the form first to clear any previous state
+    reset({
+      name: category.name,
+      image: category.image || null,
+    });
+
     setIsOpen(true);
   };
 
@@ -245,7 +333,9 @@ export default function Category() {
       setIsDeleting(true);
       await deleteCourseCategory(categoryToDelete);
       toast.success("Category deleted successfully");
-      setCategories(categories.filter((category) => category._id !== categoryToDelete));
+      setCategories(
+        categories.filter((category) => category._id !== categoryToDelete)
+      );
       setDeleteDialogOpen(false);
       fetchCategories();
     } catch (error) {
@@ -256,6 +346,7 @@ export default function Category() {
       setCategoryToDelete(null);
     }
   };
+  console.log(categories);
 
   // Reset form for creating new category
   const handleCreateNew = () => {
@@ -269,19 +360,26 @@ export default function Category() {
 
   // Search functionality
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setSearchTerm(e.target.value.trimStart());
   };
+  console.log("categories", filteredCategories);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search category..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
+        <div className="flex items-center space-x-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search category..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="pl-8 font-normal"
+            />
+          </div>
         </div>
-      </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button onClick={handleCreateNew}>
@@ -291,30 +389,36 @@ export default function Category() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{isEditMode ? "Edit Category" : "Create New Category"}</DialogTitle>
+              <DialogTitle>
+                {isEditMode ? "Edit Category" : "Create New Category"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Category Name</Label>
-                <Input 
-                  id="name" 
-                  placeholder="Enter category name" 
+                <Label htmlFor="name">Category Name *</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter category name"
                   {...register("name")}
                   onBlur={(e) => {
                     const value = e.target.value.trim();
                     setValue("name", value, { shouldValidate: true });
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                    if (e.key === " " && !e.currentTarget.value.trim()) {
                       e.preventDefault();
                     }
                   }}
                 />
-                {errors.name && <p className="text-sm font-semibold text-red-500">{errors.name.message}</p>}
+                {errors.name && (
+                  <p className="text-sm font-semibold text-red-500">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label>Category Image</Label>
+                <Label>Category Image *</Label>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -324,7 +428,9 @@ export default function Category() {
                 />
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                    isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                    isDragging
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -334,7 +440,11 @@ export default function Category() {
                   {imageFile ? (
                     <div className="relative">
                       <img
-                        src={typeof imageFile === 'string' ? imageFile : URL.createObjectURL(imageFile)}
+                        src={
+                          typeof imageFile === "string"
+                            ? imageFile
+                            : URL.createObjectURL(imageFile)
+                        }
                         alt="Preview"
                         className="mx-auto max-h-48 rounded-md object-cover"
                       />
@@ -355,24 +465,35 @@ export default function Category() {
                         <Upload className="h-5 w-5 text-gray-500" />
                       </div>
                       <p className="text-sm text-gray-600 mb-1">
-                        <span className="text-blue-600 font-medium">Click to upload</span> or drag and drop
+                        <span className="text-blue-600 font-medium">
+                          Click to upload
+                        </span>{" "}
+                        or drag and drop
                       </p>
                     </>
                   )}
                 </div>
                 {errors.image && (
-                  <p className="text-sm text-red-500">
+                  <p className="text-sm font-semibold text-red-500">
                     {errors.image.message as string}
                   </p>
                 )}
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : isEditMode ? "Update Category" : "Create Category"}
+                  {isLoading
+                    ? "Saving..."
+                    : isEditMode
+                    ? "Update Category"
+                    : "Create Category"}
                 </Button>
               </div>
             </form>
@@ -380,7 +501,6 @@ export default function Category() {
         </Dialog>
       </div>
 
-      
       {/* Content */}
       {isFetching ? (
         <div className="flex items-center justify-center py-8">
@@ -393,22 +513,29 @@ export default function Category() {
         <div className="text-center py-12 space-y-2">
           <Tag className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="text-lg font-medium">No categories found</h3>
-          <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating a new category"}</p>
+          <p className="text-sm text-muted-foreground font-lexend">
+            {searchTerm
+              ? "Try a different search term"
+              : "Get started by creating a new category"}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filteredCategories
             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
             .map((category) => (
-              <div key={category._id} className="relative group border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+              <div
+                key={category._id}
+                className="relative group border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+              >
                 <div className="relative pt-[56.25%] bg-gray-100">
                   {category.image ? (
                     <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-                      <img 
-                        src={category.image} 
+                      <img
+                        src={category.image}
                         alt={category.name}
                         className="min-w-full min-h-full object-cover"
-                        style={{ objectFit: 'contain' }}
+                        style={{ objectFit: "contain" }}
                       />
                     </div>
                   ) : (
@@ -427,7 +554,7 @@ export default function Category() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEdit(category);
@@ -437,7 +564,7 @@ export default function Category() {
                         <Edit className="mr-2 h-4 w-4" />
                         <span>Edit</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteClick(category._id);
@@ -453,8 +580,8 @@ export default function Category() {
               </div>
             ))}
         </div>
-          )}
-        {/* </>
+      )}
+      {/* </>
       )} */}
 
       {/* Delete Confirmation Dialog */}
@@ -466,13 +593,24 @@ export default function Category() {
           <div className="space-y-4">
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>Are you sure you want to delete this category? This action cannot be undone.</AlertDescription>
+              <AlertDescription>
+                Are you sure you want to delete this category? This action
+                cannot be undone.
+              </AlertDescription>
             </Alert>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
                 {isDeleting ? "Deleting..." : "Delete"}
               </Button>
             </div>

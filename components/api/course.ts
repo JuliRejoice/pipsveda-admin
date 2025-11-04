@@ -392,9 +392,12 @@ export const createNewBatch = async (payload: any) => {
 //  Get all batches
 export const getAllBatch = async (courseId: string) => {
   try {
-    const res = await axios.get(`${BaseUrl}/batch/getAllBatch?courseId=${courseId}`, {
-      headers: getHeaders(),
-    });
+    const res = await axios.get(
+      `${BaseUrl}/batch/getAllBatch?courseId=${courseId}`,
+      {
+        headers: getHeaders(),
+      }
+    );
     return res.data;
   } catch (error) {
     console.error("Error fetching batches:", error);
