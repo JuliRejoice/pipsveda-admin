@@ -412,53 +412,57 @@ export default function Payments() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredPayments.map((payment, index) => (
-                        <TableRow key={payment._id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{payment?.uid?.name}</TableCell>
-                          <TableCell>
-                            {payment.createdAt
-                              ? formatDate(payment.createdAt)
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {payment.courseId?.CourseName || "-"}
-                          </TableCell>
-                          <TableCell className="capitalize">
-                            {payment.courseId?.courseType || "-"}
-                          </TableCell>
-                          <TableCell>${payment.price || "0.00"}</TableCell>
-                          <TableCell>{payment.orderId || "N/A"}</TableCell>
-                          <TableCell>
-                            {renderStatusBadge(payment.status)}
-                          </TableCell>
-                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => downloadPaymentInvoice(payment)}
-                              disabled={loadingInvoices[payment._id]}
-                              className="border-none"
-                            >
-                              {loadingInvoices[payment._id] ? (
-                                <>
-                                  <DownloadIcon
-                                    className={`h-4 w-4 animate-pulse ${
-                                      loadingInvoices[payment._id]
-                                        ? "cursor-not-allowed"
-                                        : ""
-                                    }`}
-                                  />
-                                </>
-                              ) : (
-                                <>
-                                  <DownloadIcon className="h-4 w-4" />
-                                </>
-                              )}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      filteredPayments.map((payment, index) => {
+                        const serialNumber =
+                          (currentPage - 1) * itemsPerPage + index + 1;
+                        return (
+                          <TableRow key={payment._id}>
+                            <TableCell>{serialNumber}</TableCell>
+                            <TableCell>{payment?.uid?.name}</TableCell>
+                            <TableCell>
+                              {payment.createdAt
+                                ? formatDate(payment.createdAt)
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {payment.courseId?.CourseName || "-"}
+                            </TableCell>
+                            <TableCell className="capitalize">
+                              {payment.courseId?.courseType || "-"}
+                            </TableCell>
+                            <TableCell>${payment.price || "0.00"}</TableCell>
+                            <TableCell>{payment.orderId || "N/A"}</TableCell>
+                            <TableCell>
+                              {renderStatusBadge(payment.status)}
+                            </TableCell>
+                            <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadPaymentInvoice(payment)}
+                                disabled={loadingInvoices[payment._id]}
+                                className="border-none"
+                              >
+                                {loadingInvoices[payment._id] ? (
+                                  <>
+                                    <DownloadIcon
+                                      className={`h-4 w-4 animate-pulse ${
+                                        loadingInvoices[payment._id]
+                                          ? "cursor-not-allowed"
+                                          : ""
+                                      }`}
+                                    />
+                                  </>
+                                ) : (
+                                  <>
+                                    <DownloadIcon className="h-4 w-4" />
+                                  </>
+                                )}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -560,117 +564,121 @@ export default function Payments() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredPayments.map((payment, index) => (
-                        <TableRow key={payment._id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{payment?.uid?.name}</TableCell>
-                          <TableCell>
-                            {payment.createdAt
-                              ? formatDate(payment.createdAt)
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {payment?.botId?.strategyId?.title || "-"}
-                          </TableCell>
-                          <TableCell className="capitalize">
-                            {payment?.botId?.planType || "N/A"}
-                          </TableCell>
-                          <TableCell>${payment?.price || "0.00"}</TableCell>
-                          <TableCell className="font-mono">
-                            {payment.orderId || "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <div
-                                  className="cursor-pointer"
-                                  onClick={() => setSelectedPayment(payment)}
-                                >
-                                  {payment?.metaAccountNo?.length > 0 ? (
-                                    <Badge
-                                      variant="outline"
-                                      className="hover:bg-gray-100"
-                                    >
-                                      View {payment.metaAccountNo.length}{" "}
-                                      Account
-                                      {payment.metaAccountNo.length !== 1
-                                        ? "s"
-                                        : ""}
-                                    </Badge>
-                                  ) : (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-gray-400"
-                                    >
-                                      No Accounts
-                                    </Badge>
-                                  )}
-                                </div>
-                              </DialogTrigger>
-                              <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    Meta Account Numbers
-                                  </DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                  {payment?.metaAccountNo?.length > 0 ? (
-                                    <div className="space-y-2">
-                                      {payment.metaAccountNo.map(
-                                        (account, idx) => (
-                                          <div
-                                            key={idx}
-                                            className="flex items-center p-3 bg-gray-50 rounded-md"
-                                          >
-                                            <span className="font-medium">
-                                              Account {idx + 1}:
-                                            </span>
-                                            <span className="font-mono px-3">
-                                              {account}
-                                            </span>
-                                          </div>
-                                        )
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <p className="text-gray-500 text-center py-4">
-                                      No meta account numbers found
-                                    </p>
-                                  )}
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          </TableCell>
-                          <TableCell>
-                            {renderStatusBadge(payment.status)}
-                          </TableCell>
-                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => downloadPaymentInvoice(payment)}
-                              disabled={loadingInvoices[payment._id]}
-                              className="border-none"
-                            >
-                              {loadingInvoices[payment._id] ? (
-                                <>
-                                  <DownloadIcon
-                                    className={`h-4 w-4 animate-pulse ${
-                                      loadingInvoices[payment._id]
-                                        ? "cursor-not-allowed"
-                                        : ""
-                                    }`}
-                                  />
-                                </>
-                              ) : (
-                                <>
-                                  <DownloadIcon className="h-4 w-4" />
-                                </>
-                              )}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      filteredPayments.map((payment, index) => {
+                        const serialNumber =
+                          (currentPage - 1) * itemsPerPage + index + 1;
+                        return (
+                          <TableRow key={payment._id}>
+                            <TableCell>{serialNumber}</TableCell>
+                            <TableCell>{payment?.uid?.name}</TableCell>
+                            <TableCell>
+                              {payment.createdAt
+                                ? formatDate(payment.createdAt)
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {payment?.botId?.strategyId?.title || "-"}
+                            </TableCell>
+                            <TableCell className="capitalize">
+                              {payment?.botId?.planType || "N/A"}
+                            </TableCell>
+                            <TableCell>${payment?.price || "0.00"}</TableCell>
+                            <TableCell className="font-mono">
+                              {payment.orderId || "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <div
+                                    className="cursor-pointer"
+                                    onClick={() => setSelectedPayment(payment)}
+                                  >
+                                    {payment?.metaAccountNo?.length > 0 ? (
+                                      <Badge
+                                        variant="outline"
+                                        className="hover:bg-gray-100"
+                                      >
+                                        View {payment.metaAccountNo.length}{" "}
+                                        Account
+                                        {payment.metaAccountNo.length !== 1
+                                          ? "s"
+                                          : ""}
+                                      </Badge>
+                                    ) : (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-gray-400"
+                                      >
+                                        No Accounts
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                  <DialogHeader>
+                                    <DialogTitle>
+                                      Meta Account Numbers
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4 py-4">
+                                    {payment?.metaAccountNo?.length > 0 ? (
+                                      <div className="space-y-2">
+                                        {payment.metaAccountNo.map(
+                                          (account, idx) => (
+                                            <div
+                                              key={idx}
+                                              className="flex items-center p-3 bg-gray-50 rounded-md"
+                                            >
+                                              <span className="font-medium">
+                                                Account {idx + 1}:
+                                              </span>
+                                              <span className="font-mono px-3">
+                                                {account}
+                                              </span>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="text-gray-500 text-center py-4">
+                                        No meta account numbers found
+                                      </p>
+                                    )}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                            <TableCell>
+                              {renderStatusBadge(payment.status)}
+                            </TableCell>
+                            <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadPaymentInvoice(payment)}
+                                disabled={loadingInvoices[payment._id]}
+                                className="border-none"
+                              >
+                                {loadingInvoices[payment._id] ? (
+                                  <>
+                                    <DownloadIcon
+                                      className={`h-4 w-4 animate-pulse ${
+                                        loadingInvoices[payment._id]
+                                          ? "cursor-not-allowed"
+                                          : ""
+                                      }`}
+                                    />
+                                  </>
+                                ) : (
+                                  <>
+                                    <DownloadIcon className="h-4 w-4" />
+                                  </>
+                                )}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -942,118 +950,125 @@ export default function Payments() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredPayments.map((payment, index) => (
-                      <TableRow key={payment._id}>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {payment?.uid?.name || "-"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {payment.createdAt
-                            ? formatDate(payment.createdAt)
-                            : "N/A"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap capitalize">
-                          {payment?.courseId?.CourseName || "-"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {payment?.botId?.strategyId?.title || "-"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {payment?.telegramId?.telegramId?.channelName || "-"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {payment?.courseId?.courseType || "-"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {payment?.botId?.planType ||
-                            payment?.telegramId?.planType ||
-                            "-"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          ${payment?.price || "0.00"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {payment?.orderId || "N/A"}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <div
-                                className="cursor-pointer"
-                                onClick={() => setSelectedPayment(payment)}
-                              >
-                                <span className="text-base font-semibold">
-                                  {payment?.botId
-                                    ? renderStatusBadge("View More")
-                                    : "-"}
-                                </span>
-                              </div>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                              <DialogHeader>
-                                <DialogTitle>Meta Account Numbers</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4 py-4">
-                                {payment?.metaAccountNo?.length > 0 ? (
-                                  <div className="space-y-2">
-                                    {payment.metaAccountNo.map(
-                                      (account, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="flex items-center p-3 bg-gray-50 rounded-md"
-                                        >
-                                          <span className="font-medium">
-                                            Account {idx + 1}:
-                                          </span>
-                                          <span className="font-mono px-3">
-                                            {account}
-                                          </span>
-                                        </div>
-                                      )
-                                    )}
-                                  </div>
-                                ) : (
-                                  <p className="text-gray-500 text-center py-4">
-                                    No meta account numbers found
-                                  </p>
-                                )}
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          {renderStatusBadge(payment?.status)}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => downloadPaymentInvoice(payment)}
-                            disabled={loadingInvoices[payment._id]}
-                            className="border-none"
-                          >
-                            {loadingInvoices[payment._id] ? (
-                              <>
-                                <DownloadIcon
-                                  className={`h-4 w-4 animate-pulse ${
-                                    loadingInvoices[payment._id]
-                                      ? "cursor-not-allowed"
-                                      : ""
-                                  }`}
-                                />
-                              </>
-                            ) : (
-                              <>
-                                <DownloadIcon className="h-4 w-4" />
-                              </>
-                            )}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    filteredPayments.map((payment, index) => {
+                      const serialNumber =
+                        (currentPage - 1) * itemsPerPage + index + 1;
+                      return (
+                        <TableRow key={payment._id}>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {serialNumber}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {payment?.uid?.name || "-"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {payment.createdAt
+                              ? formatDate(payment.createdAt)
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap capitalize">
+                            {payment?.courseId?.CourseName || "-"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {payment?.botId?.strategyId?.title || "-"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {payment?.telegramId?.telegramId?.channelName ||
+                              "-"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {payment?.courseId?.courseType || "-"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {payment?.botId?.planType ||
+                              payment?.telegramId?.planType ||
+                              "-"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            ${payment?.price || "0.00"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {payment?.orderId || "N/A"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <div
+                                  className="cursor-pointer"
+                                  onClick={() => setSelectedPayment(payment)}
+                                >
+                                  <span className="text-base font-semibold">
+                                    {payment?.botId
+                                      ? renderStatusBadge("View More")
+                                      : "-"}
+                                  </span>
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>
+                                    Meta Account Numbers
+                                  </DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                  {payment?.metaAccountNo?.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {payment.metaAccountNo.map(
+                                        (account, idx) => (
+                                          <div
+                                            key={idx}
+                                            className="flex items-center p-3 bg-gray-50 rounded-md"
+                                          >
+                                            <span className="font-medium">
+                                              Account {idx + 1}:
+                                            </span>
+                                            <span className="font-mono px-3">
+                                              {account}
+                                            </span>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-gray-500 text-center py-4">
+                                      No meta account numbers found
+                                    </p>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {renderStatusBadge(payment?.status)}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadPaymentInvoice(payment)}
+                              disabled={loadingInvoices[payment._id]}
+                              className="border-none"
+                            >
+                              {loadingInvoices[payment._id] ? (
+                                <>
+                                  <DownloadIcon
+                                    className={`h-4 w-4 animate-pulse ${
+                                      loadingInvoices[payment._id]
+                                        ? "cursor-not-allowed"
+                                        : ""
+                                    }`}
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <DownloadIcon className="h-4 w-4" />
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>

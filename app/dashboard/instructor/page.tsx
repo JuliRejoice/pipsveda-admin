@@ -125,8 +125,9 @@ export default function InstructorPage() {
       name: "",
       email: "",
       bio: "",
-      image: null,
+      image: undefined,
     },
+    mode: "onChange",
   });
 
   const {
@@ -156,16 +157,50 @@ export default function InstructorPage() {
     setIsDragging(false);
 
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setValue("image", file, { shouldValidate: true });
+    if (!file) return;
+
+    // Clear previous errors
+    setValue("image", undefined, { shouldValidate: true });
+
+    // Check file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file (PNG, JPG, JPEG, GIF)");
+      return;
     }
+
+    // Check file size (5MB max)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    // If all validations pass, set the file
+    setValue("image", file, { shouldValidate: true });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setValue("image", file, { shouldValidate: true });
+    if (!file) return;
+
+    // Clear previous errors
+    setValue("image", undefined, { shouldValidate: true });
+
+    // Check file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file (PNG, JPG, JPEG, GIF)");
+      return;
     }
+
+    // Check file size (5MB max)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    // If all validations pass, set the file
+    setValue("image", file, { shouldValidate: true });
   };
 
   const openFileDialog = () => {
@@ -173,7 +208,7 @@ export default function InstructorPage() {
   };
 
   const removeImage = () => {
-    setValue("image", null, { shouldValidate: true });
+    setValue("image", undefined, { shouldValidate: true });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -342,40 +377,37 @@ export default function InstructorPage() {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Full Name *</Label>
-                    <Input
-                      id="name"
-                      placeholder="John Doe"
-                      {...register("name")}
-                      className={errors.name ? "border-red-500" : ""}
-                    />
-                    {errors.name && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.name.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="instructor@example.com"
-                      {...register("email")}
-                      className={errors.email ? "border-red-500" : ""}
-                    />
-                    {errors.email && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.email.message}
-                      </p>
-                    )}
-                  </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Full Name *</Label>
+                  <Input
+                    id="name"
+                    placeholder="John Doe"
+                    {...register("name")}
+                    className={errors.name ? "border-red-500" : ""}
+                  />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
 
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="instructor@example.com"
+                    {...register("email")}
+                    className={errors.email ? "border-red-500" : ""}
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
                 <div>
                   <Label>Profile image</Label>
                   <div
@@ -444,24 +476,23 @@ export default function InstructorPage() {
                     </p>
                   )}
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="bio">Bio *</Label>
-                <textarea
-                  id="bio"
-                  rows={4}
-                  placeholder="A brief introduction about the instructor..."
-                  {...register("bio")}
-                  className={`w-full px-3 py-2 border ${
-                    errors.bio ? "border-red-500" : "border-gray-300"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {errors.bio && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.bio.message}
-                  </p>
-                )}
+                <div>
+                  <Label htmlFor="bio">Bio *</Label>
+                  <textarea
+                    id="bio"
+                    rows={4}
+                    placeholder="A brief introduction about the instructor..."
+                    {...register("bio")}
+                    className={`w-full px-3 py-2 border ${
+                      errors.bio ? "border-red-500" : "border-gray-300"
+                    } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+                  />
+                  {errors.bio && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.bio.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">

@@ -1211,7 +1211,7 @@ export default function AlgoBots() {
                 <>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="title">Strategy Name</Label>
+                      <Label htmlFor="title">Strategy Name *</Label>
                       <Input
                         id="title"
                         placeholder="Enter strategy name"
@@ -1235,7 +1235,7 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Tutorial Video Links</Label>
+                        <Label>Tutorial Video Links *</Label>
                         {step1.links.map((link: any, index) => (
                           <>
                             <div
@@ -1351,7 +1351,7 @@ export default function AlgoBots() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="categoryId">Category</Label>
+                      <Label htmlFor="categoryId">Category *</Label>
                       <select
                         id="categoryId"
                         {...register("categoryId")}
@@ -1379,7 +1379,7 @@ export default function AlgoBots() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="imageUrl">Image</Label>
+                      <Label htmlFor="imageUrl">Image *</Label>
                       <label
                         htmlFor="imageUrl"
                         onDragOver={handleDragOver}
@@ -1438,7 +1438,7 @@ export default function AlgoBots() {
                     <div className="space-y-2">
                       <Label htmlFor="shortDescription">
                         Short Description
-                      </Label>
+                       *</Label>
                       <Textarea
                         id="shortDescription"
                         placeholder="Enter a brief description (10-50 characters)"
@@ -1466,7 +1466,7 @@ export default function AlgoBots() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
+                      <Label htmlFor="description">Description *</Label>
                       <RichTextEditor
                         // id="description"
                         value={watch("description") || ""}
@@ -1539,7 +1539,7 @@ export default function AlgoBots() {
                     className="space-y-4"
                   >
                     <div className="space-y-2">
-                      <Label htmlFor="plan">Plan Duration</Label>
+                      <Label htmlFor="plan">Plan Duration *</Label>
                       <select
                         id="plan"
                         {...register("plan")}
@@ -1601,7 +1601,7 @@ export default function AlgoBots() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="price">Price</Label>
+                      <Label htmlFor="price">Price *</Label>
                       <Input
                         id="price"
                         type="number"
@@ -1618,7 +1618,7 @@ export default function AlgoBots() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="discount">Discount</Label>
+                      <Label htmlFor="discount">Discount *</Label>
                       <Input
                         id="discount"
                         type="number"
@@ -1635,7 +1635,7 @@ export default function AlgoBots() {
                     <div className="space-y-2">
                       <Label htmlFor="botProviderId">
                         Bot Provider Company
-                      </Label>
+                       *</Label>
                       <select
                         id="botProviderId"
                         {...register("botProviderId")}
@@ -1664,7 +1664,7 @@ export default function AlgoBots() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="botId">Bot Name</Label>
+                      <Label htmlFor="botId">Bot Name *</Label>
                       <select
                         id="botId"
                         {...register("botId")}

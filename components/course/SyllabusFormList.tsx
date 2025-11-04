@@ -30,6 +30,7 @@ interface SyllabusSectionProps {
   setIsSyllabusVisible?: (open: boolean) => void;
   setIsLiveBatchVisible?: (open: boolean) => void;
   setIsPhysicalBatchVisible?: (open: boolean) => void;
+  saveTitle?: string;
 }
 
 export default function SyllabusSection({
@@ -38,6 +39,7 @@ export default function SyllabusSection({
   setIsSyllabusVisible,
   setIsLiveBatchVisible,
   setIsPhysicalBatchVisible,
+  saveTitle,
 }: SyllabusSectionProps) {
   const [syllabusList, setSyllabusList] = useState<Syllabus[]>([]);
   const [loading, setLoading] = useState(false);
@@ -243,7 +245,7 @@ export default function SyllabusSection({
           disabled={loading}
           className="flex  items-center gap-2"
         >
-          {loading ? "Saving..." : "Save All"}
+          {saveTitle ? saveTitle : loading ? "Saving..." : "Save All"}
         </Button>
       </div>
     </div>

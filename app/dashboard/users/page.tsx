@@ -484,152 +484,158 @@ export default function Users() {
                       </TableCell>
                     </TableRow>
                   ) : filteredCustomers.length > 0 ? (
-                    filteredCustomers.map((customer, index) => (
-                      <TableRow key={customer._id}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-9 w-9">
-                              <AvatarFallback>
-                                {customer.name
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-lexend">{customer.name}</div>
-                              <div className="text-xs text-muted-foreground font-lexend">
-                                {customer.location}
+                    filteredCustomers.map((customer, index) => {
+                      const serialNumber =
+                        (currentPage - 1) * itemsPerPage + index + 1;
+                      return (
+                        <TableRow key={customer._id}>
+                          <TableCell>{serialNumber}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-9 w-9">
+                                <AvatarFallback>
+                                  {customer.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-lexend">
+                                  {customer.name}
+                                </div>
+                                <div className="text-xs text-muted-foreground font-lexend">
+                                  {customer.location}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm font-lexend">
-                            {customer.email}
-                          </div>
-                          {customer.phone && (
-                            <div className="text-xs text-muted-foreground flex items-center gap-1 font-lexend">
-                              {customer.phone}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-lexend">
+                              {customer.email}
                             </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="capitalize font-lexend">
-                            {customer.gender?.toLowerCase() || "N/A"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {customer.birthday &&
-                          !isNaN(new Date(customer.birthday).getTime())
-                            ? new Date(customer.birthday).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                }
-                              )
-                            : "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              customer.isActive ? "default" : "secondary"
-                            }
-                            className="outline-hide"
-                          >
-                            {customer.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {customer.createdAt &&
-                          !isNaN(new Date(customer.createdAt).getTime())
-                            ? new Date(customer.createdAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                }
-                              )
-                            : "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleEdit(customer)}
-                              >
-                                <Edit className="mr-2 h-5 w-5 text-blacktheme" />
-                                <span className="text-base font-semibold text-gray-500 font-lexend">
-                                  Edit
-                                </span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleStatusToggleClick(customer);
-                                }}
-                                className={
-                                  customer.isActive
-                                    ? "text-red-600"
-                                    : "text-foreground"
-                                }
-                              >
-                                {customer.isActive ? (
-                                  <>
-                                    <UserX className="mr-2 h-5 w-5" />
-                                    <span className="text-base font-semibold text-red-600">
-                                      Inactive
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserCheck className="mr-2 h-5 w-5" />
-                                    <span className="text-base font-semibold text-gray-500 font-lexend">
-                                      Activate
-                                    </span>
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteClick(customer);
-                                }}
-                                className="text-red-600"
-                                disabled={deletingId === customer._id}
-                              >
-                                {deletingId === customer._id ? (
-                                  <>
-                                    <div className="mr-2 h-5 w-5 animate-spin border-2 border-red-600 border-t-transparent rounded-full"></div>
-                                    <span className="text-base font-semibold text-red-600">
-                                      Deleting...
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Trash2 className="mr-2 h-5 w-5" />
-                                    <span className="text-base font-semibold text-red-600">
-                                      Delete
-                                    </span>
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                            {customer.phone && (
+                              <div className="text-xs text-muted-foreground flex items-center gap-1 font-lexend">
+                                {customer.phone}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <span className="capitalize font-lexend">
+                              {customer.gender?.toLowerCase() || "N/A"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {customer.birthday &&
+                            !isNaN(new Date(customer.birthday).getTime())
+                              ? new Date(customer.birthday).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                customer.isActive ? "default" : "secondary"
+                              }
+                              className="outline-hide"
+                            >
+                              {customer.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {customer.createdAt &&
+                            !isNaN(new Date(customer.createdAt).getTime())
+                              ? new Date(customer.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleEdit(customer)}
+                                >
+                                  <Edit className="mr-2 h-5 w-5 text-blacktheme" />
+                                  <span className="text-base font-semibold text-gray-500 font-lexend">
+                                    Edit
+                                  </span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStatusToggleClick(customer);
+                                  }}
+                                  className={
+                                    customer.isActive
+                                      ? "text-red-600"
+                                      : "text-foreground"
+                                  }
+                                >
+                                  {customer.isActive ? (
+                                    <>
+                                      <UserX className="mr-2 h-5 w-5" />
+                                      <span className="text-base font-semibold text-red-600">
+                                        Inactive
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserCheck className="mr-2 h-5 w-5" />
+                                      <span className="text-base font-semibold text-gray-500 font-lexend">
+                                        Activate
+                                      </span>
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(customer);
+                                  }}
+                                  className="text-red-600"
+                                  disabled={deletingId === customer._id}
+                                >
+                                  {deletingId === customer._id ? (
+                                    <>
+                                      <div className="mr-2 h-5 w-5 animate-spin border-2 border-red-600 border-t-transparent rounded-full"></div>
+                                      <span className="text-base font-semibold text-red-600">
+                                        Deleting...
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Trash2 className="mr-2 h-5 w-5" />
+                                      <span className="text-base font-semibold text-red-600">
+                                        Delete
+                                      </span>
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={8} className="h-24 text-center">

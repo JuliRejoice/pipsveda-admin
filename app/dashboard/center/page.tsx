@@ -422,7 +422,7 @@ export default function CenterPage() {
                 name="centerName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Center Name</FormLabel>
+                    <FormLabel>Center Name *</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter center name" {...field} />
                     </FormControl>
@@ -436,7 +436,7 @@ export default function CenterPage() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>Location *</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input placeholder="Enter location" {...field} />
@@ -452,7 +452,7 @@ export default function CenterPage() {
                 name="country"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Country</FormLabel>
+                    <FormLabel>Country *</FormLabel>
                     <FormControl>
                       <CountrySelect
                         containerClassName="w-full"
@@ -503,7 +503,7 @@ export default function CenterPage() {
 
                   return (
                     <FormItem>
-                      <FormLabel>State</FormLabel>
+                      <FormLabel>State *</FormLabel>
                       <FormControl>
                         <div onClick={handleStateFocus} className="w-full">
                           <StateSelect
@@ -563,7 +563,7 @@ export default function CenterPage() {
 
                   return (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
+                      <FormLabel>City *</FormLabel>
                       <FormControl>
                         <div onClick={handleCityFocus} className="w-full">
                           <CitySelect

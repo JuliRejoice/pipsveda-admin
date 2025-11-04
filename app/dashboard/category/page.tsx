@@ -47,7 +47,6 @@ import {
   updateCourseCategory,
 } from "@/components/api/category";
 
-// Form validation schema with category name and image
 const formSchema = z.object({
   name: z
     .string()
@@ -59,21 +58,25 @@ const formSchema = z.object({
     ),
   image: z
     .any()
+    .refine((file) => file !== null && file !== undefined, {
+      message: "Image is required",
+    })
     .refine(
       (file) =>
-        file instanceof File || file === null || typeof file === "string",
+        typeof file === "string" ||
+        (file instanceof File && file.type.startsWith("image/")),
       {
-        message: "Please upload an image file",
+        message: "Please upload a valid image file",
       }
     )
     .refine(
       (file) => {
-        if (!file) return false; // Changed from true to false to make it required
-        if (typeof file === "string") return true; // Allow existing image URLs
-        return file.size <= 5 * 1024 * 1024; // 5MB max size
+        if (typeof file === "string") return true;
+        if (file instanceof File) return file.size <= 5 * 1024 * 1024;
+        return true;
       },
       {
-        message: "Please upload an image file",
+        message: "Image size must be less than 5MB",
       }
     ),
 });
@@ -105,7 +108,6 @@ export default function Category() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [imageError, setImageError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
 
   const form = useForm<FormValues>({
@@ -141,24 +143,31 @@ export default function Category() {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setValue("image", file, { shouldValidate: true });
-    }
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
-    if (file.size > MAX_FILE_SIZE) {
-      setImageError("Image size must be less than 5MB");
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File must be an image");
       return;
     }
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    setValue("image", file, { shouldValidate: true });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file && !file.type.startsWith("image/"))
+      toast.error("File must be Image");
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
-      setImageError("Image size must be less than 5MB");
+      toast.error("Image size must be less than 5MB");
       return;
     }
 
@@ -227,23 +236,52 @@ export default function Category() {
   useEffect(() => {
     fetchCategories();
   }, []);
-  // Handle form submission for both create and update
+
   const onSubmit = async (data: FormValues) => {
     try {
       setIsLoading(true);
-
-      // Create FormData to handle file upload
       const formData = new FormData();
-      formData.append("name", data.name);
 
-      // Only append image if it's a File object (not a string URL)
-      if (data.image && data.image instanceof File) {
-        formData.append("image", data.image);
-      } else if (isEditMode && typeof data.image === "string") {
-        // If it's an edit and image is a string (existing URL), we don't need to send it again
-        // unless it was changed, but we'll handle that in the API
-        formData.append("imageUrl", data.image);
+      // Always append the name
+      formData.append("name", data.name.trim());
+
+      // Handle image
+      if (data.image) {
+        if (data.image instanceof File) {
+          // If it's a File object, append it directly
+          formData.append("image", data.image);
+        } else if (isEditMode && typeof data.image === "string") {
+          // If it's a string (URL or base64), we need to fetch it
+          try {
+            // Check if it's a base64 string
+            if (data.image.startsWith("data:image")) {
+              // Convert base64 to blob
+              const response = await fetch(data.image);
+              const blob = await response.blob();
+              const file = new File([blob], "category-image.jpg", {
+                type: blob.type,
+              });
+              formData.append("image", file);
+            } else {
+              // It's a URL, fetch the image
+              const response = await fetch(data.image);
+              const blob = await response.blob();
+              const file = new File([blob], "category-image.jpg", {
+                type: blob.type,
+              });
+              formData.append("image", file);
+            }
+          } catch (error) {
+            console.error("Error processing image:", error);
+            // Continue without the image if there's an error
+          }
+        }
       }
+
+      console.log("Form data to submit:", {
+        name: formData.get("name"),
+        hasImage: formData.has("image"),
+      });
 
       if (isEditMode && currentCategoryId) {
         const response = await updateCourseCategory(
@@ -252,24 +290,17 @@ export default function Category() {
         );
         if (response.success) {
           toast.success("Category updated successfully!");
+          setIsOpen(false);
+          reset();
+          fetchCategories();
         } else {
-          toast.error(response.message);
-        }
-      } else {
-        const response = await createCourseCategory(formData);
-        if (response.success) {
-          toast.success("Category created successfully!");
-        } else {
-          toast.error(response.message);
+          toast.error(response.message || "Failed to update category");
         }
       }
-
-      setIsOpen(false);
-      reset();
-      fetchCategories();
+      // ... rest of the function
     } catch (error) {
-      console.error("Error saving category:", error);
-      toast.error("Failed to save category");
+      console.error("Error:", error);
+      toast.error("An error occurred while saving the category");
     } finally {
       setIsLoading(false);
     }
@@ -278,16 +309,14 @@ export default function Category() {
   // Set up form for editing
   const handleEdit = (category: CategoryItem) => {
     setCurrentCategoryId(category._id);
-    setValue("name", category.name, { shouldValidate: true });
-
-    // Set the image if it exists in the category data
-    if (category.image) {
-      setValue("image", category.image, { shouldValidate: true });
-    } else {
-      setValue("image", null, { shouldValidate: true });
-    }
-
     setIsEditMode(true);
+
+    // Reset the form first to clear any previous state
+    reset({
+      name: category.name,
+      image: category.image || null,
+    });
+
     setIsOpen(true);
   };
 
@@ -317,7 +346,7 @@ export default function Category() {
       setCategoryToDelete(null);
     }
   };
-console.log(categories);
+  console.log(categories);
 
   // Reset form for creating new category
   const handleCreateNew = () => {
@@ -366,7 +395,7 @@ console.log(categories);
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Category Name*</Label>
+                <Label htmlFor="name">Category Name *</Label>
                 <Input
                   id="name"
                   placeholder="Enter category name"
@@ -389,7 +418,7 @@ console.log(categories);
               </div>
 
               <div className="space-y-2">
-                <Label>Category Image*</Label>
+                <Label>Category Image *</Label>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -445,8 +474,8 @@ console.log(categories);
                   )}
                 </div>
                 {errors.image && (
-                  <p className="text-sm text-red-500">
-                    {errors.image.message as string|| imageError}
+                  <p className="text-sm font-semibold text-red-500">
+                    {errors.image.message as string}
                   </p>
                 )}
               </div>

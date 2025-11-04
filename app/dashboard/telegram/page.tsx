@@ -79,8 +79,8 @@ const formSchema = z.object({
   discount: z.string().optional(),
   botProviderId: z.string().optional(),
   botId: z.string().optional(),
-  image: z.string().optional(),
-  logo: z.string().optional(),
+  image: z.string().nonempty("Image is required"),
+  logo: z.string().nonempty("Logo is required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -166,10 +166,8 @@ export default function TelegramManagement() {
         setIsLoading(true);
         const response: any = await uploadImage(file);
         console.log("Upload response:", response);
-
         if (response?.success) {
           setImageFile(file);
-          // Use the server-returned URL for the preview
           setImagePreview(response.payload);
           setValue("image", response.payload, { shouldValidate: true });
           toast.success("Image uploaded successfully");
@@ -191,11 +189,8 @@ export default function TelegramManagement() {
       try {
         setIsLoading(true);
         const response: any = await uploadImage(file);
-        console.log("Upload response:", response);
-
         if (response?.success) {
           setLogoFile(file);
-          // Use the server-returned URL for the preview
           setLogoPreview(response.payload);
           setValue("logo", response.payload, { shouldValidate: true });
           toast.success("Logo uploaded successfully");
@@ -210,17 +205,20 @@ export default function TelegramManagement() {
       }
     }
   };
+  console.log("errors", errors);
 
   const removeImage = () => {
     setImageFile(null);
     setImagePreview(null);
     setValue("image", "");
+    trigger("image");
   };
 
   const removeLogo = () => {
     setLogoFile(null);
     setLogoPreview(null);
     setValue("logo", "");
+    trigger("logo");
   };
 
   // Fetch channels on component mount
@@ -252,6 +250,8 @@ export default function TelegramManagement() {
         channelName: data.channelName,
         description: data.description,
         link: data.link,
+        image: data.image,
+        logo: data.logo,
       };
 
       // For edit mode, include existing image/logo if they exist
@@ -295,8 +295,6 @@ export default function TelegramManagement() {
       setIsLoading(false);
     }
   };
-  console.log("imageFile", imageFile);
-  console.log("logoFile", logoFile);
 
   const onSubmitSecond = async (data: FormValues) => {
     try {
@@ -362,7 +360,6 @@ export default function TelegramManagement() {
       setIsLoading(false);
     }
   };
-  console.log(channels);
 
   // Set up form for editing
   const handleEdit = async (channel: TelegramChannel) => {
@@ -616,7 +613,6 @@ export default function TelegramManagement() {
 
     try {
       if (planToDelete._id && !planToDelete._id.startsWith("temp_")) {
-        // This is an existing plan, delete via API
         setIsDeleting(true);
         await deleteChannelPlan(planToDelete._id);
         toast.success("Plan deleted successfully");
@@ -642,7 +638,6 @@ export default function TelegramManagement() {
       </div>
     );
   }
-  console.log(getValues("image"));
 
   return (
     <div className="space-y-6">
@@ -700,7 +695,7 @@ export default function TelegramManagement() {
                 <>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="channelName">Channel Name</Label>
+                      <Label htmlFor="channelName">Channel Name *</Label>
                       <Input
                         id="channelName"
                         placeholder="Enter channel name"
@@ -726,7 +721,7 @@ export default function TelegramManagement() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
+                      <Label htmlFor="description">Description *</Label>
                       <Textarea
                         id="description"
                         placeholder="Enter channel description"
@@ -753,7 +748,7 @@ export default function TelegramManagement() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="link">Telegram Link</Label>
+                      <Label htmlFor="link">Telegram Link *</Label>
                       <Input
                         id="link"
                         placeholder="https://t.me/yourchannel"
@@ -775,99 +770,102 @@ export default function TelegramManagement() {
                         </p>
                       )}
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="image">Channel Image</Label>
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <label
-                            htmlFor="image-upload"
-                            className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50"
-                          >
-                            {imagePreview || getValues("image") ? (
-                              <div className="relative w-full h-full">
-                                <img
-                                  src={imagePreview || getValues("image")}
-                                  alt="Channel preview"
-                                  className="object-cover w-full h-full rounded-lg"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeImage();
-                                  }}
-                                  className="absolute p-1 text-white bg-red-500 rounded-full -top-2 -right-2 hover:bg-red-600"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center text-gray-400">
-                                <ImageIcon className="w-8 h-8 mb-1" />
-                                <span className="text-sm">Upload Image</span>
-                              </div>
-                            )}
-                            <input
-                              id="image-upload"
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={handleImageChange}
-                            />
-                          </label>
+                    <div className="flex justify-between">
+                      <div className="space-y-2">
+                        <Label htmlFor="image">Channel Image *</Label>
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <label
+                              htmlFor="image"
+                              className="flex flex-col items-center justify-center w-64 h-40 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50"
+                            >
+                              {imagePreview || getValues("image") ? (
+                                <div className="relative w-full h-full">
+                                  <img
+                                    src={imagePreview || getValues("image")}
+                                    alt="Channel preview"
+                                    className="object-cover w-full h-full rounded-lg"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeImage();
+                                    }}
+                                    className="absolute p-1 text-white bg-red-500 rounded-full -top-2 -right-2 hover:bg-red-600"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center text-gray-400">
+                                  <ImageIcon className="w-8 h-8 mb-1" />
+                                  <span className="text-sm">Upload Image</span>
+                                </div>
+                              )}
+                              <Input
+                                id="image"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleImageChange}
+                              />
+                            </label>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          <p>Recommended size: 800x450px</p>
-                          <p>Max file size: 5MB</p>
-                        </div>
+                        {errors.image && (
+                          <p className="text-sm font-semibold text-red-500">
+                            {errors.image.message}
+                          </p>
+                        )}
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="logo">Channel Logo</Label>
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <label
-                            htmlFor="logo-upload"
-                            className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed rounded-full cursor-pointer hover:bg-gray-50"
-                          >
-                            {logoPreview || getValues("logo") ? (
-                              <div className="relative w-full h-full">
-                                <img
-                                  src={logoPreview || getValues("logo")}
-                                  alt="Logo preview"
-                                  className="object-cover w-full h-full rounded-full"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeLogo();
-                                  }}
-                                  className="absolute p-1 text-white bg-red-500 rounded-full -top-2 -right-2 hover:bg-red-600"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center text-gray-400">
-                                <ImageIcon className="w-6 h-6 mb-1" />
-                                <span className="text-xs">Upload Logo</span>
-                              </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="logo">Channel Logo *</Label>
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <label
+                              htmlFor="logo"
+                              className="flex flex-col items-center justify-center w-64 h-40 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50"
+                            >
+                              {logoPreview || getValues("logo") ? (
+                                <div className="relative w-full h-full">
+                                  <img
+                                    src={logoPreview || getValues("logo")}
+                                    alt="Logo preview"
+                                    className="object-cover w-full h-full rounded-full"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeLogo();
+                                    }}
+                                    className="absolute p-1 text-white bg-red-500 rounded-full -top-2 -right-2 hover:bg-red-600"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center text-gray-400">
+                                  <ImageIcon className="w-6 h-6 mb-1" />
+                                  <span className="text-sm">Upload Logo</span>
+                                </div>
+                              )}
+                              <Input
+                                id="logo"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleLogoChange}
+                              />
+                            </label>
+                            {errors.logo && (
+                              <p className="text-sm text-red-500">
+                                {errors.logo.message}
+                              </p>
                             )}
-                            <input
-                              id="logo-upload"
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={handleLogoChange}
-                            />
-                          </label>
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          <p>Recommended size: 200x200px</p>
-                          <p>Max file size: 2MB</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1134,7 +1132,9 @@ export default function TelegramManagement() {
                 <div className="w-full rounded-md overflow-hidden border-2 border-white shadow-sm">
                   <img
                     src={
-                      channel?.image?.startsWith("blob:") ? "" : channel?.image
+                      channel?.image?.startsWith?.("blob:") || !channel?.image
+                        ? ""
+                        : channel.image
                     }
                     alt={channel.channelName}
                     className="w-full h-48 object-cover rounded-t-lg"
@@ -1150,9 +1150,10 @@ export default function TelegramManagement() {
                         <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
                           <img
                             src={
-                              channel?.logo?.startsWith("blob:")
+                              channel?.logo?.startsWith?.("blob:") ||
+                              !channel?.logo
                                 ? ""
-                                : channel?.logo
+                                : channel.logo
                             }
                             alt={`${channel.channelName} logo`}
                             className="w-full h-full object-cover"

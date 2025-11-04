@@ -2,12 +2,31 @@
 
 import { getContact } from "@/components/api/contact";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Mail, Phone, MessageSquare, MapPin, Loader2 } from "lucide-react";
+import {
+  Calendar,
+  Mail,
+  Phone,
+  MessageSquare,
+  MapPin,
+  Loader2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Contact = {
   id: string;
@@ -66,8 +85,12 @@ export default function ContactPage() {
       <div className="space-y-6">
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Contact Submission</h1>
-            <p className="text-gray-900">View and manage submitted contact queries.</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Contact Submission
+            </h1>
+            <p className="text-gray-900">
+              View and manage submitted contact queries.
+            </p>
           </div>
         </div>
 
@@ -75,8 +98,12 @@ export default function ContactPage() {
           {contactData.length === 0 ? (
             <div className="text-center py-12 bg-card">
               <MessageSquare className="mx-auto h-12 w-12 text-gray-900" />
-              <h3 className="mt-4 text-lg font-medium text-foreground">No contact submissions</h3>
-              <p className="mt-1 text-sm text-gray-900">No one has submitted the contact form yet.</p>
+              <h3 className="mt-4 text-lg font-medium text-foreground">
+                No contact submissions
+              </h3>
+              <p className="mt-1 text-sm text-gray-900">
+                No one has submitted the contact form yet.
+              </p>
             </div>
           ) : (
             <Table>
@@ -108,7 +135,11 @@ export default function ContactPage() {
                       {submission.phone && (
                         <div className="flex items-center space-x-2">
                           <Phone className="h-5 w-5 text-gray-900" />
-                          <span>{submission.phone}</span>
+                          <span>
+                            {submission.phone.startsWith("+")
+                              ? submission.phone
+                              : `+${submission.phone}`}
+                          </span>
                         </div>
                       )}
                     </TableCell>
@@ -136,7 +167,9 @@ export default function ContactPage() {
                           </span>
                         </TooltipTrigger>
                         <TooltipContent className="max-w-md">
-                          <p className="whitespace-pre-wrap break-words">{submission.description}</p>
+                          <p className="whitespace-pre-wrap break-words">
+                            {submission.description}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>

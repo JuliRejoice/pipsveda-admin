@@ -156,6 +156,11 @@ export default function Utility() {
     currentPage * itemsPerPage
   );
 
+  const formatPhoneNumber = (phone: string): string => {
+    if (!phone || phone === "Not set") return phone;
+    return phone.startsWith("+") ? phone : `+${phone}`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Search */}
@@ -193,7 +198,11 @@ export default function Utility() {
                     </div>
                   </TableCell>
                   <TableCell className="max-w-[400px] truncate">
-                    {item.value}
+                    <TableCell className="max-w-[400px] truncate">
+                      {item.field === "phoneNo" || item.field === "chatNumber"
+                        ? formatPhoneNumber(item.value)
+                        : item.value}
+                    </TableCell>{" "}
                   </TableCell>
                   <TableCell>
                     <Button

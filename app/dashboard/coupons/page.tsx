@@ -348,7 +348,7 @@ export default function CouponPage() {
                   name="couponCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Coupon Code</FormLabel>
+                      <FormLabel>Coupon Code *</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter Coupon code..."
@@ -381,7 +381,7 @@ export default function CouponPage() {
                   name="discount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discount(%)</FormLabel>
+                      <FormLabel>Discount(%) *</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(e.target.value)} />
                       </FormControl>
@@ -394,7 +394,7 @@ export default function CouponPage() {
                   name="expiryDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Expiry Date</FormLabel>
+                      <FormLabel>Expiry Date *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -428,7 +428,7 @@ export default function CouponPage() {
                   name="usageLimit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Usage Limit</FormLabel>
+                      <FormLabel>Usage Limit *</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(e.target.value)} />
                       </FormControl>
