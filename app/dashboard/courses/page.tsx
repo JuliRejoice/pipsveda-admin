@@ -438,7 +438,7 @@ export default function Courses() {
 
     // Validate price (required and > 0)
     const priceValue = formData.get("price")?.toString();
-    const price = parseFloat(priceValue || "");
+    const price = priceValue ? parseFloat(priceValue) : 0;
     if (!priceValue || isNaN(price) || price <= 0) {
       errors.price = "Please enter a valid price greater than 0";
     }
@@ -493,7 +493,7 @@ export default function Courses() {
         errors.email = "Email is required";
       } else if (
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-          formData.get("email")?.toString().trim() || ""
+          formData.get("email")?.toString().trim().toLowerCase() || ""
         )
       ) {
         errors.email = "Please enter a valid email address";
@@ -1165,7 +1165,6 @@ export default function Courses() {
       );
     }
   };
-  console.log(formErrors);
 
   return (
     <div>
@@ -1185,6 +1184,28 @@ export default function Courses() {
             setPhysicalEndDate(undefined);
             setIsPhysicalBatchVisible(false);
             setIsLiveBatchVisible(false);
+            if (!editCourse) {
+              setLiveBatches([
+                {
+                  id: "",
+                  batchName: "",
+                  description: "",
+                  startDate: null,
+                  endDate: null,
+                  courseId: "",
+                },
+              ]);
+              setPhysicalBatches([
+                {
+                  id: "",
+                  batchName: "",
+                  description: "",
+                  startDate: null,
+                  endDate: null,
+                  courseId: "",
+                },
+              ]);
+            }
             const form = document.querySelector("form");
             if (form) {
               form.reset();
@@ -1481,8 +1502,22 @@ export default function Courses() {
                       <Input
                         placeholder="Course Price"
                         type="number"
+                        step="0.01"
+                        min="0"
                         name="price"
                         defaultValue={editCourse?.price || ""}
+                        onInput={(e) => {
+                          const value = e.currentTarget.value;
+                          if (value.includes(".")) {
+                            const [whole, decimal] = value.split(".");
+                            if (decimal && decimal.length > 2) {
+                              e.currentTarget.value = `${whole}.${decimal.slice(
+                                0,
+                                2
+                              )}`;
+                            }
+                          }
+                        }}
                       />
                       {formErrors.price && (
                         <div className="text-red-500">{formErrors.price}</div>
@@ -1762,8 +1797,22 @@ export default function Courses() {
                       <Input
                         placeholder="Course Price"
                         type="number"
+                        step="0.01"
+                        min="0"
                         name="price"
                         defaultValue={editCourse?.price || ""}
+                        onInput={(e) => {
+                          const value = e.currentTarget.value;
+                          if (value.includes(".")) {
+                            const [whole, decimal] = value.split(".");
+                            if (decimal && decimal.length > 2) {
+                              e.currentTarget.value = `${whole}.${decimal.slice(
+                                0,
+                                2
+                              )}`;
+                            }
+                          }
+                        }}
                       />
                       {formErrors.price && (
                         <div className="text-red-500">{formErrors.price}</div>
@@ -2067,6 +2116,11 @@ export default function Courses() {
                                     currentBatch._id,
                                     setLiveBatches
                                   );
+                                } else {
+                                  // For unsaved batches, just remove from the local state
+                                  setLiveBatches((prevBatches) =>
+                                    prevBatches.filter((_, i) => i !== index)
+                                  );
                                 }
                               }
                             : undefined
@@ -2203,8 +2257,22 @@ export default function Courses() {
                       <Input
                         placeholder="Course Price"
                         type="number"
+                        step="0.01"
+                        min="0"
                         name="price"
                         defaultValue={editCourse?.price || ""}
+                        onInput={(e) => {
+                          const value = e.currentTarget.value;
+                          if (value.includes(".")) {
+                            const [whole, decimal] = value.split(".");
+                            if (decimal && decimal.length > 2) {
+                              e.currentTarget.value = `${whole}.${decimal.slice(
+                                0,
+                                2
+                              )}`;
+                            }
+                          }
+                        }}
                       />
                       {formErrors.price && (
                         <div className="text-red-500">{formErrors.price}</div>
@@ -2333,7 +2401,7 @@ export default function Courses() {
                         placeholder="Email"
                         name="email"
                         defaultValue={editCourse?.email || ""}
-                        className="w-full"
+                        className="w-full lowercase"
                         onBlur={handleTrimInput}
                         onKeyDown={(e) => {
                           if (
@@ -2352,6 +2420,9 @@ export default function Courses() {
                       <label className="block font-medium">Phone No. *</label>
                       <Input
                         type="tel"
+                        inputMode="numeric"
+                        pattern="\+?[0-9]*"
+                        maxLength={10}
                         placeholder="Phone Number"
                         name="phone"
                         defaultValue={editCourse?.phone || ""}
@@ -2363,6 +2434,15 @@ export default function Courses() {
                             !(e.target as HTMLInputElement).value.trim()
                           ) {
                             e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value.startsWith("+")) {
+                            e.target.value =
+                              "+" + value.slice(1).replace(/[^0-9]/g, "");
+                          } else {
+                            e.target.value = value.replace(/[^0-9]/g, "");
                           }
                         }}
                       />

@@ -238,69 +238,39 @@ export default function Category() {
   }, []);
 
   const onSubmit = async (data: FormValues) => {
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append("name", data.name);
+
+    // Only append image if it's a File (new upload)
+    if (data.image instanceof File) {
+      formData.append("image", data.image);
+    } else if (
+      isEditMode &&
+      currentCategoryId &&
+      typeof data.image === "string"
+    ) {
+      // For updates, if image is a string (existing image URL), don't append it
+      // This prevents overwriting the existing image if no new one is selected
+    }
+
     try {
-      setIsLoading(true);
-      const formData = new FormData();
-
-      // Always append the name
-      formData.append("name", data.name.trim());
-
-      // Handle image
-      if (data.image) {
-        if (data.image instanceof File) {
-          // If it's a File object, append it directly
-          formData.append("image", data.image);
-        } else if (isEditMode && typeof data.image === "string") {
-          // If it's a string (URL or base64), we need to fetch it
-          try {
-            // Check if it's a base64 string
-            if (data.image.startsWith("data:image")) {
-              // Convert base64 to blob
-              const response = await fetch(data.image);
-              const blob = await response.blob();
-              const file = new File([blob], "category-image.jpg", {
-                type: blob.type,
-              });
-              formData.append("image", file);
-            } else {
-              // It's a URL, fetch the image
-              const response = await fetch(data.image);
-              const blob = await response.blob();
-              const file = new File([blob], "category-image.jpg", {
-                type: blob.type,
-              });
-              formData.append("image", file);
-            }
-          } catch (error) {
-            console.error("Error processing image:", error);
-            // Continue without the image if there's an error
-          }
-        }
-      }
-
-      console.log("Form data to submit:", {
-        name: formData.get("name"),
-        hasImage: formData.has("image"),
-      });
-
       if (isEditMode && currentCategoryId) {
-        const response = await updateCourseCategory(
-          currentCategoryId,
-          formData
-        );
-        if (response.success) {
-          toast.success("Category updated successfully!");
-          setIsOpen(false);
-          reset();
-          fetchCategories();
-        } else {
-          toast.error(response.message || "Failed to update category");
-        }
+        // Update existing category
+        await updateCourseCategory(currentCategoryId, formData);
+        toast.success("Category updated successfully");
+      } else {
+        // Create new category
+        await createCourseCategory(formData);
+        toast.success("Category created successfully");
       }
-      // ... rest of the function
+
+      // Refresh the categories list
+      await fetchCategories();
+      // Close the dialog and reset the form
+      setIsOpen(false);
+      reset();
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("An error occurred while saving the category");
     } finally {
       setIsLoading(false);
     }

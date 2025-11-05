@@ -194,10 +194,15 @@ export const BatchDatePickerRow: React.FC<Props> = ({
         {removeBatch && (
           <Button
             variant="outline"
-            onClick={() => removeBatch(index)}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              removeBatch && removeBatch(index);
+            }}
             className="w-full mt-7 md:w-auto h-[55px] text-red-500 border-red-500"
           >
-            <Trash className="h-4 w-4 " />
+            <Trash className="h-4 w-4" />
           </Button>
         )}
       </div>

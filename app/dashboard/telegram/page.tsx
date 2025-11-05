@@ -79,8 +79,8 @@ const formSchema = z.object({
   discount: z.string().optional(),
   botProviderId: z.string().optional(),
   botId: z.string().optional(),
-  image: z.string().nonempty("Image is required"),
-  logo: z.string().nonempty("Logo is required"),
+  image: z.string().min(1, { message: "Please upload a channel image" }),
+  logo: z.string().min(1, { message: "Please upload a channel logo" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -630,6 +630,8 @@ export default function TelegramManagement() {
     );
   }
 
+  console.log(errors);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -804,6 +806,7 @@ export default function TelegramManagement() {
                             </label>
                           </div>
                         </div>
+
                         {errors.image && (
                           <p className="text-sm font-semibold text-red-500">
                             {errors.image.message}
@@ -824,7 +827,7 @@ export default function TelegramManagement() {
                                   <img
                                     src={logoPreview || getValues("logo")}
                                     alt="Logo preview"
-                                    className="object-cover w-full h-full rounded-full"
+                                    className="object-cover w-full h-full "
                                   />
                                   <button
                                     type="button"

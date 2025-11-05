@@ -205,6 +205,9 @@ export default function Users() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all");
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
@@ -410,11 +413,17 @@ export default function Users() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const filteredCustomers = customers.filter(
-    (customer) =>
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesSearch =
       customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (statusFilter === "all") return matchesSearch;
+    return (
+      matchesSearch &&
+      (statusFilter === "active" ? customer.isActive : !customer.isActive)
+    );
+  });
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value.trimStart());
@@ -447,6 +456,23 @@ export default function Users() {
                 onChange={handleSearchInputChange}
                 className="pl-10 font-normal"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Select
+                value={statusFilter}
+                onValueChange={(value: "all" | "active" | "inactive") =>
+                  setStatusFilter(value)
+                }
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* <Button onClick={() => setIsAddCustomerOpen(true)}>

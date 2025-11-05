@@ -60,7 +60,7 @@ export default function CourseSyllabus() {
     try {
       const response = await getAllSyllabus(courseId);
       if (response.success) {
-        const allSyllabus = response.payload?.data || [];
+        const allSyllabus = response.payload?.data.reverse() || [];
         const courseSyllabus = allSyllabus.filter((s: any) =>
           typeof s.courseId === "object"
             ? s.courseId?._id === courseId

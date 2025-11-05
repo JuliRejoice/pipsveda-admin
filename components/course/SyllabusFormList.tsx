@@ -53,7 +53,7 @@ export default function SyllabusSection({
     try {
       const response = await getAllSyllabus(courseId);
       if (response.success) {
-        const courseSyllabus = response.payload?.data?.filter(
+        const courseSyllabus = response.payload?.data?.reverse().filter(
           (s: any) =>
             (typeof s.courseId === "object" ? s.courseId?._id : s.courseId) ===
             courseId
