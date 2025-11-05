@@ -516,7 +516,9 @@ export default function Users() {
                             </div>
                             {customer.phone && (
                               <div className="text-xs text-muted-foreground flex items-center gap-1 font-lexend">
-                                {customer.phone}
+                                {customer.phone.startsWith("+")
+                                  ? customer.phone
+                                  : `+${customer.phone}`}
                               </div>
                             )}
                           </TableCell>
