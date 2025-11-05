@@ -32,49 +32,16 @@ export const getAllTelegram = async () => {
   }
 };
 
-// export const createChannel = async (channelData: any) => {
-//   const token = getAuthToken();
-
-//   try {
-//     const response = await axios.post(`${BaseUrl}/telegram/createTelegram`, channelData, {
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'x-auth-token': token,
-//       },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error creating category:', error);
-//     throw error;
-//   }
-// };
-
-// export const updateChannel = async (id: string, channelData: any) => {
-//   const token = getAuthToken();
-
-//   try {
-//     const response = await axios.put(`${BaseUrl}/telegram/updateTelegram?id=${id}`, channelData, {
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'x-auth-token': token,
-//       },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error updating category:', error);
-//     throw error;
-//   }
-// };
-// Update the createChannel function
-export const createChannel = async (formData: FormData) => {
+export const createChannel = async (telegramData: any) => {
+  console.log(telegramData, "formData");
   const token = getAuthToken();
   try {
     const response = await axios.post(
       `${BaseUrl}/telegram/createTelegram`,
-      formData,
+      telegramData,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           "x-auth-token": token,
         },
       }
@@ -87,7 +54,7 @@ export const createChannel = async (formData: FormData) => {
 };
 
 // Update the updateChannel function
-export const updateChannel = async (id: string, formData: FormData) => {
+export const updateChannel = async (id: string, formData: any) => {
   const token = getAuthToken();
   try {
     const response = await axios.put(
@@ -95,7 +62,7 @@ export const updateChannel = async (id: string, formData: FormData) => {
       formData,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           "x-auth-token": token,
         },
       }

@@ -721,7 +721,7 @@ export default function Courses() {
                       ? `/dashboard/courses/${course._id}/sessions`
                       : `/dashboard/courses/${course._id}`
                   }
-                  className="hover:underline cursor-pointer"
+                  className="hover:underline cursor-pointer truncate block max-w-[250px]"
                 >
                   {course.CourseName}
                 </Link>

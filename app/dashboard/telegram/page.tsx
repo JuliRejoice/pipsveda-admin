@@ -168,7 +168,7 @@ export default function TelegramManagement() {
         console.log("Upload response:", response);
         if (response?.success) {
           setImageFile(file);
-          setImagePreview(response.payload);
+          setImagePreview(URL.createObjectURL(file)); // Use object URL for preview
           setValue("image", response.payload, { shouldValidate: true });
           toast.success("Image uploaded successfully");
         } else {
@@ -191,7 +191,8 @@ export default function TelegramManagement() {
         const response: any = await uploadImage(file);
         if (response?.success) {
           setLogoFile(file);
-          setLogoPreview(response.payload);
+          setLogoPreview(URL.createObjectURL(file));
+          // setLogoPreview(response.payload);
           setValue("logo", response.payload, { shouldValidate: true });
           toast.success("Logo uploaded successfully");
         } else {
@@ -205,7 +206,6 @@ export default function TelegramManagement() {
       }
     }
   };
-  console.log("errors", errors);
 
   const removeImage = () => {
     setImageFile(null);
@@ -221,7 +221,6 @@ export default function TelegramManagement() {
     trigger("logo");
   };
 
-  // Fetch channels on component mount
   const fetchChannels = async () => {
     try {
       setIsFetching(true);
@@ -245,50 +244,42 @@ export default function TelegramManagement() {
     try {
       setIsLoading(true);
 
-      // Prepare the channel data object
-      const channelData: any = {
+      const formData = {
         channelName: data.channelName,
         description: data.description,
         link: data.link,
-        image: data.image,
-        logo: data.logo,
+        image: data.image || "",
+        logo: data.logo || "",
       };
+      console.log("formData", formData);
 
-      // For edit mode, include existing image/logo if they exist
-      if (isEditMode && currentChannelId) {
-        channelData.image = data.image || null;
-        channelData.logo = data.logo || null;
-      } else {
-        // For create mode, only include if files were actually selected
-        channelData.image = imageFile ? data.image : null;
-        channelData.logo = logoFile ? data.logo : null;
-      }
+      let response;
 
       if (isEditMode && currentChannelId) {
-        // Update existing channel
-        const response = await updateChannel(currentChannelId, channelData);
+        response = await updateChannel(currentChannelId, formData);
         if (response.success) {
           toast.success("Channel updated successfully");
           await fetchChannels(); // Refresh the list
+          setStep(2);
         } else {
-          toast.error("Failed to update channel");
+          toast.error(response.message || "Failed to update channel");
           return false;
         }
       } else {
-        // Create new channel
-        const response = await createChannel(channelData);
+        response = await createChannel(formData);
         if (response.success) {
           setCurrentChannelId(response.payload._id);
           toast.success("Channel created successfully");
+          await fetchChannels(); // Refresh the list after creation
+          setStep(2);
         } else {
-          toast.error("Failed to create channel");
+          toast.error(response.message || "Failed to create channel");
           return false;
         }
       }
 
       setStep(2);
     } catch (error) {
-      console.error("Error in step 1:", error);
       toast.error("Failed to proceed to next step");
       return false;
     } finally {
