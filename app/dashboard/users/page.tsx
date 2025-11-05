@@ -237,7 +237,7 @@ export default function Users() {
         setTotalItems(count);
         setTotalPages(Math.ceil(count / itemsPerPage));
         setError(null);
-      } else {
+      } else {  
         setError("Failed to fetch customers");
       }
     } catch (err) {
@@ -457,7 +457,7 @@ export default function Users() {
                 className="pl-10 font-normal"
               />
             </div>
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <Select
                 value={statusFilter}
                 onValueChange={(value: "all" | "active" | "inactive") =>
@@ -473,7 +473,7 @@ export default function Users() {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {/* <Button onClick={() => setIsAddCustomerOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
