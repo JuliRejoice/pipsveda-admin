@@ -431,7 +431,7 @@ export default function InstructorPage() {
                                 : URL.createObjectURL(imageFile)
                             }
                             alt="Preview"
-                            className="mx-auto h-25 w-25 rounded-full object-cover"
+                            className="mx-auto h-36  w-36 rounded-lg object-cover"
                           />
                           <button
                             type="button"
@@ -557,8 +557,8 @@ export default function InstructorPage() {
                   <TableRow>
                     <TableHead className="w-[300px]">Instructor</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Courses</TableHead>
-                    <TableHead>Rating</TableHead>
+                    {/* <TableHead>Courses</TableHead> */}
+                    {/* <TableHead>Rating</TableHead> */}
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -589,10 +589,10 @@ export default function InstructorPage() {
                           </div>
                         </TableCell>
                         <TableCell>{instructor.email}</TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           {instructor.courses?.length || 0} courses
-                        </TableCell>
-                        <TableCell>
+                        </TableCell> */}
+                        {/* <TableCell>
                           <div className="flex items-center">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star
@@ -608,7 +608,7 @@ export default function InstructorPage() {
                               ({instructor.rating?.toFixed(1) || "N/A"})
                             </span>
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
