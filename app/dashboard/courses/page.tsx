@@ -370,6 +370,7 @@ export default function Courses() {
       }
 
       if (!file.type.startsWith("video/")) {
+        toast.error("Please upload a valid video file (MP4, WebM, etc.)");
         setFormErrors((prev) => ({
           ...prev,
           introVideo: "Please upload a valid video file (MP4, WebM, etc.)",
@@ -1120,6 +1121,7 @@ export default function Courses() {
     setIsTabSwitching(true);
     setActiveTab(value);
     localStorage.setItem("coursesActiveTab", value);
+    setCourses([]);
     setTimeout(() => {
       setIsTabSwitching(false);
     }, 500);
@@ -1142,6 +1144,13 @@ export default function Courses() {
   };
 
   const renderCourseList = (courses: any[], emptyMessage: string) => {
+    if (isTabSwitching) {
+      return (
+        <div className="flex justify-center items-center min-h-[70vh]">
+          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
     if (loading) {
       return (
         <div className="flex justify-center items-center min-h-[70vh]">
@@ -1277,7 +1286,7 @@ export default function Courses() {
                     <label className="block font-medium mb-1">
                       Course Thumbnail Image *
                     </label>
-                    <ImageUpload
+                    <ImageUpload                     
                       name="image"
                       id="course-thumbnail"
                       error={formErrors.image}
@@ -1594,8 +1603,8 @@ export default function Courses() {
                           name="courseIntroVideo"
                           accept="video/mp4,video/webm,video/quicktime"
                           className="hidden"
-                          onChange={handleIntroVideoChange}
                           id="courseIntroVideo"
+                          onChange={handleIntroVideoChange}
                         />
 
                         <Label
@@ -1694,7 +1703,7 @@ export default function Courses() {
                       error={formErrors.image}
                       onChange={handleImageChange}
                       initialImage={editCourse?.courseVideo || null}
-                    />
+                                        />
                   </div>
                   <div>
                     <label className="block font-medium mb-1">

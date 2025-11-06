@@ -237,7 +237,7 @@ export default function Users() {
         setTotalItems(count);
         setTotalPages(Math.ceil(count / itemsPerPage));
         setError(null);
-      } else {  
+      } else {
         setError("Failed to fetch customers");
       }
     } catch (err) {
@@ -311,9 +311,9 @@ export default function Users() {
     try {
       setDeletingId(selectedCustomer.id);
       await deleteCustomer(selectedCustomer.id);
-      await fetchCustomersData();
       setDeleteDialogOpen(false);
       toast.success(`Customer "${selectedCustomer.name}" has been deleted.`);
+      await fetchCustomersData();
     } catch (error) {
       console.error("Error deleting customer:", error);
       toast.error("Failed to delete customer. Please try again.");

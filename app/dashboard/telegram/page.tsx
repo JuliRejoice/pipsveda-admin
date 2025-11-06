@@ -161,6 +161,10 @@ export default function TelegramManagement() {
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (!file?.type.startsWith("image/")) {
+      toast.error("Only image files are allowed (JPEG, PNG, etc.)");
+      return;
+    }
     if (file) {
       try {
         setIsLoading(true);
@@ -185,6 +189,10 @@ export default function TelegramManagement() {
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (!file?.type.startsWith("image/")) {
+      toast.error("Only image files are allowed (JPEG, PNG, etc.)");
+      return;
+    }
     if (file) {
       try {
         setIsLoading(true);
@@ -630,7 +638,6 @@ export default function TelegramManagement() {
     );
   }
 
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -968,6 +975,20 @@ export default function TelegramManagement() {
                       <Input
                         id="price"
                         type="number"
+                        step="0.01"
+                        min="0"
+                        onInput={(e) => {
+                          const value = e.currentTarget.value;
+                          if (value.includes(".")) {
+                            const [whole, decimal] = value.split(".");
+                            if (decimal && decimal.length > 2) {
+                              e.currentTarget.value = `${whole}.${decimal.slice(
+                                0,
+                                2
+                              )}`;
+                            }
+                          }
+                        }}
                         placeholder="0.00"
                         {...register("price")}
                         className={errors.price ? "border-red-500" : ""}

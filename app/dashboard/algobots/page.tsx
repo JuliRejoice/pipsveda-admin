@@ -1412,18 +1412,31 @@ export default function AlgoBots() {
                           </span>
                         )}
                       </label>
-
                       <Input
                         id="imageUrl"
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={handleFileChange}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (!file.type.startsWith("image/")) {
+                              setError("imageUrl", {
+                                type: "manual",
+                                message:
+                                  "Only image files are allowed (JPEG, PNG, etc.)",
+                              });
+                              e.target.value = ""; // Clear the input
+                              return;
+                            }
+                            handleFileChange(e); // Call your existing handler if file is valid
+                          }
+                        }}
                         disabled={uploading}
                       />
 
                       {errors.imageUrl && (
-                        <p className="text-sm font-semibold text-red-500">
+                        <p className="mt-2 text-sm font-medium text-red-500">
                           {String(errors.imageUrl.message)}
                         </p>
                       )}
@@ -1437,8 +1450,8 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="shortDescription">
-                        Short Description
-                       *</Label>
+                        Short Description *
+                      </Label>
                       <Textarea
                         id="shortDescription"
                         placeholder="Enter a brief description (10-50 characters)"
@@ -1618,7 +1631,7 @@ export default function AlgoBots() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="discount">Discount *</Label>
+                      <Label htmlFor="discount">Discount</Label>
                       <Input
                         id="discount"
                         type="number"
@@ -1634,8 +1647,8 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="botProviderId">
-                        Bot Provider Company
-                       *</Label>
+                        Bot Provider Company *
+                      </Label>
                       <select
                         id="botProviderId"
                         {...register("botProviderId")}
