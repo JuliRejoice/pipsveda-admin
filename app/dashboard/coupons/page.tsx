@@ -5,21 +5,65 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Plus, MoreHorizontal, Edit, Trash2, Gift, Calendar as CalendarIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Gift,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
-import { createCoupon, deleteCoupon, getAllCoupon, updateCoupon } from "@/components/api/algobot";
+import {
+  createCoupon,
+  deleteCoupon,
+  getAllCoupon,
+  updateCoupon,
+} from "@/components/api/algobot";
 
 interface Coupon {
   _id: string;
@@ -45,13 +89,17 @@ const couponFormSchema = z.object({
     .string()
     .min(3, "Coupon code must be at least 3 characters")
     .max(20, "Coupon code must be at most 20 characters")
-    .regex(/^[A-Z0-9-_]+$/, "Coupon code can only contain uppercase letters, numbers, hyphens, and underscores"),
+    .regex(
+      /^[A-Z0-9-_]+$/,
+      "Coupon code can only contain uppercase letters, numbers, hyphens, and underscores"
+    ),
 
-  discount: z.string()
+  discount: z
+    .string()
     .min(1, "Discount is required")
     .regex(/^[1-9]\d*$/, "Discount must be a positive number")
-    .refine(val => parseInt(val) >= 1 && parseInt(val) <= 99, {
-      message: "Discount must be between 1% and 99%"
+    .refine((val) => parseInt(val) >= 1 && parseInt(val) <= 99, {
+      message: "Discount must be between 1% and 99%",
     }),
 
   expiryDate: z
@@ -61,11 +109,12 @@ const couponFormSchema = z.object({
     })
     .min(new Date(), "Expiry date must be in the future"),
 
-  usageLimit: z.string()
+  usageLimit: z
+    .string()
     .min(1, "Usage limit is required")
     .regex(/^[1-9]\d*$/, "Usage limit must be a positive number")
-    .refine(val => parseInt(val) >= 1 && parseInt(val) <= 10000, {
-      message: "Usage limit must be between 1 and 10,000"
+    .refine((val) => parseInt(val) >= 1 && parseInt(val) <= 10000, {
+      message: "Usage limit must be between 1 and 10,000",
     }),
 });
 
@@ -196,14 +245,16 @@ export default function CouponPage() {
   };
 
   const handlePageChange = (page: number) => {
-      setCurrentPage(page);
+    setCurrentPage(page);
   };
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value.trimStart());
   };
 
-  const filteredCoupons = coupons.filter((coupon) => coupon.couponCode.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredCoupons = coupons.filter((coupon) =>
+    coupon.couponCode.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleAddNew = () => {
     setIsEditMode(false);
@@ -220,20 +271,25 @@ export default function CouponPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-      {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search coupons..." value={searchTerm} onChange={handleSearchInputChange} className="pl-8 font-normal" />
+        {/* Search */}
+        <div className="flex items-center space-x-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search coupons..."
+              value={searchTerm}
+              onChange={handleSearchInputChange}
+              className="pl-8 font-normal"
+            />
+          </div>
         </div>
-      </div>
-       
+
         <Button onClick={handleAddNew}>
           <Plus className="mr-2 h-4 w-4" />
           Add Coupon
         </Button>
       </div>
-
 
       {/* Content */}
       {isLoading ? (
@@ -266,8 +322,14 @@ export default function CouponPage() {
                       <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
                         <Gift className="h-12 w-12 text-gray-500" />
                         <div>
-                          <h3 className="text-2xl text-gray-500 font-medium">No coupons found</h3>
-                          <p className="text-lg text-gray-900 font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating your first coupon"}</p>
+                          <h3 className="text-2xl text-gray-500 font-medium">
+                            No coupons found
+                          </h3>
+                          <p className="text-lg text-gray-900 font-lexend">
+                            {searchTerm
+                              ? "Try a different search term"
+                              : "Get started by creating your first coupon"}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -279,14 +341,33 @@ export default function CouponPage() {
                       <TableCell>
                         <div className="flex items-center">
                           <Gift className="mr-2 h-4 w-4" />
-                          <span className="font-lexend">{coupon.couponCode}</span>
+                          <span className="font-lexend">
+                            {coupon.couponCode}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell><span className="font-lexend">{coupon.discount}</span></TableCell>
-                      <TableCell> <span className="font-lexend">{coupon.usageLimit}</span></TableCell>
-                      <TableCell><span className="font-lexend">{coupon.usageCount}</span></TableCell>
-                      <TableCell>{format(new Date(coupon.createdAt), "M/d/yyyy, h:mm:ss a")}</TableCell>
-                      <TableCell>{format(new Date(coupon.expiryDate), "M/d/yyyy, h:mm:ss a")}</TableCell>
+                      <TableCell>
+                        <span className="font-lexend">{coupon.discount}</span>
+                      </TableCell>
+                      <TableCell>
+                        {" "}
+                        <span className="font-lexend">{coupon.usageLimit}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-lexend">{coupon.usageCount}</span>
+                      </TableCell>
+                      <TableCell>
+                        {format(
+                          new Date(coupon.createdAt),
+                          "M/d/yyyy, h:mm:ss a"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {format(
+                          new Date(coupon.expiryDate),
+                          "M/d/yyyy, h:mm:ss a"
+                        )}
+                      </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -294,15 +375,27 @@ export default function CouponPage() {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="text-blacktheme">
-                            <DropdownMenuItem onClick={() => handleEdit(coupon)}>
+                          <DropdownMenuContent
+                            align="end"
+                            className="text-blacktheme"
+                          >
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(coupon)}
+                            >
                               <Edit className="mr-2 h-5 w-5 text-blacktheme" />
-                              <span className="text-base font-semibold">Edit</span>
+                              <span className="text-base font-semibold">
+                                Edit
+                              </span>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(coupon)}>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDeleteClick(coupon)}
+                            >
                               <Trash2 className="mr-2 h-5 w-5" />
-                              <span className="text-base font-semibold">Delete</span>
+                              <span className="text-base font-semibold">
+                                Delete
+                              </span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -338,7 +431,9 @@ export default function CouponPage() {
       <Dialog open={isAddCouponOpen} onOpenChange={setIsAddCouponOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? "Edit Coupon" : "Add New Coupon"}</DialogTitle>
+            <DialogTitle>
+              {isEditMode ? "Edit Coupon" : "Add New Coupon"}
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -353,7 +448,7 @@ export default function CouponPage() {
                         <Input
                           placeholder="Enter Coupon code..."
                           {...field}
-                          value={field.value || ''}
+                          value={field.value || ""}
                           onChange={(e) => {
                             // Convert to uppercase and trim
                             const value = e.target.value.trim().toUpperCase();
@@ -366,7 +461,7 @@ export default function CouponPage() {
                           }}
                           onKeyDown={(e) => {
                             // Prevent leading spaces
-                            if (e.key === ' ' && !field.value) {
+                            if (e.key === " " && !field.value) {
                               e.preventDefault();
                             }
                           }}
@@ -383,7 +478,12 @@ export default function CouponPage() {
                     <FormItem>
                       <FormLabel>Discount(%) *</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(e.target.value)} />
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -398,20 +498,39 @@ export default function CouponPage() {
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
-                            <Button variant={"outline"} className={cn("w-full h-[55px] pl-3 text-left font-normal group", !field.value && "text-muted-foreground")}>
-                              {field.value ? <span className="text-base font-semibold text-gray-900">{format(field.value, "PPP")}</span> : <span className="text-base font-semibold">Pick an expiry date</span>}
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full h-[55px] pl-3 text-left font-normal group",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                <span className="text-base font-semibold text-gray-900">
+                                  {format(field.value, "PPP")}
+                                </span>
+                              ) : (
+                                <span className="text-base font-semibold">
+                                  Pick an expiry date
+                                </span>
+                              )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50 group-hover:text-gray-900" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 calendar-gray" align="start">
+                        <PopoverContent
+                          className="w-auto p-0 calendar-gray"
+                          align="start"
+                        >
                           <Calendar
                             mode="single"
                             selected={field.value}
                             onSelect={(date) => {
                               field.onChange(date);
                               // Close the popover after selection
-                              const popoverTrigger = document.querySelector('[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])') as HTMLElement;
+                              const popoverTrigger = document.querySelector(
+                                '[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])'
+                              ) as HTMLElement;
                               if (popoverTrigger) popoverTrigger.click();
                             }}
                             disabled={(date) => date < new Date()}
@@ -430,7 +549,12 @@ export default function CouponPage() {
                     <FormItem>
                       <FormLabel>Usage Limit *</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(e.target.value)} />
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -438,11 +562,19 @@ export default function CouponPage() {
                 />
               </div>
               <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => setIsAddCouponOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddCouponOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button type="submit">
-                  {isEditMode ? <Edit className="h-5 w-5 mr-2" /> : <Plus className="h-5 w-5 mr-2" />}
+                  {isEditMode ? (
+                    <Edit className="h-5 w-5 mr-2" />
+                  ) : (
+                    <Plus className="h-5 w-5 mr-2" />
+                  )}
                   {isEditMode ? "Save Changes" : "Add Coupon"}
                 </Button>
               </DialogFooter>
@@ -456,13 +588,23 @@ export default function CouponPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Coupon</DialogTitle>
-            <DialogDescription>Are you sure you want to delete the coupon "{couponToDelete?.couponCode}"? This action cannot be undone.</DialogDescription>
+            <DialogDescription>
+              Are you sure you want to delete the coupon "
+              {couponToDelete?.couponCode}"? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+            >
               {isDeleting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

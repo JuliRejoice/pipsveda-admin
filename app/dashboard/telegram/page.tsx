@@ -855,7 +855,7 @@ export default function TelegramManagement() {
                               />
                             </label>
                             {errors.logo && (
-                              <p className="text-sm text-red-500">
+                              <p className="text-sm font-semibold text-red-500 ">
                                 {errors.logo.message}
                               </p>
                             )}
@@ -880,6 +880,8 @@ export default function TelegramManagement() {
                             "channelName",
                             "description",
                             "link",
+                            "image", // Add these two fields
+                            "logo",
                           ]);
                           if (isStepValid) {
                             const formData = getValues();
