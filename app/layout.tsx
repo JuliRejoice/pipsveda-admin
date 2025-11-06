@@ -14,7 +14,7 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Pips Veda",
+  title: "Five Veda",
   description: "Admin dashboard for course and algobot management",
   icons: {
     icon: "/icons/faviconNew.svg", // Make sure this exists in your /public/images folder
