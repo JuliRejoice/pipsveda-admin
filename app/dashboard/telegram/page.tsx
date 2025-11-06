@@ -106,7 +106,7 @@ interface TelegramChannel {
   subscribers: number;
   createdAt?: string;
   updatedAt?: string;
-  telegtamPlan?: any[];
+  telegramPlan?: any[];
   image?: string;
   logo?: string;
 }
@@ -630,7 +630,6 @@ export default function TelegramManagement() {
     );
   }
 
-  console.log(errors);
 
   return (
     <div className="space-y-6">
@@ -1198,7 +1197,7 @@ export default function TelegramManagement() {
                     </a>
                   )}
                   <div className="grid grid-cols-2 gap-3 pt-2">
-                    {channel?.telegtamPlan?.map((plan: any, idx: number) => (
+                    {channel?.telegramPlan?.map((plan: any, idx: number) => (
                       <Card className="p-3">
                         <CardContent className="p-0">
                           <div
