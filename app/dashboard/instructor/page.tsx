@@ -86,6 +86,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface InstructorItem {
+  averageRating: any;
   _id: string;
   name: string;
   email: string;
@@ -340,6 +341,44 @@ export default function InstructorPage() {
     setCurrentInstructorId(null);
     setIsEditMode(false);
   };
+  const StarIcon = "/images/star.svg";
+  const StarEmptyIcon = "/images/star-empty.svg";
+  const StarHalfIcon = "/images/HalfStar.png";
+  const renderRating = (rating: number) => {
+    const stars = [];
+    const fullStars = Math.floor(rating || 0);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    return (
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((i) => {
+          let icon = StarEmptyIcon;
+          if (i <= fullStars) {
+            icon = StarIcon;
+          } else if (i === fullStars + 1 && hasHalfStar) {
+            icon = StarHalfIcon;
+          }
+          return (
+            <img
+              key={i}
+              src={icon}
+              alt={
+                i <= fullStars
+                  ? "Filled star"
+                  : i === fullStars + 1 && hasHalfStar
+                  ? "Half star"
+                  : "Empty star"
+              }
+              className="h-4 w-4"
+            />
+          );
+        })}
+        <span className="ml-2 text-muted-foreground">
+          ({rating?.toFixed(1) || "N/A"})
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -558,7 +597,7 @@ export default function InstructorPage() {
                     <TableHead className="w-[300px]">Instructor</TableHead>
                     <TableHead>Email</TableHead>
                     {/* <TableHead>Courses</TableHead> */}
-                    {/* <TableHead>Rating</TableHead> */}
+                    <TableHead>Rating</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -592,23 +631,11 @@ export default function InstructorPage() {
                         {/* <TableCell>
                           {instructor.courses?.length || 0} courses
                         </TableCell> */}
-                        {/* <TableCell>
+                        <TableCell>
                           <div className="flex items-center">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${
-                                  (instructor.rating || 0) >= star
-                                    ? "text-yellow-400 fill-current"
-                                    : "text-muted-foreground/30"
-                                }`}
-                              />
-                            ))}
-                            <span className="ml-2 text-muted-foreground">
-                              ({instructor.rating?.toFixed(1) || "N/A"})
-                            </span>
+                            {renderRating(instructor?.averageRating || 0)}
                           </div>
-                        </TableCell> */}
+                        </TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

@@ -1481,10 +1481,8 @@ export default function AlgoBots() {
                     <div className="space-y-2">
                       <Label htmlFor="description">Description *</Label>
                       <RichTextEditor
-                        // id="description"
                         value={watch("description") || ""}
                         onChange={(value) => {
-                          // For RichTextEditor, we'll handle trimming before submission
                           setValue("description", value);
                         }}
                         placeholder="Enter detailed bot description"
@@ -1515,7 +1513,6 @@ export default function AlgoBots() {
                             "description",
                             "links",
                           ]);
-                          // Enforce image presence manually: allow existing preview OR new file
                           if (!imagePreview) {
                             setError(
                               "imageUrl" as any,
@@ -1557,9 +1554,7 @@ export default function AlgoBots() {
                         id="plan"
                         {...register("plan")}
                         onChange={(e) => {
-                          // Update the form value
                           setValue("plan", e.target.value);
-                          // If in edit mode, update the editing plan's planType
                           if (planEdit && editingPlanId) {
                             setPlans((prev) =>
                               prev.map((plan) =>

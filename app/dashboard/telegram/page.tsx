@@ -1228,7 +1228,10 @@ export default function TelegramManagement() {
                             className="flex items-center justify-between"
                           >
                             <p className="text-sm text-muted-foreground font-lexend">
-                              {plan.planType}
+                              {plan.planType} 
+                              professional traders and high net-worth individuals
+                              are welcome to join our telegram channel
+                              and get access to our and have the opportunity to earn
                             </p>
                             <p className="text-sm font-medium">
                               ${parseFloat(plan.initialPrice || 0).toFixed(2)}
