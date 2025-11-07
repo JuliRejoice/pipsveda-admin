@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useRef, ChangeEvent, DragEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { UploadCloud, Trash2 } from 'lucide-react';
+import { useState, useRef, ChangeEvent, DragEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { UploadCloud, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ImageUploadProps {
   name: string;
@@ -20,7 +21,7 @@ export function ImageUpload({
   error,
   onChange,
   initialImage = null,
-  className = '',
+  className = "",
 }: ImageUploadProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(initialImage);
   const [isDragging, setIsDragging] = useState(false);
@@ -28,13 +29,17 @@ export function ImageUpload({
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+
+    if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
         onChange?.(file);
       };
       reader.readAsDataURL(file);
+    } else {
+      toast.error("Please select an image file jpg, png, jpeg");
+      return;
     }
   };
 
@@ -52,20 +57,23 @@ export function ImageUpload({
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
         onChange?.(file);
       };
       reader.readAsDataURL(file);
+    } else {
+      toast.error("Please select an image file jpg, png, jpeg");
+      return;
     }
   };
 
   const removeImage = () => {
     setImagePreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
     onChange?.(null);
   };
@@ -77,7 +85,7 @@ export function ImageUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`flex items-center justify-center w-full border-2 border-dashed rounded-md cursor-pointer transition hover:border-primary ${
-          isDragging ? 'border-primary bg-muted/30' : 'border-gray-300'
+          isDragging ? "border-primary bg-muted/30" : "border-gray-300"
         } p-4`}
         onClick={() => fileInputRef.current?.click()}
       >

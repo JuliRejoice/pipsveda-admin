@@ -358,7 +358,7 @@ export default function Courses() {
 
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const maxSize = 50 * 1024 * 1024;
+      const maxSize = 10 * 1024 * 1024;
       if (!file) {
         setFormErrors((prev) => ({
           ...prev,
@@ -381,9 +381,10 @@ export default function Courses() {
       }
 
       if (file.size > maxSize) {
+        toast.error("Video file size must be less than 10MB");
         setFormErrors((prev) => ({
           ...prev,
-          introVideo: "Video file size must be less than 50MB",
+          introVideo: "Video file size must be less than 10MB",
         }));
         e.target.value = "";
         setVideoFile(null);
@@ -1286,7 +1287,7 @@ export default function Courses() {
                     <label className="block font-medium mb-1">
                       Course Thumbnail Image *
                     </label>
-                    <ImageUpload                     
+                    <ImageUpload
                       name="image"
                       id="course-thumbnail"
                       error={formErrors.image}
@@ -1703,7 +1704,7 @@ export default function Courses() {
                       error={formErrors.image}
                       onChange={handleImageChange}
                       initialImage={editCourse?.courseVideo || null}
-                                        />
+                    />
                   </div>
                   <div>
                     <label className="block font-medium mb-1">
@@ -2847,4 +2848,4 @@ export default function Courses() {
       )}
     </div>
   );
-}
+} 

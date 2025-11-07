@@ -745,45 +745,60 @@ export function CourseChapters({
                       {formData.videoFile
                         ? formData.videoFile.name
                         : formData.videoUrl
-                        ? "Video file selected"
+                        ? "Using video URL"
                         : "No video file selected"}
                     </p>
+
+                    {/* File Input */}
                     <Input
+                      type="file"
                       name="videoFile"
+                      id="video-upload"
                       accept="video/mp4,video/webm,video/quicktime"
                       onChange={handleInputChange}
                       className="hidden"
-                      id="video-upload"
                     />
-                    <Label
-                      htmlFor="video-upload"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
-                    >
-                      {formData.videoFile || formData.videoUrl
-                        ? "Change Video"
-                        : "Upload Video"}
-                    </Label>
-                    {(formData.videoFile || formData.videoUrl) && (
-                      <button
+
+                    {/* Upload Button */}
+                    <div className="mt-2">
+                      <Label
+                        htmlFor="video-upload" // This connects the label to the input
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        {formData.videoFile ? "Change Video" : "Upload Video"}
+                      </Label>
+                    </div>
+
+                    {/* Remove button if file is selected */}
+                    {formData.videoFile && (
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
                         onClick={() => {
                           setFormData((prev) => ({
                             ...prev,
                             videoFile: null,
-                            videoUrl: "",
                           }));
+                          // Reset file input
+                          const input = document.getElementById(
+                            "video-upload"
+                          ) as HTMLInputElement;
+                          if (input) input.value = "";
                         }}
-                        className="ml-2 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                       >
                         Remove
-                      </button>
+                      </Button>
+                    )}
+
+                    {errors.videoFile && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.videoFile}
+                      </p>
                     )}
                   </div>
-                  {errors.videoFile && (
-                    <p className="text-sm font-semibold text-red-500 mt-1">
-                      {errors.videoFile}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>

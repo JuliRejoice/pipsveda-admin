@@ -171,8 +171,10 @@ export default function TelegramManagement() {
         const response: any = await uploadImage(file);
         console.log("Upload response:", response);
         if (response?.success) {
-          setImageFile(file);
-          setImagePreview(URL.createObjectURL(file)); // Use object URL for preview
+          setImageFile(response.payload);
+          // setImagePreview(URL.createObjectURL(file)); // Use object URL for preview
+          setImagePreview(response.payload); // Use object URL for preview        
+          
           setValue("image", response.payload, { shouldValidate: true });
           toast.success("Image uploaded successfully");
         } else {
@@ -198,8 +200,9 @@ export default function TelegramManagement() {
         setIsLoading(true);
         const response: any = await uploadImage(file);
         if (response?.success) {
-          setLogoFile(file);
+          setLogoFile(response.payload);
           setLogoPreview(URL.createObjectURL(file));
+          console.log(response.payload, "sjdhyj");
           // setLogoPreview(response.payload);
           setValue("logo", response.payload, { shouldValidate: true });
           toast.success("Logo uploaded successfully");
@@ -256,10 +259,9 @@ export default function TelegramManagement() {
         channelName: data.channelName,
         description: data.description,
         link: data.link,
-        image: data.image || "",
-        logo: data.logo || "",
+        image: imageFile || data.image || "",
+        logo: logoFile || data.logo || "",
       };
-      console.log("formData", formData);
 
       let response;
 
@@ -1229,7 +1231,7 @@ export default function TelegramManagement() {
                               {plan.planType}
                             </p>
                             <p className="text-sm font-medium">
-                              ${plan.initialPrice}
+                              ${Number(plan.initialPrice).toFixed(2)}
                             </p>
                           </div>
                         </CardContent>
