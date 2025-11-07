@@ -262,7 +262,7 @@ export default function TelegramManagement() {
         image: imageFile || data.image || "",
         logo: logoFile || data.logo || "",
       };
-
+      
       let response;
 
       if (isEditMode && currentChannelId) {

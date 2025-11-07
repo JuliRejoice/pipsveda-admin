@@ -504,11 +504,12 @@ export default function Courses() {
       // For required phone
       if (!formData.get("phone")?.toString().trim()) {
         errors.phone = "Phone number is required";
-      } else if (
-        !/^[+\d\s-]{10,}$/.test(formData.get("phone")?.toString().trim() || "")
-      ) {
-        errors.phone = "Please enter a valid phone number (min 10 digits)";
       }
+      // else if (
+      //   !/^[+\d\s-]{10,}$/.test(formData.get("phone")?.toString().trim() || "")
+      // ) {
+      //   errors.phone = "Please enter a valid phone number (min 10 digits)";
+      // }
       if (!formData.get("city")?.toString().trim()) {
         errors.city = "City is required";
       }
@@ -2432,7 +2433,6 @@ export default function Courses() {
                         type="tel"
                         inputMode="numeric"
                         pattern="\+?[0-9]*"
-                        maxLength={10}
                         placeholder="Phone Number"
                         name="phone"
                         defaultValue={editCourse?.phone || ""}
@@ -2848,4 +2848,4 @@ export default function Courses() {
       )}
     </div>
   );
-} 
+}
