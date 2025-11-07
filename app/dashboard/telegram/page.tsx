@@ -172,9 +172,9 @@ export default function TelegramManagement() {
         console.log("Upload response:", response);
         if (response?.success) {
           setImageFile(response.payload);
-          // setImagePreview(URL.createObjectURL(file)); // Use object URL for preview
-          setImagePreview(response.payload); // Use object URL for preview        
-          
+          setImagePreview(URL.createObjectURL(file)); // Use object URL for preview
+          // setImagePreview(response.payload); // Use object URL for preview
+
           setValue("image", response.payload, { shouldValidate: true });
           toast.success("Image uploaded successfully");
         } else {
@@ -1231,7 +1231,7 @@ export default function TelegramManagement() {
                               {plan.planType}
                             </p>
                             <p className="text-sm font-medium">
-                              ${Number(plan.initialPrice).toFixed(2)}
+                              ${parseFloat(plan.initialPrice || 0).toFixed(2)}
                             </p>
                           </div>
                         </CardContent>

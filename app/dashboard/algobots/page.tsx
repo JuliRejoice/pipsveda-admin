@@ -1618,7 +1618,21 @@ export default function AlgoBots() {
                       <Input
                         id="price"
                         type="number"
+                        min="0"
+                        step="0.01"
                         placeholder="0.00"
+                        onInput={(e) => {
+                          const value = e.currentTarget.value;
+                          if (value.includes(".")) {
+                            const [whole, decimal] = value.split(".");
+                            if (decimal && decimal.length > 2) {
+                              e.currentTarget.value = `${whole}.${decimal.slice(
+                                0,
+                                2
+                              )}`;
+                            }
+                          }
+                        }}
                         {...register("price")}
                         className={`h-[55px] px-4 text-base font-semibold ${
                           errors.price ? "border-red-500" : ""
