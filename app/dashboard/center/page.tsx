@@ -61,6 +61,7 @@ import {
   updateCenter,
 } from "@/components/api/center";
 import "react-country-state-city/dist/react-country-state-city.css";
+import { City, Country, State } from "react-country-state-city/dist/esm/types";
 
 interface Center {
   _id: string;
@@ -258,6 +259,7 @@ export default function CenterPage() {
     setCurrentPage(1);
     fetchCentersData();
   };
+  console.log();
 
   return (
     <div className="space-y-6">
@@ -455,6 +457,11 @@ export default function CenterPage() {
                     <FormLabel>Country *</FormLabel>
                     <FormControl>
                       <CountrySelect
+                        defaultValue={
+                          field.value
+                            ? ({ name: field.value } as Partial<Country> as Country)
+                            : undefined
+                        }
                         containerClassName="w-full"
                         inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
                           fieldState.error
@@ -507,6 +514,11 @@ export default function CenterPage() {
                       <FormControl>
                         <div onClick={handleStateFocus} className="w-full">
                           <StateSelect
+                            defaultValue={
+                              field.value
+                                ? ({ name: field.value } as Partial<State> as State)
+                                : undefined
+                            }
                             containerClassName="w-full"
                             inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
                               fieldState.error
@@ -567,6 +579,11 @@ export default function CenterPage() {
                       <FormControl>
                         <div onClick={handleCityFocus} className="w-full">
                           <CitySelect
+                            defaultValue={
+                              field.value
+                                ? ({ name: field.value, id: Number(field.value) } as Partial<City> as City)
+                                : undefined
+                            }
                             containerClassName="w-full"
                             inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
                               fieldState.error

@@ -47,6 +47,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, set } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Country } from "country-state-city";
 import {
   createCourse,
   getCourses,
@@ -107,6 +108,10 @@ export default function Courses() {
   });
   const [formActiveTab, setFormActiveTab] = useState("recorded");
   const [isTabSwitching, setIsTabSwitching] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState({
+    code: "IN",
+    phonecode: "91",
+  });
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -178,6 +183,7 @@ export default function Courses() {
   const [centers, setCenters] = useState<any[]>([]);
   const [selectedCenter, setSelectedCenter] = useState<any>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [searchInput, setSearchInput] = useState("");
 
   const fetchCenters = async () => {
     try {
@@ -1124,6 +1130,7 @@ export default function Courses() {
     setActiveTab(value);
     localStorage.setItem("coursesActiveTab", value);
     setCourses([]);
+
     setTimeout(() => {
       setIsTabSwitching(false);
     }, 500);
@@ -1135,6 +1142,10 @@ export default function Courses() {
   };
 
   const handleFormTabChange = (value: string) => {
+    if (isPhysicalBatchVisible || isLiveBatchVisible || isSyllabusVisible) {
+      toast.error("Please Fill all nessary fields");
+      return;
+    }
     setIsLiveBatchVisible(false);
     setIsPhysicalBatchVisible(false);
     setIsSyllabusVisible(false);
@@ -1182,8 +1193,35 @@ export default function Courses() {
       <Dialog
         open={open}
         onOpenChange={(val) => {
-          setOpen(val);
+          // If trying to close the dialog
           if (!val) {
+            if (latestCourse?._id !== undefined) {
+              if (!syllabusList || syllabusList.length === 0) {
+                toast.error("Cannot close: Please add at least one syllabus");
+                return;
+              }
+
+              if (
+                activeTab === "live" &&
+                (!liveBatches || liveBatches.length === 0)
+              ) {
+                toast.error("Cannot close: Please add at least one live batch");
+                return;
+              }
+
+              if (
+                activeTab === "physical" &&
+                (!physicalBatches || physicalBatches.length === 0)
+              ) {
+                toast.error(
+                  "Cannot close: Please add at least one physical batch"
+                );
+                return;
+              }
+            }
+
+            // Proceed with close
+            setOpen(val);
             setFormErrors({});
             setIsSubmitting(false);
             setEditCourse(null);
@@ -1195,6 +1233,7 @@ export default function Courses() {
             setPhysicalEndDate(undefined);
             setIsPhysicalBatchVisible(false);
             setIsLiveBatchVisible(false);
+
             if (!editCourse) {
               setLiveBatches([
                 {
@@ -1217,11 +1256,14 @@ export default function Courses() {
                 },
               ]);
             }
+
             const form = document.querySelector("form");
             if (form) {
               form.reset();
             }
           } else {
+            // Opening the dialog
+            setOpen(val);
             setFormActiveTab(editCourse?.courseType || "recorded");
             setFormErrors({});
           }
@@ -2429,33 +2471,107 @@ export default function Courses() {
                     </div>
                     <div className="space-y-1">
                       <label className="block font-medium">Phone No. *</label>
-                      <Input
-                        type="tel"
-                        inputMode="numeric"
-                        pattern="\+?[0-9]*"
-                        placeholder="Phone Number"
-                        name="phone"
-                        defaultValue={editCourse?.phone || ""}
-                        className="w-full"
-                        onBlur={handleTrimInput}
-                        onKeyDown={(e) => {
-                          if (
-                            e.key === " " &&
-                            !(e.target as HTMLInputElement).value.trim()
-                          ) {
-                            e.preventDefault();
-                          }
-                        }}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value.startsWith("+")) {
-                            e.target.value =
-                              "+" + value.slice(1).replace(/[^0-9]/g, "");
-                          } else {
+                      <div className="flex gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="h-[55px] justify-start"
+                            >
+                              {selectedCountry.phonecode.startsWith("+")
+                                ? selectedCountry.phonecode
+                                : `+${selectedCountry.phonecode}`}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            className="w-80 max-h-96 overflow-y-auto mt-2"
+                            sideOffset={0}
+                            align="start"
+                            style={{
+                              position: "relative",
+                            }}
+                          >
+                            <div className="p-2">
+                              <Input
+                                type="search"
+                                placeholder="Search country..."
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                className="mb-2 h-[30px] text-sm"
+                                autoFocus
+                              />
+                            </div>
+                            {Country.getAllCountries()
+                              .filter((country) => {
+                                const searchLower = searchInput.toLowerCase();
+                                return (
+                                  country.name
+                                    .toLowerCase()
+                                    .includes(searchLower) ||
+                                  country.isoCode
+                                    .toLowerCase()
+                                    .includes(searchLower) ||
+                                  country.phonecode.includes(searchInput)
+                                );
+                              })
+                              .map((country) => (
+                                <DropdownMenuItem
+                                  key={country.isoCode}
+                                  onClick={() =>
+                                    setSelectedCountry({
+                                      code: country.isoCode,
+                                      phonecode: country.phonecode,
+                                    })
+                                  }
+                                  className="flex  items-center gap-2"
+                                >
+                                  <span className="w-8 text-sm">
+                                    {country.flag}
+                                  </span>
+                                  <span className="w-16 text-sm">
+                                    {country.phonecode.startsWith("+")
+                                      ? country.phonecode
+                                      : `+${country.phonecode}`}
+                                  </span>
+                                  <span className="text-muted-foreground ml-2">
+                                    {country.name}
+                                  </span>
+                                </DropdownMenuItem>
+                              ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Input
+                          type="tel"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={10}
+                          placeholder="Phone Number"
+                          name="phone"
+                          defaultValue={editCourse?.phone || ""}
+                          className="flex-1"
+                          onBlur={handleTrimInput}
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === " " &&
+                              !(e.target as HTMLInputElement).value.trim()
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
+                          onChange={(e) => {
+                            const value = e.target.value;
                             e.target.value = value.replace(/[^0-9]/g, "");
-                          }
-                        }}
-                      />
+
+                            if (e.target.form) {
+                              const formData = new FormData(e.target.form);
+                              formData.set(
+                                "phone",
+                                `+${selectedCountry.phonecode}${e.target.value}`
+                              );
+                            }
+                          }}
+                        />
+                      </div>
                       {formErrors.phone && (
                         <p className="text-red-500">{formErrors.phone}</p>
                       )}
