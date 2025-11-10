@@ -488,7 +488,7 @@ export function CourseChapters({
                           </Popover>
                         </div>
                         <div className="flex items-start space-x-4">
-                          <div className="p-2 bg-primary/10 rounded-lg w-[120px] min-w-[120px] h-[120px] flex items-center justify-center relative group overflow-hidden">
+                          <div className="p-2 bg-light rounded-lg w-[120px] min-w-[120px] h-[120px] flex items-center justify-center relative group overflow-hidden">
                             {videoId ? (
                               <a
                                 href={url}
@@ -591,7 +591,7 @@ export function CourseChapters({
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-base font-medium transition"
+                                className="inline-block mt-1 px-3 py-1 text-background gradient-bg rounded-sm text-base font-medium transition"
                               >
                                 ▶ Watch Video
                               </a>
@@ -763,7 +763,7 @@ export function CourseChapters({
                     <div className="mt-2">
                       <Label
                         htmlFor="video-upload" // This connects the label to the input
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                        className="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                       >
                         <Plus className="mr-2 h-4 w-4" />
                         {formData.videoFile ? "Change Video" : "Upload Video"}

@@ -1277,7 +1277,7 @@ export default function TelegramManagement() {
                       href={channel.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block mt-1 px-3 py-1 text-background bg-foreground rounded-sm text-base font-medium transition"
+                      className="inline-block mt-1 px-3 py-1 text-background gradient-bg rounded-sm text-base font-medium transition"
                     >
                       ▶ Join Channel
                     </a>

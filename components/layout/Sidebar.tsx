@@ -158,7 +158,7 @@ export default function Sidebar() {
             /> */}
             {isCollapsed ? <Pipslogo width="60px" height="70px" /> : <Pipslogo width="w-500px" height="h-400px" />}
           </div>
-          {!isCollapsed && <h2 className="text-xl font-bold text-foreground">Five Veda</h2>}
+          {!isCollapsed && <h2 className="text-xl font-bold text-[#6B4FD8]">Five Veda</h2>}
         </div>
       </div>
 

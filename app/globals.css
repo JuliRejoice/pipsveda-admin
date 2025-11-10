@@ -112,12 +112,18 @@
 
 /* Gradient background */
 .gradient-bg {
-  background: linear-gradient(90deg, #3a0ca3 0%, #7b2ff7 50%, #ff7e29 100%);
+  /* background: linear-gradient(90deg, #3a0ca3 0%, #7b2ff7 50%, #ff7e29 100%); */
+  background-color: #6B4FD8;
+}
+
+.bg-light{
+  background-color: #E9ECFF;
 }
 
 /* Gradient button */
 .gradient-button {
-  background: linear-gradient(90deg, #3a0ca3 0%, #7b2ff7 50%, #ff7e29 100%);
+  /* background: linear-gradient(90deg, #3a0ca3 0%, #7b2ff7 50%, #ff7e29 100%); */
+  background-color: #6B4FD8;
   color: white;
   border: none;
   border-radius: 0.5rem;

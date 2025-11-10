@@ -596,7 +596,6 @@ export default function Payments() {
                                     {payment?.metaAccountNo?.length > 0 ? (
                                       <Badge
                                         variant="outline"
-                                        className="hover:bg-gray-100"
                                       >
                                         View {payment.metaAccountNo.length}{" "}
                                         Account

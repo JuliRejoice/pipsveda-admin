@@ -892,7 +892,7 @@ export default function Courses() {
               ${course.price || "0"}
             </span>
             <Badge variant="outline" className="capitalize">
-              <span className="text-blacktheme">{course.courseType}</span>
+              <span className="text-white">{course.courseType}</span>
             </Badge>
           </div>
 
@@ -1611,7 +1611,7 @@ export default function Courses() {
 
                         <Label
                           htmlFor="courseIntroVideo"
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                         >
                           {videoFile || editCourse?.courseIntroVideo
                             ? "Change Video"
@@ -2013,7 +2013,7 @@ export default function Courses() {
                         />
                         <Label
                           htmlFor="courseIntroVideo"
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                         >
                           {videoFile || editCourse?.courseIntroVideo
                             ? "Change Video"
@@ -2587,7 +2587,7 @@ export default function Courses() {
                         />
                         <Label
                           htmlFor="courseIntroVideo"
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                         >
                           {videoFile || editCourse?.courseIntroVideo
                             ? "Change Video"
