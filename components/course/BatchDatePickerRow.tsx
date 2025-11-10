@@ -191,20 +191,22 @@ export const BatchDatePickerRow: React.FC<Props> = ({
             <div className="text-red-500 text-sm mt-1">{errors.endDate}</div>
           )}
         </div>
-        {removeBatch && (
-          <Button
-            variant="outline"
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              removeBatch && removeBatch(index);
-            }}
-            className="w-full mt-7 md:w-auto h-[55px] text-red-500 border-red-500"
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
-        )}
+        {removeBatch &&
+          index !== 0 &&
+          !(location && batch.centerId && index === 0) && (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                removeBatch(index);
+              }}
+              className="w-full mt-7 md:w-auto h-[55px] text-red-500 border-red-500"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          )}
       </div>
     </div>
   );
