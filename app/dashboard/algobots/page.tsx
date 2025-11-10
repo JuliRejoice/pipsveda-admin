@@ -56,6 +56,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Form validation schema
 const formSchema = z.object({
@@ -227,6 +234,7 @@ export default function AlgoBots() {
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [selectedPlans, setSelectedPlans] = useState<Record<string, any>>({});
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -373,7 +381,7 @@ export default function AlgoBots() {
       setIsFetching(true);
       const response = await getAllAlgoBots({
         page: currentPage,
-        limit: itemsPerPage,
+        limit: itemsPerPage,  
         search: debouncedSearchTerm,
       });
       if (response.success) {
@@ -1874,24 +1882,103 @@ export default function AlgoBots() {
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        {bot?.strategyPlan?.map((plan: any, idx: number) => (
-                          <Card className="p-3">
-                            <CardContent className="p-0">
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between"
-                              >
-                                <p className="text-sm text-muted-foreground font-lexend">
-                                  {plan.planType}
-                                </p>
-                                <p className="text-sm font-medium">
-                                  ${plan.initialPrice}
-                                </p>
+                      <div className="space-y-3">
+                        <Select
+                          value={
+                            selectedPlans[bot._id]?.planType ||
+                            bot?.strategyPlan?.[0]?.planType ||
+                            ""
+                          }
+                          onValueChange={(value) => {
+                            const selected = bot?.strategyPlan?.find(
+                              (p: any) => p.planType === value
+                            );
+                            setSelectedPlans((prev) => ({
+                              ...prev,
+                              [bot._id]: selected,
+                            }));
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select duration" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {bot?.strategyPlan?.map((plan: any) => (
+                              <SelectItem key={plan._id} value={plan.planType}>
+                                {plan.planType.replace(
+                                  /(\d+)([A-Za-z]+)/,
+                                  "$1 $2"
+                                )}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="border rounded-md p-4">
+                          <div className="w-full">
+                            <div className="space-y-2">
+                              <div className="space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">
+                                    Plan:
+                                  </span>
+                                  <span className="font-medium">
+                                    {(
+                                      (
+                                        selectedPlans[bot._id] ||
+                                        bot?.strategyPlan?.[0]
+                                      )?.planType || ""
+                                    ).replace(/(\d+)([A-Za-z]+)/, "$1 $2")}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">
+                                    Price:
+                                  </span>
+                                  <span className="font-bold">
+                                    $
+                                    {(
+                                      (
+                                        selectedPlans[bot._id] ||
+                                        bot?.strategyPlan?.[0]
+                                      )?.initialPrice *
+                                      (1 -
+                                        (
+                                          selectedPlans[bot._id] ||
+                                          bot?.strategyPlan?.[0]
+                                        )?.discount /
+                                          100 || 1)
+                                    ).toFixed(2)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">
+                                    M.R.P:
+                                  </span>
+                                  <span className="text-sm text-muted-foreground">
+                                    $
+                                    {(
+                                      selectedPlans[bot._id] ||
+                                      bot?.strategyPlan?.[0]
+                                    )?.initialPrice?.toFixed(2)}
+                                  </span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">
+                                    Discount:
+                                  </span>
+                                  <span className="text-sm text-green-600">
+                                    {(
+                                      selectedPlans[bot._id] ||
+                                      bot?.strategyPlan?.[0]
+                                    )?.discount || 0}
+                                    %
+                                  </span>
+                                </div>
                               </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>

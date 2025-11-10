@@ -38,6 +38,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   createChannel,
   updateChannel,
   getAllTelegram,
@@ -49,6 +56,7 @@ import {
 } from "@/components/api/telegram";
 import { initScriptLoader } from "next/script";
 import { uploadImage } from "@/components/api/course";
+import { cn } from "@/lib/utils";
 
 // Form validation schema
 const formSchema = z.object({
@@ -113,6 +121,7 @@ interface TelegramChannel {
 
 export default function TelegramManagement() {
   const [channels, setChannels] = useState<TelegramChannel[]>([]);
+  const [selectedPlans, setSelectedPlans] = useState<Record<string, any>>({});
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentChannelId, setCurrentChannelId] = useState<string | null>(null);
@@ -255,17 +264,49 @@ export default function TelegramManagement() {
     try {
       setIsLoading(true);
 
-      const formData = {
-        channelName: data.channelName,
-        description: data.description,
-        link: data.link,
-        image: imageFile || data.image || "",
-        logo: logoFile || data.logo || "",
-      };
-      
+      // Create a base form data object with all possible fields
+      const formData: Record<string, any> = {};
+
+      // Only include fields that have changed from their original values
+      if (isEditMode && currentChannelId) {
+        const currentChannel = channels.find(
+          (ch) => ch._id === currentChannelId
+        );
+        if (currentChannel) {
+          if (data.channelName !== currentChannel.channelName)
+            formData.channelName = data.channelName;
+          if (data.description !== currentChannel.description)
+            formData.description = data.description;
+          if (data.link !== currentChannel.link) formData.link = data.link;
+          if (
+            imageFile ||
+            (data.image && data.image !== currentChannel.image)
+          ) {
+            formData.image = imageFile || data.image || "";
+          }
+          if (logoFile || (data.logo && data.logo !== currentChannel.logo)) {
+            formData.logo = logoFile || data.logo || "";
+          }
+        }
+      } else {
+        // For new channel, include all fields
+        formData.channelName = data.channelName;
+        formData.description = data.description;
+        formData.link = data.link;
+        formData.image = imageFile || data.image || "";
+        formData.logo = logoFile || data.logo || "";
+      }
+
+      console.log("Submitting form data:", formData);
+
       let response;
 
       if (isEditMode && currentChannelId) {
+        // Only proceed with update if there are changes
+        if (Object.keys(formData).length === 0) {
+          toast.info("No changes detected");
+          return true;
+        }
         response = await updateChannel(currentChannelId, formData);
         if (response.success) {
           toast.success("Channel updated successfully");
@@ -301,6 +342,13 @@ export default function TelegramManagement() {
     try {
       setIsLoading(true);
 
+      // Check if at least one plan exists
+      if (plans.length === 0) {
+        toast.error("At least one plan is required");
+        setIsLoading(false);
+        return;
+      }
+
       if (isEditMode && currentChannelId) {
         const updatePlanPromises = plans.map((plan) => {
           const planData = {
@@ -326,6 +374,12 @@ export default function TelegramManagement() {
           return;
         }
       } else if (currentChannelId) {
+        // Check if at least one plan exists for new channel as well
+        if (plans.length === 0) {
+          toast.error("At least one plan is required");
+          setIsLoading(false);
+          return;
+        }
         const createPlanPromises = plans.map((plan) => {
           const planData = {
             telegramId: currentChannelId,
@@ -651,7 +705,16 @@ export default function TelegramManagement() {
             Manage your Telegram channels and their configurations
           </p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog
+          open={isOpen}
+          onOpenChange={(open) => {
+            if (currentChannelId && !open && plans.length === 0) {
+              toast.error("Please add at least one plan before closing");
+              return;
+            }
+            setIsOpen(open);
+          }}
+        >
           <DialogTrigger asChild>
             <Button onClick={handleCreateNew}>
               <Plus className="mr-2 h-4 w-4" /> Create Channel
@@ -1180,7 +1243,7 @@ export default function TelegramManagement() {
                         <span>{channel.channelName}</span>
                       </CardTitle>
 
-                      <p className="text-base text-gray-500 mt-2.5">
+                      <p className="text-base text-gray-500 mt-2.5 line-clamp-3 h-[4.5rem] overflow-hidden text-ellipsis">
                         {channel.description}
                       </p>
                     </div>
@@ -1219,25 +1282,105 @@ export default function TelegramManagement() {
                       ▶ Join Channel
                     </a>
                   )}
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    {channel?.telegramPlan?.map((plan: any, idx: number) => (
-                      <Card className="p-3">
-                        <CardContent className="p-0">
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between"
-                          >
-                            <p className="text-sm text-muted-foreground font-lexend">
-                              {plan.planType}
-                            </p>
-                            <p className="text-sm font-medium">
-                              ${parseFloat(plan.initialPrice || 0).toFixed(2)}
-                            </p>
+                  <Card className=" border-0">
+                    <CardContent className="p-0 space-y-3">
+                      <Select
+                        value={
+                          selectedPlans[channel._id]?.planType ||
+                          channel?.telegramPlan?.[0]?.planType ||
+                          ""
+                        }
+                        onValueChange={(value) => {
+                          const selected = channel?.telegramPlan?.find(
+                            (p: any) => p.planType === value
+                          );
+                          setSelectedPlans((prev) => ({
+                            ...prev,
+                            [channel._id]: selected,
+                          }));
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {channel?.telegramPlan?.map((plan: any) => (
+                            <SelectItem key={plan._id} value={plan.planType}>
+                              {plan.planType.replace(/(\d+)([A-Za-z]+)/, "$1 $2")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select> 
+
+                      {/* Always show the plan details, defaulting to the first plan */}
+                      <div className="border rounded-md p-4">
+                        <div className="flex justify-between items-center">
+                          <div className="w-full">
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm text-muted-foreground">
+                                  Plan:
+                                </span>
+                                <span className="font-medium">
+                                  {(
+                                    (
+                                      selectedPlans[channel._id] ||
+                                      channel?.telegramPlan?.[0]
+                                    )?.planType || ""
+                                  ).replace(/(\d+)([A-Za-z]+)/, "$1 $2")}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-muted-foreground">
+                                  Price:
+                                </span>
+                                <span className="font-bold">
+                                  $
+                                  {(
+                                    (
+                                      selectedPlans[channel._id] ||
+                                      channel?.telegramPlan?.[0]
+                                    )?.initialPrice *
+                                    (1 -
+                                      (
+                                        selectedPlans[channel._id] ||
+                                        channel?.telegramPlan?.[0]
+                                      )?.discount /
+                                        100 || 1)
+                                  ).toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-muted-foreground">
+                                  M.R.P:
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  $
+                                  {(
+                                    selectedPlans[channel._id] ||
+                                    channel?.telegramPlan?.[0]
+                                  )?.initialPrice?.toFixed(2)}
+                                </span>
+                              </div>
+
+                              <div className="flex justify-between">
+                                <span className="text-sm text-muted-foreground">
+                                  Discount:
+                                </span>
+                                <span className="text-sm text-green-600">
+                                  {(
+                                    selectedPlans[channel._id] ||
+                                    channel?.telegramPlan?.[0]
+                                  )?.discount || 0}
+                                  %
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
