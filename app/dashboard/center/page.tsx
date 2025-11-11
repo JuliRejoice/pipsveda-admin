@@ -459,7 +459,7 @@ export default function CenterPage() {
                       <CountrySelect
                         defaultValue={
                           field.value
-                            ? ({ name: field.value } as Partial<Country> as Country)
+                            ? ({ name: field.value } as any)
                             : undefined
                         }
                         containerClassName="w-full"
@@ -516,7 +516,7 @@ export default function CenterPage() {
                           <StateSelect
                             defaultValue={
                               field.value
-                                ? ({ name: field.value } as Partial<State> as State)
+                                ? ({ name: field.value } as any)
                                 : undefined
                             }
                             containerClassName="w-full"
@@ -581,7 +581,10 @@ export default function CenterPage() {
                           <CitySelect
                             defaultValue={
                               field.value
-                                ? ({ name: field.value, id: Number(field.value) } as Partial<City> as City)
+                                ? ({
+                                    name: field.value,
+                                    id: Number(field.value),
+                                  } as any)
                                 : undefined
                             }
                             containerClassName="w-full"
