@@ -30,6 +30,7 @@ import { getAllCenters } from "@/components/api/banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BatchDatePickerRow } from "@/components/course/BatchDatePickerRow";
+import { format } from "path";
 
 interface Batch {
   centerId?: any;
@@ -37,6 +38,9 @@ interface Batch {
   startDate: string;
   endDate: string;
   courseId: string;
+  time: string | null;
+  meetingLink?: string | null;
+  [key: string]: any;
 }
 
 export default function CourseBatches() {
@@ -62,21 +66,42 @@ export default function CourseBatches() {
   const validateBatch = (batch: Batch) => {
     const err: Record<string, string> = {};
 
-    if (batchType === "physical") {
-      if (!batch.centerId) err.centerId = "Center is required";
-    }
+    // Required field validations
     if (!batch.startDate) err.startDate = "Start date is required";
     if (!batch.endDate) err.endDate = "End date is required";
+    if (!batch.time) err.time = "Time is required";
 
+    // Batch type specific validations
+    if (batchType === "physical") {
+      if (!batch.centerId) err.centerId = "Center is required";
+    } else if (batchType === "live") {
+      if (!batch.meetingLink) {
+        err.meetingLink = "Meeting link is required";
+      } else if (!isValidUrl(batch.meetingLink)) {
+        err.meetingLink = "Please enter a valid URL";
+      }
+    }
+
+    // Date validations
     if (batch.startDate && batch.endDate) {
       const start = new Date(batch.startDate);
       const end = new Date(batch.endDate);
-      if (start > end) err.endDate = "End date must be after start date";
+
+      if (start > end) {
+        err.endDate = "End date must be after start date";
+      }
+
+      // Ensure start date is not in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (start < today) {
+        err.startDate = "Start date cannot be in the past";
+      }
     }
 
+    // Batch sequence validation
     if (batch.startDate && batches.length > 0) {
       const currentStart = new Date(batch.startDate);
-
       const latestStart = batches
         .filter((b) => b._id !== batch._id)
         .reduce((latest, b) => {
@@ -90,8 +115,23 @@ export default function CourseBatches() {
       }
     }
 
+    // Time format validation
+    if (batch.time && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(batch.time)) {
+      err.time = "Please enter a valid time in 24-hour format (HH:MM)";
+    }
+
     setBatchErrors({ 0: err });
     return err;
+  };
+
+  // Helper function to validate URLs
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const fetchCenters = async () => {
@@ -104,7 +144,7 @@ export default function CourseBatches() {
       console.error("Error loading centers:", err);
       toast.error("Failed to load centers");
     }
-  };  
+  };
 
   const fetchBatches = async () => {
     try {
@@ -152,6 +192,14 @@ export default function CourseBatches() {
       year: "numeric",
     });
 
+  const formatTime = (timeStr: string | null): string => {
+    if (!timeStr) return "N/A";
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+    return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
+
   const handleSaveBatch = async (batch: Batch) => {
     const validationErrors = validateBatch(batch);
     if (Object.keys(validationErrors).length > 0) {
@@ -165,12 +213,15 @@ export default function CourseBatches() {
         startDate: new Date(batch.startDate).toISOString().split("T")[0],
         endDate: new Date(batch.endDate).toISOString().split("T")[0],
         courseId,
+        ...(batch.time ? { time: batch.time } : { time: null }),
         ...(batchType === "physical" &&
           selectedCenter?._id && {
             centerId: selectedCenter._id,
           }),
+        ...(batchType === "live" && {
+          meetingLink: batch.meetingLink || null,
+        }),
       };
-
       if (selectedBatch?._id) {
         const res = await updateBatch(selectedBatch._id, batchPayload);
         if (res.success) {
@@ -236,6 +287,8 @@ export default function CourseBatches() {
     );
   }
 
+  console.log(selectedBatch);
+
   return (
     <div className="space-y-6">
       {/* HEADER */}
@@ -253,6 +306,8 @@ export default function CourseBatches() {
               startDate: "",
               endDate: "",
               courseId,
+              time: null,
+              meetingLink: null,
             });
             setIsDialogOpen(true);
           }}
@@ -336,6 +391,16 @@ export default function CourseBatches() {
                       <span className="font-medium">End Date:</span>{" "}
                       {formatDate(batch.endDate)}
                     </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Time:</span>{" "}
+                      {formatTime(batch.time)}
+                    </p>
+                    {batchType === "live" && (
+                      <p className="text-sm">
+                        <span className="font-medium">Meeting Link:</span>{" "}
+                        {batch.meetingLink || "N/A"}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -344,7 +409,6 @@ export default function CourseBatches() {
         </CardContent>
       </Card>
 
-      {/* ADD / EDIT DIALOG */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -357,11 +421,15 @@ export default function CourseBatches() {
             key={selectedBatch?._id || "new"}
             index={0}
             location={batchType === "physical" ? true : false}
+            link={batchType === "live" ? true : false}
             batch={
               selectedBatch || {
                 startDate: "",
                 endDate: "",
                 courseId,
+                time: "",
+                meetingLink: "",
+                centerId: "",
               }
             }
             updateBatch={(index, key, value) => {
@@ -381,11 +449,21 @@ export default function CourseBatches() {
               Cancel
             </Button>
             <Button
-              onClick={() =>
-                handleSaveBatch(
-                  selectedBatch || { startDate: "", endDate: "", courseId }
-                )
-              }
+              onClick={() => {
+                const batchToSave = selectedBatch || {
+                  startDate: "",
+                  endDate: "",
+                  courseId,
+                  time: "",
+                  meetingLink: "",
+                  centerId: "",
+                };
+                // Ensure time is properly passed from the selectedBatch
+                if (selectedBatch?.time) {
+                  batchToSave.time = selectedBatch.time;
+                }
+                handleSaveBatch(batchToSave);
+              }}
               disabled={isSubmitting}
             >
               {isSubmitting

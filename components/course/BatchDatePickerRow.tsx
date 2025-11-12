@@ -5,9 +5,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Trash, ChevronDown } from "lucide-react";
+import {
+  CalendarIcon,
+  Clock,
+  Trash,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { format } from "date-fns";
-import React from "react";
+import { Input } from "@/components/ui/input";
+import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -16,16 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface Batch {
-  _id?: string;
-  batchName?: string;
-  description?: string;
-  startDate: Date | null;
-  endDate: Date | null;
-  courseId?: string;
-  centerId?: string;
-}
 
 interface Center {
   _id: string;
@@ -37,13 +34,20 @@ interface Props {
   batch: any;
   updateBatch: (
     index: number,
-    key: "startDate" | "endDate" | "centerId",
+    key: "startDate" | "endDate" | "centerId" | "time" | "meetingLink",
     value: Date | string | null
   ) => void;
   removeBatch?: (index: number) => void;
-  errors?: { startDate?: string; endDate?: string; centerId?: string };
+  errors?: {
+    startDate?: string;
+    endDate?: string;
+    centerId?: string;
+    time?: string;
+    meetingLink?: string;
+  };
   centers?: Center[];
   location?: boolean;
+  link?: boolean;
   setSelectedCenter?: any;
 }
 
@@ -55,52 +59,37 @@ export const BatchDatePickerRow: React.FC<Props> = ({
   errors = {},
   centers = [],
   location,
+  link,
   setSelectedCenter,
 }) => {
+  const [startDate, setStartDate] = useState<Date | null>(
+    batch.startDate ? new Date(batch.startDate) : null
+  );
+  const [endDate, setEndDate] = useState<Date | null>(
+    batch.endDate ? new Date(batch.endDate) : null
+  );
+  const [time, setTime] = useState<string>(batch.time || "");
+  const [meetingLink, setMeetingLink] = useState<string>(
+    batch.meetingLink || ""
+  );
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedCenter, setSelectedCenterState] = useState<any>(null);
+
+  useEffect(() => {
+    if (batch.centerId && centers && centers.length > 0) {
+      const center = centers.find((c) => c._id === batch.centerId);
+      if (center) {
+        setSelectedCenterState(center);
+      } else if (typeof batch.centerId === "object") {
+        setSelectedCenterState(batch.centerId);
+      }
+    } else {
+      setSelectedCenterState(null);
+    }
+  }, [batch.centerId, centers]);
+
   return (
     <div className="flex flex-col gap-4 mb-4 border p-4 rounded-lg">
-      {location && (
-        <div className="flex-1">
-          <label className="block font-medium mb-1">Batch Location</label>
-
-          <Select
-            value={batch.centerId || ""}
-            onValueChange={(value) => {
-              const selectedCenter = centers?.find((c) => c._id === value);
-              updateBatch(index, "centerId", value);
-              setSelectedCenter(selectedCenter);
-            }}
-          >
-            <SelectTrigger
-              className={cn(
-                "w-full",
-                errors?.centerId && "border-red-500 focus:ring-red-500"
-              )}
-            >
-              <SelectValue placeholder="Select a center" />
-            </SelectTrigger>
-
-            <SelectContent>
-              {centers && centers.length > 0 ? (
-                centers.map((center) => (
-                  <SelectItem key={center._id} value={center._id}>
-                    {center.centerName}
-                  </SelectItem>
-                ))
-              ) : (
-                <div className="px-3 py-2 text-sm text-muted-foreground">
-                  No centers available
-                </div>
-              )}
-            </SelectContent>
-          </Select>
-
-          {errors?.centerId && (
-            <p className="text-red-500 text-sm mt-1">{errors.centerId}</p>
-          )}
-        </div>
-      )}
-
       <div className="flex gap-4">
         <div className="flex-1 ">
           <label className="block font-medium mb-1">Start Date</label>
@@ -111,8 +100,8 @@ export const BatchDatePickerRow: React.FC<Props> = ({
                 className="w-full h-[55px] justify-start text-left font-normal px-4 group"
               >
                 <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
-                {batch.startDate ? (
-                  format(batch.startDate, "PPP")
+                {startDate ? (
+                  format(startDate, "PPP")
                 ) : (
                   <span className="text-muted-foreground">
                     Pick a start date
@@ -123,15 +112,17 @@ export const BatchDatePickerRow: React.FC<Props> = ({
             <PopoverContent align="start" className="p-0 w-0">
               <Calendar
                 mode="single"
-                selected={batch.startDate || undefined}
+                selected={startDate || undefined}
                 onSelect={(date) => {
                   if (date) {
                     const localDate = new Date(date);
                     localDate.setMinutes(
                       localDate.getMinutes() - localDate.getTimezoneOffset()
                     );
+                    setStartDate(localDate);
                     updateBatch(index, "startDate", localDate);
                   } else {
+                    setStartDate(null);
                     updateBatch(index, "startDate", null);
                   }
                 }}
@@ -156,8 +147,8 @@ export const BatchDatePickerRow: React.FC<Props> = ({
                 className="w-full h-[55px] justify-start text-left font-normal px-4 group"
               >
                 <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
-                {batch.endDate ? (
-                  format(batch.endDate, "PPP")
+                {endDate ? (
+                  format(endDate, "PPP")
                 ) : (
                   <span className="text-muted-foreground">
                     Pick an end date
@@ -168,15 +159,17 @@ export const BatchDatePickerRow: React.FC<Props> = ({
             <PopoverContent align="start" className="p-0 w-0">
               <Calendar
                 mode="single"
-                selected={batch.endDate || undefined}
+                selected={endDate || undefined}
                 onSelect={(date) => {
                   if (date) {
                     const localDate = new Date(date);
                     localDate.setMinutes(
                       localDate.getMinutes() - localDate.getTimezoneOffset()
                     );
+                    setEndDate(localDate);
                     updateBatch(index, "endDate", localDate);
                   } else {
+                    setEndDate(null);
                     updateBatch(index, "endDate", null);
                   }
                 }}
@@ -191,23 +184,112 @@ export const BatchDatePickerRow: React.FC<Props> = ({
             <div className="text-red-500 text-sm mt-1">{errors.endDate}</div>
           )}
         </div>
-        {removeBatch &&
-          index !== 0 &&
-          !(location && batch.centerId && index === 0) && (
-            <Button
-              variant="outline"
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                removeBatch(index);
-              }}
-              className="w-full mt-7 md:w-auto h-[55px] text-red-500 border-red-500"
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          )}
       </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div className="space-y-2">
+          <label className="block font-medium mb-1">Batch Time</label>
+          <div className="relative rounded-md shadow-sm">
+            <Input
+              name="time"
+              type="time"
+              value={time}
+              onChange={(e) => {
+                setTime(e.target.value);
+                updateBatch(index, "time", e.target.value);
+              }}
+              className={cn("pl-10 w-full", "")}
+              placeholder="HH:MM"
+            />
+          </div>
+          {errors?.time && (
+            <p className="mt-1 text-sm text-red-600">{errors.time}</p>
+          )}
+        </div>
+        {location && (
+          <div className="flex-1">
+            <label className="block font-medium mb-1">Batch Location</label>
+
+            <Select
+              value={selectedCenter?._id || ""}
+              onValueChange={(value) => {
+                const center = centers.find((c) => c._id === value);
+                setSelectedCenterState(center || null);
+                updateBatch(index, "centerId", value);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select center">
+                  {selectedCenter?.centerName || "Select center"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {centers.map((center) => (
+                  <SelectItem key={center._id} value={center._id}>
+                    {center.centerName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {errors?.centerId && (
+              <p className="text-red-500 text-sm mt-1">{errors.centerId}</p>
+            )}
+          </div>
+        )}
+
+        {link && (
+          <div className="space-y-2">
+            <label className="block font-medium mb-1">Zoom Meeting Link</label>
+            <div className="relative rounded-md shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                  />
+                </svg>
+              </div>
+              <Input
+                name="meetingLink"
+                type="url"
+                placeholder="https://zoom.us/j/meeting-id"
+                value={batch.meetingLink || ""}
+                onChange={(e) =>
+                  updateBatch(index, "meetingLink", e.target.value)
+                }
+                className="pl-10 w-full"
+              />
+            </div>
+            {errors?.meetingLink && (
+              <p className="mt-1 text-sm text-red-600">{errors.meetingLink}</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {removeBatch &&
+        index !== 0 &&
+        !(location && batch.centerId && index === 0) && (
+          <Button
+            variant="outline"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              removeBatch(index);
+            }}
+            className="w-full mt-7 md:w-auto h-[55px] text-red-500 border-red-500"
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        )}
     </div>
   );
 };

@@ -594,9 +594,7 @@ export default function Payments() {
                                     onClick={() => setSelectedPayment(payment)}
                                   >
                                     {payment?.metaAccountNo?.length > 0 ? (
-                                      <Badge
-                                        variant="outline"
-                                      >
+                                      <Badge variant="outline">
                                         View {payment.metaAccountNo.length}{" "}
                                         Account
                                         {payment.metaAccountNo.length !== 1
@@ -979,8 +977,14 @@ export default function Payments() {
                             {payment?.courseId?.courseType || "-"}
                           </TableCell>
                           <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                            {payment?.botId?.planType ||
-                              payment?.telegramId?.planType ||
+                            {payment?.botId?.planType?.replace(
+                              /(\d+)([A-Za-z]+)/,
+                              "$1 $2"
+                            ) ||
+                              payment?.telegramId?.planType?.replace(
+                                /(\d+)([A-Za-z]+)/,
+                                "$1 $2"
+                              ) ||
                               "-"}
                           </TableCell>
                           <TableCell className="px-6 py-4 text-left whitespace-nowrap">

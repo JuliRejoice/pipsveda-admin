@@ -95,6 +95,9 @@ type Batch = {
   startDate: Date | null;
   endDate: Date | null;
   courseId: string;
+  time?: string | null;
+  meetingLink?: string | null;
+  [key: string]: any;
 };
 
 export default function Courses() {
@@ -156,6 +159,8 @@ export default function Courses() {
       description: "",
       startDate: null,
       endDate: null,
+      time: null,
+      meetingLink: null,
       courseId: "",
     },
   ]);
@@ -169,9 +174,42 @@ export default function Courses() {
       centerId: "",
       startDate: null,
       endDate: null,
+      time: null,
       courseId: "",
     },
   ]);
+
+  // Clear batches when the form is closed
+  useEffect(() => {
+    if (!isLiveBatchVisible) {
+      setLiveBatches([
+        {
+          id: "",
+          batchName: "",
+          description: "",
+          startDate: null,
+          endDate: null,
+          time: null,
+          meetingLink: null,
+          courseId: "",
+        },
+      ]);
+    }
+    if (!isPhysicalBatchVisible) {
+      setPhysicalBatches([
+        {
+          id: "",
+          batchName: "",
+          description: "",
+          centerId: "",
+          startDate: null,
+          endDate: null,
+          time: null,
+          courseId: "",
+        },
+      ]);
+    }
+  }, [isPhysicalBatchVisible, isLiveBatchVisible]);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   // Add error state
@@ -237,6 +275,11 @@ export default function Courses() {
 
       if (!b.startDate) err.startDate = "Start date is required";
       if (!b.endDate) err.endDate = "End date is required";
+      if (!b.time) {
+        err.time = "Time is required";
+      } else if (b.time && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(b.time)) {
+        err.time = "Please enter a valid time in 24-hour format (HH:MM)";
+      }
 
       if (
         b.startDate &&
@@ -244,6 +287,15 @@ export default function Courses() {
         new Date(b.startDate) > new Date(b.endDate)
       ) {
         err.endDate = "End date must be after start date";
+      }
+      if (activeTab === "physical") {
+        if (!b.centerId) err.centerId = "Center is required";
+      } else if (activeTab === "live") {
+        if (!b.meetingLink) {
+          err.meetingLink = "Meeting link is required";
+        } else if (!isValidUrl(b.meetingLink)) {
+          err.meetingLink = "Please enter a valid URL";
+        }
       }
 
       if (i > 0) {
@@ -294,6 +346,10 @@ export default function Courses() {
             selectedCenter?._id && {
               centerId: selectedCenter._id,
             }),
+          ...(activeTab === "live" && {
+            meetingLink: b.meetingLink || null,
+          }),
+          time: b.time || null,
         })),
       };
 
@@ -319,7 +375,14 @@ export default function Courses() {
   ) => {
     try {
       setIsSubmitting(true);
-      const res = await updateBatch(id, updatedData);
+      // Ensure we're sending the correct fields to the API
+      const batchData = {
+        ...updatedData,
+        ...(updatedData.meetingLink && {
+          meetingLink: updatedData.meetingLink,
+        }),
+      };
+      const res = await updateBatch(id, batchData);
       if (res.success) {
         toast.success("Batch updated successfully");
         const updated = await getAllBatch(latestCourse?._id || "");
@@ -335,17 +398,26 @@ export default function Courses() {
   };
 
   const handleDeleteBatch = async (
-    id: string,
-    setBatches: React.Dispatch<React.SetStateAction<Batch[]>>
+    id: string | undefined,
+    setBatches: React.Dispatch<React.SetStateAction<Batch[]>>,
+    index?: number
   ) => {
     try {
       setIsSubmitting(true);
-      const res = await deleteBatch(id);
-      if (res.success) {
-        toast.success("Batch deleted successfully");
-        setBatches((prev) => prev.filter((b) => b._id !== id));
-      } else {
-        toast.error(res.message || "Failed to delete batch");
+
+      if (!id && index !== undefined) {
+        setBatches((prev) => prev.filter((_, i) => i !== index));
+        return;
+      }
+
+      if (id) {
+        const res = await deleteBatch(id);
+        if (res.success) {
+          toast.success("Batch deleted successfully");
+          setBatches((prev) => prev.filter((b) => b._id !== id));
+        } else {
+          toast.error(res.message || "Failed to delete batch");
+        }
       }
     } catch (error) {
       toast.error("Failed to delete batch");
@@ -458,20 +530,6 @@ export default function Courses() {
       errors.hours = "Please enter valid hours greater than 0";
     }
 
-    // Validate dates (use courseStart/courseEnd set before validation)
-    const startDate = formData.get("courseStart")?.toString();
-    const endDate = formData.get("courseEnd")?.toString();
-
-    if (!startDate) {
-      errors.startDate = "Start date is required";
-    }
-    if (!endDate) {
-      errors.endDate = "End date is required";
-    }
-    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-      errors.dateRange = "End date must be after start date";
-    }
-
     // Image required on create (skip when editing)
     if (!editCourse && !imageFile) {
       errors.image = "Please upload an image";
@@ -482,17 +540,18 @@ export default function Courses() {
     }
 
     // Course type specific validations
-    if (courseType === "live") {
-      if (
-        !formData.get("zoomLink")?.toString().trim() &&
-        !editCourse?.meetingLink
-      ) {
-        errors.zoomLink = "Zoom meeting link is required";
-      } else if (
-        formData.get("zoomLink") &&
-        !isValidUrl(formData.get("zoomLink")?.toString() || "")
-      ) {
-        errors.zoomLink = "Please enter a valid Zoom URL";
+    if (courseType === "recorded") {
+      const startDate = formData.get("courseStart")?.toString().trim();
+      const endDate = formData.get("courseEnd")?.toString().trim();
+
+      if (!startDate) {
+        errors.startDate = "Start date is required";
+      }
+      if (!endDate) {
+        errors.endDate = "End date is required";
+      }
+      if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+        errors.dateRange = "End date must be after start date";
       }
     }
 
@@ -516,17 +575,8 @@ export default function Courses() {
       // ) {
       //   errors.phone = "Please enter a valid phone number (min 10 digits)";
       // }
-      if (!formData.get("city")?.toString().trim()) {
-        errors.city = "City is required";
-      }
-      if (!formData.get("state")?.toString().trim()) {
-        errors.state = "State is required";
-      }
-      if (!formData.get("country")?.toString().trim()) {
-        errors.country = "Country is required";
-      }
     }
-
+    console.log(errors);
     return errors;
   };
 
@@ -619,6 +669,7 @@ export default function Courses() {
 
   // Fetch courses when pagination or filters change
   useEffect(() => {
+    setLoading(true);
     fetchCourses();
   }, [currentPage, itemsPerPage, debouncedSearchTerm, activeTab]);
 
@@ -727,7 +778,7 @@ export default function Courses() {
                 <Link
                   href={
                     activeTab === "live"
-                      ? `/dashboard/courses/${course._id}/sessions`
+                      ? `/dashboard/courses/${course._id}`
                       : `/dashboard/courses/${course._id}`
                   }
                   className="hover:underline cursor-pointer truncate block max-w-[250px]"
@@ -959,14 +1010,6 @@ export default function Courses() {
           ? format(recordedStartDate, "yyyy-MM-dd")
           : "";
         endDate = recordedEndDate ? format(recordedEndDate, "yyyy-MM-dd") : "";
-      } else if (formActiveTab === "live") {
-        startDate = liveStartDate ? format(liveStartDate, "yyyy-MM-dd") : "";
-        endDate = liveEndDate ? format(liveEndDate, "yyyy-MM-dd") : "";
-      } else if (formActiveTab === "physical") {
-        startDate = physicalStartDate
-          ? format(physicalStartDate, "yyyy-MM-dd")
-          : "";
-        endDate = physicalEndDate ? format(physicalEndDate, "yyyy-MM-dd") : "";
       }
 
       // Add the dates to form data
@@ -992,8 +1035,7 @@ export default function Courses() {
       apiFormData.append("description", formData.get("description") || "");
       apiFormData.append("price", formData.get("price") || "0");
       apiFormData.append("hours", formData.get("hours") || "0");
-      apiFormData.append("courseStart", startDate);
-      apiFormData.append("courseEnd", endDate);
+
       apiFormData.append("instructor", formData.get("instructor") || "");
       apiFormData.append("language", formData.get("language") || "english");
       apiFormData.append("courseLevel", formData.get("courseLevel") || "");
@@ -1025,8 +1067,9 @@ export default function Courses() {
       }
 
       // Add course type specific fields
-      if (courseType === "live") {
-        apiFormData.append("meetingLink", formData.get("zoomLink") || "");
+      if (courseType === "recorded") {
+        apiFormData.append("courseStart", startDate);
+        apiFormData.append("courseEnd", endDate);
       } else if (courseType === "physical") {
         apiFormData.append("email", formData.get("email") || "");
         apiFormData.append("phone", formData.get("phone") || "");
@@ -1037,17 +1080,17 @@ export default function Courses() {
         apiFormData.append("image", imageFile);
       }
 
-      if (formData.get("city")) {
-        apiFormData.append("city", formData.get("city") || "");
-      }
+      // if (formData.get("city")) {
+      //   apiFormData.append("city", formData.get("city") || "");
+      // }
 
-      if (formData.get("state")) {
-        apiFormData.append("state", formData.get("state") || "");
-      }
+      // if (formData.get("state")) {
+      //   apiFormData.append("state", formData.get("state") || "");
+      // }
 
-      if (formData.get("country")) {
-        apiFormData.append("country", formData.get("country") || "");
-      }
+      // if (formData.get("country")) {
+      //   apiFormData.append("country", formData.get("country") || "");
+      // }
       const categoryId = formData.get("courseCategory");
       if (categoryId) {
         apiFormData.append("courseCategory", categoryId.toString());
@@ -1126,6 +1169,7 @@ export default function Courses() {
   }
 
   const handleTabChange = (value: string) => {
+    setLoading(true);
     setIsTabSwitching(true);
     setActiveTab(value);
     localStorage.setItem("coursesActiveTab", value);
@@ -1894,115 +1938,7 @@ export default function Courses() {
                     </div>
                   </div>
                   {/* Start and End Date in one row */}
-                  <div className="flex flex-col md:flex-row gap-4 mb-6">
-                    <div className="flex-1">
-                      <label className="block font-medium mb-1">
-                        Start Date *
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full h-[55px] justify-start text-left font-normal px-4"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {liveStartDate ? (
-                              format(liveStartDate, "PPP")
-                            ) : (
-                              <>
-                                <input
-                                  placeholder="Pick a date"
-                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                                />
-                                {/* <span className="text-base font-semibold">Pick a date</span> */}
-                              </>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={liveStartDate}
-                            onSelect={setLiveStartDate}
-                            initialFocus
-                            disabled={(date) =>
-                              date < new Date(new Date().setHours(0, 0, 0, 0))
-                            }
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {formErrors.startDate && (
-                        <div className="text-red-500">
-                          {formErrors.startDate}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <label className="block font-medium mb-1">
-                        End Date *
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full h-[55px] justify-start text-left font-normal px-4"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {liveEndDate ? (
-                              format(liveEndDate, "PPP")
-                            ) : (
-                              <>
-                                <input
-                                  placeholder="Pick a date"
-                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                                />
-                                {/* <span className="text-base font-semibold">Pick a date</span> */}
-                              </>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={liveEndDate}
-                            onSelect={setLiveEndDate}
-                            initialFocus
-                            disabled={(date) =>
-                              date < new Date(new Date().setHours(0, 0, 0, 0))
-                            }
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {formErrors.endDate && (
-                        <div className="text-red-500">{formErrors.endDate}</div>
-                      )}
-                    </div>
-                  </div>
-                  {formErrors.dateRange && (
-                    <div className="text-red-500">{formErrors.dateRange}</div>
-                  )}
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Zoom Meeting Link *
-                    </label>
-                    <Input
-                      placeholder="Zoom Meeting Link"
-                      name="zoomLink"
-                      defaultValue={editCourse?.meetingLink || ""}
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === " " &&
-                          !(e.target as HTMLInputElement).value.trim()
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                    {formErrors.zoomLink && (
-                      <div className="text-red-500">{formErrors.zoomLink}</div>
-                    )}
-                  </div>
+
                   <div className="flex flex-col">
                     <label className="block font-medium mb-1">
                       Course Level *
@@ -2127,6 +2063,8 @@ export default function Courses() {
                             startDate: null,
                             endDate: null,
                             courseId: "",
+                            time: null,
+                            meetingLink: null,
                           },
                         ]);
                       }}
@@ -2140,6 +2078,7 @@ export default function Courses() {
                         key={index}
                         index={index}
                         batch={batch}
+                        link={true}
                         updateBatch={async (
                           index: number,
                           key: string,
@@ -2353,95 +2292,7 @@ export default function Courses() {
                       )}
                     </div>
                   </div>
-                  {/* Start and End Date in one row */}
-                  <div className="flex flex-col md:flex-row gap-4 mb-6">
-                    <div className="flex-1">
-                      <label className="block font-medium mb-1">
-                        Start Date *
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full h-[55px] justify-start text-left font-normal px-4"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {physicalStartDate ? (
-                              format(physicalStartDate, "PPP")
-                            ) : (
-                              <>
-                                <input
-                                  placeholder="Pick a date"
-                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                                />
-                                {/* <span className="text-base font-semibold">Pick a date</span> */}
-                              </>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={physicalStartDate}
-                            onSelect={setPhysicalStartDate}
-                            initialFocus
-                            disabled={(date) =>
-                              date < new Date(new Date().setHours(0, 0, 0, 0))
-                            }
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {formErrors.startDate && (
-                        <div className="text-red-500">
-                          {formErrors.startDate}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <label className="block font-medium mb-1">
-                        End Date *{" "}
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full h-[55px] justify-start text-left font-normal px-4"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {physicalEndDate ? (
-                              format(physicalEndDate, "PPP")
-                            ) : (
-                              <>
-                                <input
-                                  placeholder="Pick a date"
-                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                                />
-                                {/* <span className="text-base font-semibold">Pick a date</span> */}
-                              </>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={physicalEndDate}
-                            onSelect={setPhysicalEndDate}
-                            initialFocus
-                            disabled={(date) =>
-                              date < new Date(new Date().setHours(0, 0, 0, 0))
-                            }
-                          />
-                        </PopoverContent>
-                      </Popover>
 
-                      {formErrors.endDate && (
-                        <div className="text-red-500">{formErrors.endDate}</div>
-                      )}
-                    </div>
-                  </div>
-                  {formErrors.dateRange && (
-                    <div className="text-red-500">{formErrors.dateRange}</div>
-                  )}
                   {/* <div>
                   <label className="block font-medium mb-1">Date and Time</label>
                   <Input placeholder="e.g. 2024-02-15 9:00 AM" name="dateTime" />
@@ -2589,68 +2440,6 @@ export default function Courses() {
                                         )}
                                     </div> */}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block font-medium mb-1">City *</label>
-                      <Input
-                        placeholder="City"
-                        name="city"
-                        defaultValue={editCourse?.city || ""}
-                        onBlur={handleTrimInput}
-                        onKeyDown={(e) => {
-                          if (
-                            e.key === " " &&
-                            !(e.target as HTMLInputElement).value.trim()
-                          ) {
-                            e.preventDefault();
-                          }
-                        }}
-                      />
-                      {formErrors.city && (
-                        <div className="text-red-500">{formErrors.city}</div>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block font-medium mb-1">State *</label>
-                      <Input
-                        placeholder="State"
-                        name="state"
-                        defaultValue={editCourse?.state || ""}
-                        onBlur={handleTrimInput}
-                        onKeyDown={(e) => {
-                          if (
-                            e.key === " " &&
-                            !(e.target as HTMLInputElement).value.trim()
-                          ) {
-                            e.preventDefault();
-                          }
-                        }}
-                      />
-                      {formErrors.state && (
-                        <div className="text-red-500">{formErrors.state}</div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Country</label>
-                    <Input
-                      placeholder="Country"
-                      name="country"
-                      defaultValue={editCourse?.country || ""}
-                      onBlur={handleTrimInput}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === " " &&
-                          !(e.target as HTMLInputElement).value.trim()
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                    {formErrors.country && (
-                      <div className="text-red-500">{formErrors.country}</div>
-                    )}
-                  </div>
                   <div className="flex flex-col">
                     <label className="block font-medium mb-1">
                       Course Level
@@ -2667,7 +2456,6 @@ export default function Courses() {
                       <p className="text-red-500">{formErrors.courseLevel}</p>
                     )}
                   </div>
-
                   <div>
                     <label className="block font-medium mb-1">
                       Intro Video *
@@ -2762,64 +2550,71 @@ export default function Courses() {
                   }}
                 >
                   <div className="space-y-4">
-                    <Button
-                      type="button"
-                      variant="default"
-                      onClick={() => {
-                        setPhysicalBatches([
-                          ...physicalBatches,
-                          {
-                            id: "",
-                            batchName: "",
-                            description: "",
-                            centerId: "",
-                            startDate: null,
-                            endDate: null,
-                            courseId: "",
-                          },
-                        ]);
-                      }}
-                    >
-                      Add Batch
-                    </Button>
-
-                    {physicalBatches.map((batch, index) => (
-                      <BatchDatePickerRow
-                        key={index}
-                        index={index}
-                        batch={batch}
-                        location={activeTab === "physical" ? true : false}
-                        updateBatch={async (
-                          index: number,
-                          key: string,
-                          value: any
-                        ) => {
-                          const updatedBatches = [...physicalBatches];
-                          updatedBatches[index] = {
-                            ...updatedBatches[index],
-                            [key]: value,
-                          };
-                          setPhysicalBatches(updatedBatches);
-
-                          if (batch._id) {
-                            await handleUpdateBatch(
-                              batch._id,
-                              { ...updatedBatches[index], [key]: value },
-                              setPhysicalBatches
-                            );
-                          }
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-medium">Batches</h3>
+                      <Button
+                        type="button"
+                        variant="default"
+                        onClick={() => {
+                          setPhysicalBatches([
+                            ...physicalBatches,
+                            {
+                              id: "",
+                              batchName: "",
+                              description: "",
+                              centerId: "",
+                              startDate: null,
+                              endDate: null,
+                              courseId: "",
+                            },
+                          ]);
                         }}
-                        removeBatch={(index) =>
-                          handleDeleteBatch(
-                            physicalBatches?.[index]?._id as string,
-                            setPhysicalBatches
-                          )
-                        }
-                        errors={batchErrors[index]}
-                        centers={centers}
-                        setSelectedCenter={setSelectedCenter}
-                      />
-                    ))}
+                      >
+                        <Plus className="mr-2 h-4 w-4" /> Add Batch
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                      {physicalBatches.map((batch, index) => (
+                        <div key={index} className="relative group">
+                          <BatchDatePickerRow
+                            index={index}
+                            batch={batch}
+                            location={activeTab === "physical" ? true : false}
+                            updateBatch={async (
+                              index: number,
+                              key: string,
+                              value: any
+                            ) => {
+                              const updatedBatches = [...physicalBatches];
+                              updatedBatches[index] = {
+                                ...updatedBatches[index],
+                                [key]: value,
+                              };
+                              setPhysicalBatches(updatedBatches);
+
+                              if (batch._id) {
+                                await handleUpdateBatch(
+                                  batch._id,
+                                  { ...updatedBatches[index], [key]: value },
+                                  setPhysicalBatches
+                                );
+                              }
+                            }}
+                            removeBatch={(batchIndex) =>
+                              handleDeleteBatch(
+                                physicalBatches?.[batchIndex]?._id,
+                                setPhysicalBatches,
+                                batchIndex
+                              )
+                            }
+                            errors={batchErrors[index]}
+                            centers={centers}
+                            setSelectedCenter={setSelectedCenter}
+                          />
+                        </div>
+                      ))}
+                    </div>
                     <DialogFooter>
                       <Button type="submit" variant="default">
                         Save Batches
