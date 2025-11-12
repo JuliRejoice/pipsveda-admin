@@ -10,7 +10,7 @@ export const getAuthToken = (): string | null => {
   return null;
 };
 
-export const getAllTelegram = async () => {
+export const getAllTelegram = async (searchTerm?: string) => {
   try {
     const token = getAuthToken();
     const headers: Record<string, string> = {
@@ -21,7 +21,7 @@ export const getAllTelegram = async () => {
       headers["x-auth-token"] = token;
     }
 
-    const res = await axios.get(`${BaseUrl}/telegram/getAllTelegram`, {
+    const res = await axios.get(`${BaseUrl}/telegram/getAllTelegram${searchTerm ? `?search=${searchTerm}` : ""}`, {
       headers,
     });
     console.log(res.data);
