@@ -85,6 +85,7 @@ import {
   updateSyllabus,
 } from "@/components/api/syllabus";
 import { Label } from "@radix-ui/react-label";
+import ChapterFormList from "@/components/course/ChapterFormList";
 
 type Batch = {
   _id?: string;
@@ -151,6 +152,7 @@ export default function Courses() {
   const [isLiveBatchVisible, setIsLiveBatchVisible] = useState(false);
   const [isPhysicalBatchVisible, setIsPhysicalBatchVisible] = useState(false);
   const [isSyllabusVisible, setIsSyllabusVisible] = useState(false);
+  const [isChaptersVisible, setIsChaptersVisible] = useState(false);
   const [latestCourse, setLatestCourse] = useState<Course | null>(null);
   const [liveBatches, setLiveBatches] = useState<Batch[]>([
     {
@@ -211,7 +213,7 @@ export default function Courses() {
     }
   }, [isPhysicalBatchVisible, isLiveBatchVisible]);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-
+  const [chaptersList, setChaptersList] = useState<any[]>([]);
   // Add error state
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -752,7 +754,6 @@ export default function Courses() {
       });
     }
   };
-
   const CourseCard = ({ course }: { course: any }) => {
     const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -971,7 +972,7 @@ export default function Courses() {
 
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center text-muted-foreground">
-              <span className="ml-1 capitalize">
+              <span className=" capitalize">
                 {course.language || "English"} | Rating 4.6 | 100 Students
               </span>
             </div>
@@ -1231,7 +1232,6 @@ export default function Courses() {
       );
     }
   };
-
   return (
     <div>
       <Dialog
@@ -1240,9 +1240,22 @@ export default function Courses() {
           // If trying to close the dialog
           if (!val) {
             if (latestCourse?._id !== undefined) {
-              if (!syllabusList || syllabusList.length === 0) {
+              if (
+                isSyllabusVisible &&
+                (!syllabusList || syllabusList.length === 0)
+              ) {
                 toast.error("Cannot close: Please add at least one syllabus");
                 return;
+              }
+
+              if (activeTab === "recorded") {
+                // Check if there are any chapters for recorded courses
+                if (!isSyllabusVisible && chaptersList.length > 0) {
+                  toast.error(
+                    "Cannot close: Please add at least one chapter"
+                  );
+                  return;
+                }
               }
 
               if (
@@ -1363,7 +1376,7 @@ export default function Courses() {
               </TabsTrigger>
             </TabsList>
             {/* Recorded Course Form */}
-            {!isSyllabusVisible && (
+            {!isSyllabusVisible && !isChaptersVisible && (
               <TabsContent value="recorded">
                 <form
                   className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
@@ -1624,7 +1637,7 @@ export default function Courses() {
                       <label className="block font-medium mb-1">Hours *</label>
                       <Input
                         placeholder="Hours"
-                        type="text"
+                        type="number"
                         name="hours"
                         defaultValue={editCourse?.hours || ""}
                         onBlur={handleTrimInput}
@@ -1756,21 +1769,35 @@ export default function Courses() {
                 onAdd={(data: any) => createSyllabus(data)}
                 onUpdate={(data: any) => updateSyllabus(data.id, data)}
                 onDelete={(id: string) => deleteSyllabus(id)}
-                setOpen={() =>
-                  activeTab === "recorded" ? setOpen(false) : setOpen(true)
-                }
                 setIsSyllabusVisible={() => setIsSyllabusVisible(false)}
                 setIsLiveBatchVisible={() =>
                   activeTab === "live"
                     ? setIsLiveBatchVisible(true)
                     : setIsLiveBatchVisible(false)
                 }
+                setIsChaptersVisible={() =>
+                  activeTab === "recorded"
+                    ? setIsChaptersVisible(true)
+                    : setIsChaptersVisible(false)
+                }
                 setIsPhysicalBatchVisible={() =>
                   activeTab === "physical"
                     ? setIsPhysicalBatchVisible(true)
                     : setIsPhysicalBatchVisible(false)
                 }
-                saveTitle={activeTab == "recorded" ? "Save All" : "Next"}
+                saveTitle="Next"
+              />
+            )}
+            {!isSyllabusVisible && isChaptersVisible && (
+              <ChapterFormList
+                courseId={latestCourse?._id}
+                onSuccess={() => {
+                  setIsChaptersVisible(false);
+                  setOpen(false);
+                }}
+                setChaptersList={(chapters: any[]) => {
+                  setChaptersList(chapters);
+                }}
               />
             )}
             {/* Live Course Form */}
@@ -2274,7 +2301,7 @@ export default function Courses() {
                       <label className="block font-medium mb-1">Hours *</label>
                       <Input
                         placeholder="Hours"
-                        type="text"
+                        type="number"
                         name="hours"
                         defaultValue={editCourse?.hours || ""}
                         onBlur={handleTrimInput}

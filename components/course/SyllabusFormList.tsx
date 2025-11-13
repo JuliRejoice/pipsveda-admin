@@ -29,6 +29,7 @@ interface SyllabusSectionProps {
   setOpen?: (open: boolean) => void;
   setIsSyllabusVisible?: (open: boolean) => void;
   setIsLiveBatchVisible?: (open: boolean) => void;
+  setIsChaptersVisible?: (open: boolean) => void;
   setIsPhysicalBatchVisible?: (open: boolean) => void;
   saveTitle?: string;
 }
@@ -38,6 +39,7 @@ export default function SyllabusSection({
   setOpen,
   setIsSyllabusVisible,
   setIsLiveBatchVisible,
+  setIsChaptersVisible,
   setIsPhysicalBatchVisible,
   saveTitle,
 }: SyllabusSectionProps) {
@@ -53,11 +55,14 @@ export default function SyllabusSection({
     try {
       const response = await getAllSyllabus(courseId);
       if (response.success) {
-        const courseSyllabus = response.payload?.data?.reverse().filter(
-          (s: any) =>
-            (typeof s.courseId === "object" ? s.courseId?._id : s.courseId) ===
-            courseId
-        );
+        const courseSyllabus = response.payload?.data
+          ?.reverse()
+          .filter(
+            (s: any) =>
+              (typeof s.courseId === "object"
+                ? s.courseId?._id
+                : s.courseId) === courseId
+          );
         setSyllabusList(
           courseSyllabus?.length
             ? courseSyllabus
@@ -146,10 +151,11 @@ export default function SyllabusSection({
       }
       toast.success("Syllabus saved successfully");
       await fetchSyllabus();
-      setOpen && setOpen(false);
+      // setOpen && setOpen(false);
       setIsSyllabusVisible && setIsSyllabusVisible(false);
       setIsLiveBatchVisible && setIsLiveBatchVisible(true);
       setIsPhysicalBatchVisible && setIsPhysicalBatchVisible(true);
+      setIsChaptersVisible && setIsChaptersVisible(true);
       setErrors({});
     } catch (error) {
       console.error(error);
@@ -186,6 +192,7 @@ export default function SyllabusSection({
       className={`flex flex-col justify-between space-y-6 ${containerHeight} pr-2`}
     >
       <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Syllabus</h2>
         <Button onClick={handleAdd} variant="default" size="sm">
           <Plus className="w-4 h-4 mr-2" /> Add Syllabus
         </Button>

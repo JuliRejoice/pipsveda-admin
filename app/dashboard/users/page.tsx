@@ -40,6 +40,10 @@ import {
   Phone,
   User,
   X,
+  Eye,
+  EyeOff,
+  Mail,
+  MapPin,
 } from "lucide-react";
 import {
   getCustomers,
@@ -87,6 +91,9 @@ const classNames = {
 };
 
 interface Customer {
+  city: string;
+  state: string;
+  country: string;
   _id: string;
   name: string;
   email: string;
@@ -200,6 +207,8 @@ export default function Users() {
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(8);
   const [totalItems, setTotalItems] = useState(0);
@@ -221,11 +230,12 @@ export default function Users() {
       // roleId: "",
     },
   });
+  console.log(customers, "customer");
 
   const fetchCustomersData = async () => {
     try {
       setIsSearching(true);
-      const response: CustomerApiResponse = await getCustomers({
+      const response: any = await getCustomers({
         page: currentPage,
         limit: itemsPerPage,
         search: searchTerm,
@@ -441,6 +451,8 @@ export default function Users() {
     return <div className="text-red-500 p-4">{error}</div>;
   }
 
+  console.log(viewingCustomer);
+
   return (
     <div className="space-t-6 max-h-[90vh]">
       <Card className="border-none shadow-none">
@@ -598,6 +610,17 @@ export default function Users() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setViewingCustomer(customer);
+                                    setIsViewModalOpen(true);
+                                  }}
+                                >
+                                  <Eye className="mr-2 h-5 w-5 text-blacktheme" />
+                                  <span className="text-base font-semibold text-gray-500 font-lexend">
+                                    View
+                                  </span>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleEdit(customer)}
                                 >
@@ -1036,6 +1059,116 @@ export default function Users() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold">
+              Customer Details
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              View customer information
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewingCustomer && (
+            <div className="space-y-6 py-2">
+              {/* Header Section */}
+              <div className="flex items-start space-x-4 pb-4 border-b">
+                <Avatar className="h-20 w-20">
+                  <AvatarFallback className="text-lg">
+                    {viewingCustomer.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-semibold">
+                    {viewingCustomer.name}
+                  </h3>
+                  <p className="text-muted-foreground flex items-center">
+                    <Mail className="h-4 w-4 mr-2" />
+                    {viewingCustomer.email}
+                  </p>
+                  <div className="pt-1">
+                    <Badge
+                      variant={
+                        viewingCustomer.isActive ? "default" : "secondary"
+                      }
+                      className="text-xs py-1"
+                    >
+                      {viewingCustomer.isActive ? "Active" : "Inactive"}{" "}
+                      Customer
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Details Section */}
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h4 className="text-base font-medium text-foreground">
+                    Contact Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start">
+                        <MapPin className="h-4 w-4 mt-0.5 mr-2 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Location
+                          </p>
+                          <p className="text-sm font-medium">
+                            {[
+                              viewingCustomer?.city,
+                              viewingCustomer?.state,
+                              viewingCustomer?.country,
+                            ]
+                              .filter(Boolean)
+                              .join(", ") || "Not specified"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {viewingCustomer.phone && (
+                        <div className="flex items-start">
+                          <Phone className="h-4 w-4 mt-0.5 mr-2 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Phone
+                            </p>
+                            <p className="text-sm font-medium">
+                              {viewingCustomer.phone}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-start">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Member Since
+                          </p>
+                          <p className="text-sm font-medium">
+                            {new Date(
+                              viewingCustomer.createdAt
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

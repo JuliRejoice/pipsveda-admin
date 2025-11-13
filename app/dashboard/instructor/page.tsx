@@ -27,6 +27,7 @@ import {
   Star,
   GraduationCap,
   MoreVertical,
+  Eye,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -50,7 +51,6 @@ import {
   updateInstructor,
   deleteInstructor,
 } from "@/components/api/instructor";
-
 // Form validation schema
 const formSchema = z.object({
   name: z
@@ -65,21 +65,26 @@ const formSchema = z.object({
   image: z
     .any()
     .refine(
-      (file) =>
-        file instanceof File || file === null || typeof file === "string",
-      {
-        message: "Please upload a image",
-      }
+      (file) => {
+        if (file === null || file === undefined) return false;
+        if (typeof file === "string") return true; // Allow existing image URLs
+        return file instanceof File;
+      },
+      { message: "Profile image is required" }
     )
     .refine(
       (file) => {
-        if (!file) return true; // Optional field
-        if (typeof file === "string") return true; // Allow existing image URLs
-        return file.size <= 5 * 1024 * 1024; // 5MB max size
+        if (!file || typeof file === "string") return true; // Skip validation for existing images
+        return file.size <= 5 * 1024 * 1024; // 5MB
       },
-      {
-        message: "Image must be less than 5MB",
-      }
+      { message: "Image size must be less than 5MB" }
+    )
+    .refine(
+      (file) => {
+        if (!file || typeof file === "string") return true; // Skip validation for existing images
+        return file.type.startsWith("image/");
+      },
+      { message: "Please upload a valid image file (PNG, JPG, JPEG, GIF)" }
     ),
 });
 
@@ -119,6 +124,9 @@ export default function InstructorPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [viewingInstructor, setViewingInstructor] =
+    useState<InstructorItem | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -276,8 +284,10 @@ export default function InstructorPage() {
         }
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("An error occurred while processing your request");
+      toast.error(
+        (error as Error).message ||
+          "An error occurred while processing your request"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -295,6 +305,10 @@ export default function InstructorPage() {
     setIsOpen(true);
   };
 
+  const handleView = (instructor: InstructorItem) => {
+    setViewingInstructor(instructor);
+    setIsViewModalOpen(true);
+  };
   const handleDeleteClick = (id: string) => {
     setInstructorToDelete(id);
     setDeleteDialogOpen(true);
@@ -423,7 +437,7 @@ export default function InstructorPage() {
                     id="name"
                     placeholder="John Doe"
                     {...register("name")}
-                    className={errors.name ? "border-red-500" : ""}
+                    className={errors.name ? "" : ""}
                   />
                   {errors.name && (
                     <p className="text-red-500 text-sm mt-1">
@@ -438,8 +452,13 @@ export default function InstructorPage() {
                     id="email"
                     type="email"
                     placeholder="instructor@example.com"
-                    {...register("email")}
-                    className={errors.email ? "border-red-500" : ""}
+                    {...register("email", {
+                      setValueAs: (value: string) => value?.toLowerCase(),
+                    })}
+                    onInput={(e) => {
+                      e.currentTarget.value =
+                        e.currentTarget.value.toLowerCase();
+                    }}
                   />
                   {errors.email && (
                     <p className="text-red-500 text-sm mt-1">
@@ -448,7 +467,7 @@ export default function InstructorPage() {
                   )}
                 </div>
                 <div>
-                  <Label>Profile image</Label>
+                  <Label>Profile image *</Label>
                   <div
                     className={`mt-1 flex justify-center p-2 border-2 border-dashed rounded-lg ${
                       isDragging
@@ -470,7 +489,7 @@ export default function InstructorPage() {
                                 : URL.createObjectURL(imageFile)
                             }
                             alt="Preview"
-                            className="mx-auto h-36  w-36 rounded-lg object-cover"
+                            className={`mx-auto h-36  w-36 rounded-lg object-cover `}
                           />
                           <button
                             type="button"
@@ -523,7 +542,7 @@ export default function InstructorPage() {
                     placeholder="A brief introduction about the instructor..."
                     {...register("bio")}
                     className={`w-full px-3 py-2 border ${
-                      errors.bio ? "border-red-500" : "border-gray-300"
+                      errors.bio ? "" : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                   />
                   {errors.bio && (
@@ -597,6 +616,7 @@ export default function InstructorPage() {
                     <TableHead className="w-[300px]">Instructor</TableHead>
                     <TableHead>Email</TableHead>
                     {/* <TableHead>Courses</TableHead> */}
+                    <TableHead>Bio</TableHead>
                     <TableHead>Rating</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -627,10 +647,15 @@ export default function InstructorPage() {
                             <span>{instructor.name}</span>
                           </div>
                         </TableCell>
-                        <TableCell>{instructor.email}</TableCell>
+                        <TableCell>{instructor.email.toLowerCase()}</TableCell>
                         {/* <TableCell>
                           {instructor.courses?.length || 0} courses
                         </TableCell> */}
+                        <TableCell className="w-96">
+                          <div className="line-clamp-2 text-ellipsis overflow-hidden">
+                            {instructor.bio || "No bio available"}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center">
                             {renderRating(instructor?.averageRating || 0)}
@@ -649,6 +674,13 @@ export default function InstructorPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleView(instructor)}
+                                className="cursor-pointer"
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                <span>View</span>
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleEdit(instructor)}
                                 className="cursor-pointer"
@@ -723,6 +755,92 @@ export default function InstructorPage() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Instructor Dialog */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          {viewingInstructor && (
+            <div className="space-y-6">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold">
+                  Instructor Details
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-shrink-0">
+                  {viewingInstructor.image ? (
+                    <img
+                      className="h-32 w-32 rounded-full object-cover border-2 border-gray-200"
+                      src={viewingInstructor.image}
+                      alt={viewingInstructor.name}
+                    />
+                  ) : (
+                    <div className="h-32 w-32 rounded-full bg-gray-100 flex items-center justify-center">
+                      <User className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4 flex-1">
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      {viewingInstructor.name}
+                    </h3>
+                    <p className="text-gray-600">{viewingInstructor.email}</p>
+
+                    <div className="flex items-center mt-1">
+                      {renderRating(viewingInstructor.averageRating)}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-gray-900">Bio</h4>
+                    <p className="text-gray-700 whitespace-pre-line">
+                      {viewingInstructor.bio || "No bio available"}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <p className="text-sm text-gray-500">Status</p>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          viewingInstructor.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {viewingInstructor.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Member Since</p>
+                      <p className="text-sm text-gray-900">
+                        {viewingInstructor.createdAt
+                          ? new Date(
+                              viewingInstructor.createdAt
+                            ).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="px-6"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

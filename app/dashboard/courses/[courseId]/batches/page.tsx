@@ -100,18 +100,16 @@ export default function CourseBatches() {
     }
 
     // Batch sequence validation
-    if (batch.startDate && batches.length > 0) {
-      const currentStart = new Date(batch.startDate);
-      const latestStart = batches
-        .filter((b) => b._id !== batch._id)
-        .reduce((latest, b) => {
-          const bStart = new Date(b.startDate);
-          return bStart > latest ? bStart : latest;
-        }, new Date(0));
+    if (batch.startDate) {
+      const currentStart = new Date(batch.startDate).toDateString();
+      const hasDuplicate = batches.some(
+        (b) =>
+          b._id !== batch._id &&
+          new Date(b.startDate).toDateString() === currentStart
+      );
 
-      if (currentStart <= latestStart) {
-        err.startDate =
-          "Start date must be after all previous batch start dates";
+      if (hasDuplicate) {
+        err.startDate = "Another batch already starts on this date";
       }
     }
 
@@ -339,7 +337,7 @@ export default function CourseBatches() {
                   key={batch._id}
                   className="relative group transition-shadow hover:shadow-lg"
                 >
-                  <CardHeader className="pb-0">
+                  <CardHeader className="px-0 pl-4 border-b">
                     <CardTitle className="text-lg font-medium">
                       Batch {index + 1}
                     </CardTitle>
@@ -368,39 +366,60 @@ export default function CourseBatches() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">
-                    {batchType === "physical" && (
-                      <p className="text-sm">
-                        <span className="font-medium">Center:</span>{" "}
-                        {batch.centerId
-                          ? centers?.find(
-                              (c) =>
-                                c._id ===
-                                (typeof batch.centerId === "string"
-                                  ? batch.centerId
-                                  : batch.centerId?._id)
-                            )?.centerName || "N/A"
-                          : "N/A"}
-                      </p>
-                    )}
-                    <p className="text-sm">
-                      <span className="font-medium">Start Date:</span>{" "}
-                      {formatDate(batch.startDate)}
-                    </p>
+                    <div className="grid grid-cols-2  gap-y-2">
+                      {batchType === "physical" && (
+                        <>
+                          <span className="text-sm font-medium text-gray-500">
+                            Center:
+                          </span>
+                          <span className="text-sm">
+                            {batch.centerId
+                              ? centers?.find(
+                                  (c) =>
+                                    c._id ===
+                                    (typeof batch.centerId === "string"
+                                      ? batch.centerId
+                                      : batch.centerId?._id)
+                                )?.centerName || "N/A"
+                              : "N/A"}
+                          </span>
+                        </>
+                      )}
 
-                    <p className="text-sm">
-                      <span className="font-medium">End Date:</span>{" "}
-                      {formatDate(batch.endDate)}
-                    </p>
-                    <p className="text-sm">
-                      <span className="font-medium">Time:</span>{" "}
-                      {formatTime(batch.time)}
-                    </p>
-                    {batchType === "live" && (
-                      <p className="text-sm">
-                        <span className="font-medium">Meeting Link:</span>{" "}
-                        {batch.meetingLink || "N/A"}
-                      </p>
-                    )}
+                      <span className="text-sm font-medium text-gray-500">
+                        Start Date:
+                      </span>
+                      <span className="text-sm">
+                        {formatDate(batch.startDate)}
+                      </span>
+
+                      <span className="text-sm font-medium text-gray-500">
+                        End Date:
+                      </span>
+                      <span className="text-sm">
+                        {formatDate(batch.endDate)}
+                      </span>
+
+                      <span className="text-sm font-medium text-gray-500">
+                        Time:
+                      </span>
+                      <span className="text-sm">{formatTime(batch.time)}</span>
+
+                      {batchType === "live" && (
+                        <>
+                          <span className="text-sm font-medium text-gray-500">
+                            Meeting Link:
+                          </span>
+
+                          <span
+                            rel="noopener noreferrer"
+                            className="text-blue-600 break-all"
+                          >
+                            {batch.meetingLink || "N/A"}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}

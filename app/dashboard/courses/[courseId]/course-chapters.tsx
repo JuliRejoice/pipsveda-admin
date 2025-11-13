@@ -152,9 +152,9 @@ export function CourseChapters({
         newErrors.videoFile =
           "Please upload a valid video file (MP4, WebM, or QuickTime)";
         isValid = false;
-      } else if (formData.videoFile.size > 100 * 1024 * 1024) {
-        // 100MB limit
-        newErrors.videoFile = "Video file size should be less than 100MB";
+      } else if (formData.videoFile.size > 50 * 1024 * 1024) {
+        // 50MB limit
+        newErrors.videoFile = "Video file size should be less than 50MB";
         isValid = false;
       }
     }

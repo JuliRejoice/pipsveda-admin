@@ -35,6 +35,10 @@ import {
   Edit,
   Trash2,
   MapPin,
+  Eye,
+  UserX,
+  Phone,
+  UserCheck,
 } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -142,6 +146,8 @@ export default function CenterPage() {
   );
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [viewingCenter, setViewingCenter] = useState<Center | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const form = useForm<CenterFormValues>({
     resolver: zodResolver(centerFormSchema),
@@ -259,7 +265,11 @@ export default function CenterPage() {
     setCurrentPage(1);
     fetchCentersData();
   };
-  console.log();
+
+  const handleView = (center: Center) => {
+    setViewingCenter(center);
+    setIsViewModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -348,13 +358,21 @@ export default function CenterPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
+                            onClick={() => handleView(center)}
+                            className="cursor-pointer "
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
+                          </DropdownMenuItem>
+                    
+                          <DropdownMenuItem
                             onClick={() => handleEdit(center)}
                             className="cursor-pointer"
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                    
                           <DropdownMenuItem
                             onClick={() => handleDeleteClick(center)}
                             className="text-red-600 cursor-pointer"
@@ -646,6 +664,121 @@ export default function CenterPage() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Center Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold">
+              Center Details
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              View center information
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewingCenter && (
+            <div className="space-y-6 py-2">
+              {/* Header Section */}
+              <div className="flex items-start space-x-4 pb-4 border-b">
+                <div className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center">
+                  <MapPin className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-semibold">
+                    {viewingCenter.centerName}
+                  </h3>
+                  <p className="text-muted-foreground flex items-center">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {viewingCenter.location}
+                  </p>
+                  <div className="pt-1">
+                    <Badge
+                      variant={viewingCenter.isActive ? "default" : "secondary"}
+                      className="text-xs py-1"
+                    >
+                      {viewingCenter.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Details Section */}
+              <div className="w-full space-y-6 border rounded-lg p-6">
+                <h4 className="text-base font-medium text-foreground">
+                  Contact Information
+                </h4>
+                <div className="space-y-4">
+                  <div className="w-full space-y-3">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex justify-between border-b pb-2">
+                        <p className="text-sm text-muted-foreground">Country</p>
+                        <p className="text-sm font-medium">
+                          {viewingCenter.country || "Not specified"}
+                        </p>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <p className="text-sm text-muted-foreground">State</p>
+                        <p className="text-sm font-medium">
+                          {viewingCenter.state || "Not specified"}
+                        </p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p className="text-sm text-muted-foreground">City</p>
+                        <p className="text-sm font-medium">
+                          {viewingCenter.city || "Not specified"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="pt-6 border-t">
+                <div className="flex w-full justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsViewModalOpen(false)}
+                    className="px-6"
+                  >
+                    Close
+                  </Button>
+                  <div className="space-x-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        // handleStatusChange(viewingCenter._id, !viewingCenter.isActive);
+                        // setIsViewModalOpen(false);
+                      }}
+                    >
+                      {viewingCenter.isActive ? (
+                        <UserX className="h-4 w-4 mr-2" />
+                      ) : (
+                        <UserCheck className="h-4 w-4 mr-2" />
+                      )}
+                      {viewingCenter.isActive ? "Deactivate" : "Activate"}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setIsViewModalOpen(false);
+                        handleEdit(viewingCenter);
+                      }}
+                      className="px-6"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Center
+                    </Button>
+                  </div>
+                </div>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
