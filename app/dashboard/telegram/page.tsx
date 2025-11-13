@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ import {
   AlertTriangle,
   Image as ImageIcon,
   X,
+  Search,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -139,6 +140,40 @@ export default function TelegramManagement() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Fetch channels with search term and pagination
+  const fetchChannels = useCallback(async () => {
+    try {
+      setIsFetching(true);
+      const data = await getAllTelegram(searchTerm);
+      setChannels(data.payload.data);
+    } catch (error) {
+      console.error("Error fetching channels:", error);
+      toast.error("Failed to load channels");
+    } finally {
+      setIsFetching(false);
+      setIsSearching(false);
+    }
+  }, [searchTerm]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchChannels();
+  }, [fetchChannels]);
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput.trimStart());
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const filteredChannels = channels;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -240,25 +275,6 @@ export default function TelegramManagement() {
     setValue("logo", "");
     trigger("logo");
   };
-
-  const fetchChannels = async () => {
-    try {
-      setIsFetching(true);
-      const response = await getAllTelegram();
-
-      if (response.success) {
-        setChannels(response.payload.data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching channels:", error);
-    } finally {
-      setIsFetching(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchChannels();
-  }, []);
 
   const onSubmitStep1 = async (data: FormValues) => {
     try {
@@ -477,10 +493,53 @@ export default function TelegramManagement() {
       setIsDeleting(true);
       const response = await deleteChannel(channelToDelete);
       if (response.success) {
+        // Update the channels state with the new channel data
+        useEffect(() => {
+          const fetchChannels = async () => {
+            try {
+              const data = await getAllTelegram();
+              setChannels(data.payload.data);
+            } catch (error) {
+              console.error("Error fetching channels:", error);
+              toast.error("Failed to load channels");
+            } finally {
+              setIsFetching(false);
+            }
+          };
+
+          fetchChannels();
+        }, []);
+
+        // Update filtered channels when search term changes
+        useEffect(() => {
+          // Filtering is handled by the filteredChannels computed value
+        }, [searchTerm, channels]);
+
         toast.success("Channel deleted successfully");
         await fetchChannels(); // Refresh the list
       } else {
         toast.error("Failed to delete channel");
+      }
+    } catch (error) {
+      console.error("Error deleting channel:", error);
+      toast.error("Failed to delete channel");
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setChannelToDelete(null);
+    }
+  };
+
+  const handleDeleteChannel = async (id: string) => {
+    try {
+      setIsDeleting(true);
+      const response = await deleteChannel(id);
+      if (response.success) {
+        // Refresh the channels list
+        await fetchChannels();
+        toast.success("Channel deleted successfully");
+      } else {
+        toast.error(response.message || "Failed to delete channel");
       }
     } catch (error) {
       console.error("Error deleting channel:", error);
@@ -686,24 +745,47 @@ export default function TelegramManagement() {
     }
   };
 
-  if (isFetching) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // if (isFetching) {
+  //   return (
+  //     <div className="flex items-center justify-center h-64">
+  //       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Telegram Channel Management
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your Telegram channels and their configurations
-          </p>
+        <div className="w-full">
+        
+          <div className="relative max-w-md">
+            <Search className="absolute left-2.5 top-[20px] h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search channels..."
+              className="w-full bg-background pl-8 pr-10"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              disabled={isSearching}
+            />
+            {searchInput && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full px-3"
+                onClick={() => {
+                  setSearchInput("");
+                  setSearchTerm("");
+                }}
+              >
+               
+              </Button>
+            )}
+            {isSearching && (
+              <div className="absolute right-2 top-2.5 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            )}
+            
+          </div>
         </div>
         <Dialog
           open={isOpen}
@@ -1204,7 +1286,7 @@ export default function TelegramManagement() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {channels.map((channel) => (
+          {channels?.map((channel) => (
             <Card
               key={channel._id}
               className="hover:shadow-lg transition-shadow"
