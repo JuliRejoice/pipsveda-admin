@@ -657,7 +657,7 @@ export default function InstructorPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center">
+                          <div className="flex items-center min-w-[150px]">
                             {renderRating(instructor?.averageRating || 0)}
                           </div>
                         </TableCell>
