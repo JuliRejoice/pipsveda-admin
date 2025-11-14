@@ -541,21 +541,7 @@ export default function Courses() {
       errors.videoFile = "Please upload an video";
     }
 
-    // Course type specific validations
-    if (courseType === "recorded") {
-      const startDate = formData.get("courseStart")?.toString().trim();
-      const endDate = formData.get("courseEnd")?.toString().trim();
 
-      if (!startDate) {
-        errors.startDate = "Start date is required";
-      }
-      if (!endDate) {
-        errors.endDate = "End date is required";
-      }
-      if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-        errors.dateRange = "End date must be after start date";
-      }
-    }
 
     if (courseType === "physical") {
       if (!formData.get("email")?.toString().trim()) {
@@ -1498,112 +1484,7 @@ export default function Courses() {
                       </select>
                     </div>
                   </div>
-                  {/* Start and End Date in one row */}
-                  <div className="flex flex-col md:flex-row gap-4 mb-6">
-                    <div className="flex-1">
-                      <label className="block font-medium mb-1">
-                        Start Date *
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full h-[55px] justify-start text-left font-normal px-4 group"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4 group-hover:text-gray-900" />
-                            {recordedStartDate ? (
-                              <span className="text-base font-semibold text-gray-900">
-                                {format(recordedStartDate, "PPP")}
-                              </span>
-                            ) : (
-                              <>
-                                <input
-                                  placeholder="Pick a date"
-                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                                />
-                                {/* <span className="text-base font-semibold">Pick a date</span> */}
-                              </>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 calendar-gray">
-                          <Calendar
-                            mode="single"
-                            selected={recordedStartDate}
-                            onSelect={(date) => {
-                              setRecordedStartDate(date);
-                              // Close the popover after selection
-                              const popoverTrigger = document.querySelector(
-                                '[aria-haspopup="dialog"][data-state="open"]'
-                              ) as HTMLElement;
-                              if (popoverTrigger) popoverTrigger.click();
-                            }}
-                            initialFocus
-                            disabled={(date) =>
-                              date < new Date(new Date().setHours(0, 0, 0, 0))
-                            }
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {formErrors.startDate && (
-                        <div className="text-red-500">
-                          {formErrors.startDate}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <label className="block font-medium mb-1">
-                        End Date *
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full h-[55px] justify-start text-left font-normal px-4 group"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4 group-hover:text-gray-900" />
-                            {recordedEndDate ? (
-                              <span className="text-base font-semibold text-gray-900">
-                                {format(recordedEndDate, "PPP")}
-                              </span>
-                            ) : (
-                              <>
-                                <input
-                                  placeholder="Pick a date"
-                                  className="!outline-none !border-none !bg-transparent !caret-transparent cursor-pointer !text-base !font-semibold"
-                                />
-                                {/* <span className="text-base font-semibold">Pick a date</span> */}
-                              </>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 calendar-gray">
-                          <Calendar
-                            mode="single"
-                            selected={recordedEndDate}
-                            onSelect={(date) => {
-                              setRecordedEndDate(date);
-                              // Close the popover after selection
-                              const popoverTrigger = document.querySelector(
-                                '[aria-haspopup="dialog"][data-state="open"]:not([data-radix-popper-content-wrapper])'
-                              ) as HTMLElement;
-                              if (popoverTrigger) popoverTrigger.click();
-                            }}
-                            initialFocus
-                            disabled={(date) =>
-                              date < new Date(new Date().setHours(0, 0, 0, 0))
-                            }
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      {formErrors.endDate && (
-                        <div className="text-red-500">{formErrors.endDate}</div>
-                      )}
-                    </div>
-                  </div>
-                  {formErrors.dateRange && (
-                    <div className="text-red-500">{formErrors.dateRange}</div>
-                  )}
+                 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-medium mb-1">
