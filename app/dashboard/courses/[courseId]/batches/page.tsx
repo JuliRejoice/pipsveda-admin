@@ -212,10 +212,9 @@ export default function CourseBatches() {
         endDate: new Date(batch.endDate).toISOString().split("T")[0],
         courseId,
         ...(batch.time ? { time: batch.time } : { time: null }),
-        ...(batchType === "physical" &&
-          selectedCenter?._id && {
-            centerId: selectedCenter._id,
-          }),
+        ...(batchType === "physical" && {
+          centerId: selectedCenter?._id || batch.centerId || null,
+        }),
         ...(batchType === "live" && {
           meetingLink: batch.meetingLink || null,
         }),
@@ -284,8 +283,6 @@ export default function CourseBatches() {
       </div>
     );
   }
-
-  console.log(selectedBatch);
 
   return (
     <div className="space-y-6">

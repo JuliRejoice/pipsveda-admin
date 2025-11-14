@@ -69,10 +69,6 @@ export const BatchDatePickerRow: React.FC<Props> = ({
     batch.endDate ? new Date(batch.endDate) : null
   );
   const [time, setTime] = useState<string>(batch.time || "");
-  const [meetingLink, setMeetingLink] = useState<string>(
-    batch.meetingLink || ""
-  );
-  const [isExpanded, setIsExpanded] = useState(false);
   const [selectedCenter, setSelectedCenterState] = useState<any>(null);
 
   useEffect(() => {
@@ -87,6 +83,8 @@ export const BatchDatePickerRow: React.FC<Props> = ({
       setSelectedCenterState(null);
     }
   }, [batch.centerId, centers]);
+
+  
 
   return (
     <div className="flex flex-col gap-4 mb-4 border p-4 rounded-lg">
