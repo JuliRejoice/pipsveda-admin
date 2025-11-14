@@ -97,8 +97,8 @@ const couponFormSchema = z.object({
   discount: z
     .string()
     .min(1, "Discount is required")
-    .regex(/^[1-9]\d*$/, "Discount must be a positive number")
-    .refine((val) => parseInt(val) >= 1 && parseInt(val) <= 99, {
+    .regex(/^[1-9]\d*$/, "Discount must be a whole number")
+    .refine((val) => parseInt(val, 10) >= 1 && parseInt(val, 10) <= 99, {
       message: "Discount must be between 1% and 99%",
     }),
 
@@ -481,8 +481,23 @@ export default function CouponPage() {
                         <Input
                           type="number"
                           placeholder="0"
+                          min="1"
+                          max="99"
+                          step="1"
                           {...field}
-                          onChange={(e) => field.onChange(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "." || e.key === ",") {
+                              e.preventDefault();
+                            }
+                          }}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "" || /^\d+$/.test(value)) {
+                              field.onChange(value);
+                            } else {
+                              field.onChange(value.replace(/[^0-9]/g, ""));
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

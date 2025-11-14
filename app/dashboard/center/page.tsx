@@ -364,7 +364,7 @@ export default function CenterPage() {
                             <Eye className="mr-2 h-4 w-4" />
                             View
                           </DropdownMenuItem>
-                    
+
                           <DropdownMenuItem
                             onClick={() => handleEdit(center)}
                             className="cursor-pointer"
@@ -372,7 +372,7 @@ export default function CenterPage() {
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                    
+
                           <DropdownMenuItem
                             onClick={() => handleDeleteClick(center)}
                             className="text-red-600 cursor-pointer"
@@ -736,47 +736,7 @@ export default function CenterPage() {
                 </div>
               </div>
 
-              <DialogFooter className="pt-6 border-t">
-                <div className="flex w-full justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsViewModalOpen(false)}
-                    className="px-6"
-                  >
-                    Close
-                  </Button>
-                  <div className="space-x-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        // handleStatusChange(viewingCenter._id, !viewingCenter.isActive);
-                        // setIsViewModalOpen(false);
-                      }}
-                    >
-                      {viewingCenter.isActive ? (
-                        <UserX className="h-4 w-4 mr-2" />
-                      ) : (
-                        <UserCheck className="h-4 w-4 mr-2" />
-                      )}
-                      {viewingCenter.isActive ? "Deactivate" : "Activate"}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        setIsViewModalOpen(false);
-                        handleEdit(viewingCenter);
-                      }}
-                      className="px-6"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Center
-                    </Button>
-                  </div>
-                </div>
-              </DialogFooter>
+
             </div>
           )}
         </DialogContent>

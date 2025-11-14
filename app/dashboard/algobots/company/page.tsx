@@ -180,10 +180,10 @@ export default function CompanyPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-base">`Sr. No</TableHead>
-              <TableHead className="text-base">`Company Name</TableHead>
-              <TableHead className="text-base">`Edit</TableHead>
-              <TableHead className="text-base">`Delete</TableHead>
+              <TableHead className="text-base">Sr. No</TableHead>
+              <TableHead className="text-base">Company Name</TableHead>
+              <TableHead className="text-base">Edit</TableHead>
+              <TableHead className="text-base">Delete</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
