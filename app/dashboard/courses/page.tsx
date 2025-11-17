@@ -29,6 +29,7 @@ import {
   CalendarClock,
   BookAIcon,
   VideoIcon,
+  Eye,
 } from "lucide-react";
 import {
   Dialog,
@@ -86,6 +87,7 @@ import {
 } from "@/components/api/syllabus";
 import { Label } from "@radix-ui/react-label";
 import ChapterFormList from "@/components/course/ChapterFormList";
+import ViewCourseModal from "@/components/course/ViewCourseModal";
 
 type Batch = {
   _id?: string;
@@ -154,6 +156,7 @@ export default function Courses() {
   const [isSyllabusVisible, setIsSyllabusVisible] = useState(false);
   const [isChaptersVisible, setIsChaptersVisible] = useState(false);
   const [latestCourse, setLatestCourse] = useState<Course | null>(null);
+  const [viewCourseModalOpen, setViewCourseModalOpen] = useState(false);
   const [liveBatches, setLiveBatches] = useState<Batch[]>([
     {
       id: "",
@@ -224,6 +227,7 @@ export default function Courses() {
   const [selectedCenter, setSelectedCenter] = useState<any>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [searchInput, setSearchInput] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
   const fetchCenters = async () => {
     try {
@@ -541,8 +545,6 @@ export default function Courses() {
       errors.videoFile = "Please upload an video";
     }
 
-
-
     if (courseType === "physical") {
       if (!formData.get("email")?.toString().trim()) {
         errors.email = "Email is required";
@@ -789,6 +791,21 @@ export default function Courses() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setSelectedCourse(course);
+                    setViewCourseModalOpen(true);
+                    setPopoverOpen(false);
+                  }}
+                  className="cursor-pointer"
+                >
+                  <Eye className="mr-2 h-5 w-5" />
+                  <span className="text-base font-semibold text-gray-500 font-lexend">
+                    View Course
+                  </span>
+                </DropdownMenuItem>
+
                 {activeTab === "live" ? (
                   <>
                     <Link
@@ -1237,9 +1254,7 @@ export default function Courses() {
               if (activeTab === "recorded") {
                 // Check if there are any chapters for recorded courses
                 if (!isSyllabusVisible && chaptersList.length > 0) {
-                  toast.error(
-                    "Cannot close: Please add at least one chapter"
-                  );
+                  toast.error("Cannot close: Please add at least one chapter");
                   return;
                 }
               }
@@ -1484,7 +1499,7 @@ export default function Courses() {
                       </select>
                     </div>
                   </div>
-                 
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block font-medium mb-1">
@@ -2665,6 +2680,11 @@ export default function Courses() {
           className="border-t pt-4"
         />
       )}
+      <ViewCourseModal
+        open={viewCourseModalOpen}
+        onClose={() => setViewCourseModalOpen(false)}
+        course={selectedCourse}
+      />
     </div>
   );
 }

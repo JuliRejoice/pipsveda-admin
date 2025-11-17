@@ -1750,7 +1750,11 @@ export default function AlgoBots() {
                           >
                             <div>
                               <p>
-                                <strong>Duration:</strong> {plan.planType}
+                                <strong>Duration:</strong>{" "}
+                                {plan.planType.replace(
+                                  /(\d+)([A-Za-z]+)/,
+                                  "$1 $2"
+                                )}
                               </p>
                               <p>
                                 <strong>Price:</strong>{" "}

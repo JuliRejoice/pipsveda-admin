@@ -493,30 +493,13 @@ export default function TelegramManagement() {
       setIsDeleting(true);
       const response = await deleteChannel(channelToDelete);
       if (response.success) {
-        // Update the channels state with the new channel data
-        useEffect(() => {
-          const fetchChannels = async () => {
-            try {
-              const data = await getAllTelegram();
-              setChannels(data.payload.data);
-            } catch (error) {
-              console.error("Error fetching channels:", error);
-              toast.error("Failed to load channels");
-            } finally {
-              setIsFetching(false);
-            }
-          };
-
-          fetchChannels();
-        }, []);
-
-        // Update filtered channels when search term changes
-        useEffect(() => {
-          // Filtering is handled by the filteredChannels computed value
-        }, [searchTerm, channels]);
+        // Immediately remove the deleted channel from UI
+        setChannels((prevChannels) =>
+          prevChannels.filter((channel) => channel._id !== channelToDelete)
+        );
 
         toast.success("Channel deleted successfully");
-        await fetchChannels(); // Refresh the list
+        await fetchChannels(); // Refresh the list from server
       } else {
         toast.error("Failed to delete channel");
       }
@@ -757,7 +740,6 @@ export default function TelegramManagement() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div className="w-full">
-        
           <div className="relative max-w-md">
             <Search className="absolute left-2.5 top-[20px] h-4 w-4 text-muted-foreground" />
             <Input
@@ -765,7 +747,7 @@ export default function TelegramManagement() {
               placeholder="Search channels..."
               className="w-full bg-background pl-8 pr-10"
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={(e) => setSearchInput(e.target.value.trimStart())}
               disabled={isSearching}
             />
             {searchInput && (
@@ -777,14 +759,11 @@ export default function TelegramManagement() {
                   setSearchInput("");
                   setSearchTerm("");
                 }}
-              >
-               
-              </Button>
+              ></Button>
             )}
             {isSearching && (
               <div className="absolute right-2 top-2.5 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             )}
-            
           </div>
         </div>
         <Dialog
@@ -1185,12 +1164,16 @@ export default function TelegramManagement() {
                           >
                             <div>
                               <p>
-                                <strong>Duration:</strong> {plan.planType}
+                                <strong>Duration:</strong>{" "}
+                                {plan.planType.replace(
+                                  /(\d+)([A-Za-z]+)/,
+                                  "$1 $2"
+                                )}
                               </p>
                               <p>
                                 <strong>Price:</strong>{" "}
                                 {plan?._id
-                                  ? `$${plan.initialPrice}`
+                                  ? `$${plan.initialPrice.toFixed(2)}`
                                   : `$${plan.price}`}
                               </p>
                             </div>
@@ -1274,7 +1257,17 @@ export default function TelegramManagement() {
         </Dialog>
       </div>
 
-      {channels.length === 0 ? (
+      {isFetching ? (
+        <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div>
+            <h3 className="text-lg font-medium">Loading channels...</h3>
+            <p className="text-sm text-muted-foreground font-lexend">
+              Please wait while we fetch your channels
+            </p>
+          </div>
+        </div>
+      ) : channels.length === 0 ? (
         <div className="flex flex-col items-center justify-center space-y-4 h-64 text-center">
           <MessageCircle className="h-12 w-12 text-muted-foreground" />
           <div>
@@ -1388,11 +1381,14 @@ export default function TelegramManagement() {
                         <SelectContent>
                           {channel?.telegramPlan?.map((plan: any) => (
                             <SelectItem key={plan._id} value={plan.planType}>
-                              {plan.planType.replace(/(\d+)([A-Za-z]+)/, "$1 $2")}
+                              {plan.planType.replace(
+                                /(\d+)([A-Za-z]+)/,
+                                "$1 $2"
+                              )}
                             </SelectItem>
                           ))}
                         </SelectContent>
-                      </Select> 
+                      </Select>
 
                       {/* Always show the plan details, defaulting to the first plan */}
                       <div className="border rounded-md p-4">
