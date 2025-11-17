@@ -957,15 +957,6 @@ export default function Courses() {
             </Badge>
           </div>
 
-          <div className="text-sm text-muted-foreground font-bold">
-            {course.courseStart
-              ? format(new Date(course.courseStart), "MMM d, yyyy")
-              : "No start date"}
-            {course.courseEnd
-              ? ` - ${format(new Date(course.courseEnd), "MMM d, yyyy")}`
-              : ""}
-          </div>
-
           <div className="flex items-center text-sm text-muted-foreground">
             <span className="font-bold">Instructor:</span>
             <span className="ml-1">
@@ -1235,6 +1226,7 @@ export default function Courses() {
       );
     }
   };
+
   return (
     <div>
       <Dialog
@@ -1252,24 +1244,31 @@ export default function Courses() {
               }
 
               if (activeTab === "recorded") {
-                // Check if there are any chapters for recorded courses
-                if (!isSyllabusVisible && chaptersList.length > 0) {
+                // Check if there are any chapters for recorded cou>s
+                if (!isSyllabusVisible && chaptersList.length === 0) {
                   toast.error("Cannot close: Please add at least one chapter");
                   return;
                 }
               }
 
-              if (
-                activeTab === "live" &&
-                (!liveBatches || liveBatches.length === 0)
-              ) {
-                toast.error("Cannot close: Please add at least one live batch");
-                return;
+              if (activeTab === "live") {
+                if (
+                  !liveBatches ||
+                  liveBatches.length === 0 ||
+                  liveBatches[0].id === ""
+                ) {
+                  toast.error(
+                    "Cannot close: Please add at least one valid live batch"
+                  );
+                  return;
+                }
               }
 
               if (
                 activeTab === "physical" &&
-                (!physicalBatches || physicalBatches.length === 0)
+                (!physicalBatches || physicalBatches.length === 0 ||
+                  physicalBatches[0].id === ""
+                )
               ) {
                 toast.error(
                   "Cannot close: Please add at least one physical batch"

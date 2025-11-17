@@ -381,7 +381,7 @@ export default function AlgoBots() {
       setIsFetching(true);
       const response = await getAllAlgoBots({
         page: currentPage,
-        limit: itemsPerPage,  
+        limit: itemsPerPage,
         search: debouncedSearchTerm,
       });
       if (response.success) {
@@ -1652,10 +1652,26 @@ export default function AlgoBots() {
                       <Input
                         id="discount"
                         type="number"
+                        min="0"
+                        step="1"
+                        max="100"
                         placeholder="0"
+                        onKeyDown={(e) => {
+                          if (e.key === "." || e.key === "e") {
+                            e.preventDefault(); // block decimal + exponential input
+                          }
+                        }}
+                        onInput={(e) => {
+                          // Force remove decimals if pasted
+                          e.currentTarget.value = e.currentTarget.value.replace(
+                            /\D/g,
+                            ""
+                          );
+                        }}
                         {...register("discount")}
                         className="h-[55px] px-4 text-base font-semibold"
                       />
+
                       {errors.discount && (
                         <p className="text-sm font-semibold text-red-500">
                           {String(errors.discount.message || "")}

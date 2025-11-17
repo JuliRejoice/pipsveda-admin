@@ -74,6 +74,7 @@ interface Center {
   city: string;
   state: string;
   country: string;
+  link?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -96,8 +97,9 @@ const centerFormSchema = z
 
     location: z
       .string()
+      .url("Location must be a valid URL (e.g., https://example.com)")
       .min(3, "Location must be at least 3 characters")
-      .max(200, "Location must be at most 200 characters"),
+      .max(500, "Location link must be at most 500 characters"),
 
     country: z.string().min(1, "Please select a country"),
     state: z.string().min(1, "Please select a state"),
@@ -459,7 +461,10 @@ export default function CenterPage() {
                     <FormLabel>Location *</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input placeholder="Enter location" {...field} />
+                        <Input
+                          placeholder="Enter Location Link (e.g., https://locationwebsite.com)"
+                          {...field}
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -481,11 +486,11 @@ export default function CenterPage() {
                             : undefined
                         }
                         containerClassName="w-full"
-                        inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
+                        inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border focus:outline-none focus:ring-none ${
                           fieldState.error
                             ? "border-destructive"
                             : "border-input"
-                        } bg-background focus:outline-none focus:ring-2 focus:ring-ring`}
+                        } bg-background focus:outline-none`}
                         onChange={(val: any) => {
                           field.onChange(val.name);
                           setSelectedCountryId(val.id);
@@ -542,7 +547,7 @@ export default function CenterPage() {
                               fieldState.error
                                 ? "border-destructive"
                                 : "border-input"
-                            } bg-background focus:outline-none focus:ring-2 focus:ring-ring`}
+                            } bg-background focus:outline-none focus:ring-none`}
                             countryid={
                               selectedCountryId ? Number(selectedCountryId) : 0
                             }
@@ -610,7 +615,7 @@ export default function CenterPage() {
                               fieldState.error
                                 ? "border-destructive"
                                 : "border-input"
-                            } bg-background focus:outline-none focus:ring-2 focus:ring-ring`}
+                            } bg-background focus:outline-none focus:ring-none`}
                             countryid={
                               selectedCountryId ? Number(selectedCountryId) : 0
                             }
@@ -735,8 +740,6 @@ export default function CenterPage() {
                   </div>
                 </div>
               </div>
-
-
             </div>
           )}
         </DialogContent>

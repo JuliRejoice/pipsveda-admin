@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BatchDatePickerRow } from "@/components/course/BatchDatePickerRow";
 import { format } from "path";
+import Link from "next/link";
 
 interface Batch {
   centerId?: any;
@@ -408,12 +409,14 @@ export default function CourseBatches() {
                             Meeting Link:
                           </span>
 
-                          <span
+                          <Link
+                            href={batch.meetingLink || "#"}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 break-all"
                           >
                             {batch.meetingLink || "N/A"}
-                          </span>
+                          </Link>
                         </>
                       )}
                     </div>
