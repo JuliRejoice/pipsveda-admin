@@ -383,7 +383,7 @@ export default function InstructorPage() {
                   ? "Half star"
                   : "Empty star"
               }
-              className="h-4 w-4"
+              className="h-4 w-4 ml-1"
             />
           );
         })}

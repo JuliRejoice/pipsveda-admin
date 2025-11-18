@@ -1354,7 +1354,7 @@ export default function TelegramManagement() {
                       rel="noopener noreferrer"
                       className="inline-block mt-1 px-3 py-1 text-background gradient-bg rounded-sm text-base font-medium transition"
                     >
-                      ▶ Join Channel
+                      ▶ Preview Channel
                     </a>
                   )}
                   <Card className=" border-0">

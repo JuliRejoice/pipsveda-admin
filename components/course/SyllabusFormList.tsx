@@ -189,7 +189,7 @@ export default function SyllabusSection({
 
   return (
     <div
-      className={`flex flex-col justify-between space-y-6 ${containerHeight} pr-2`}
+      className={`flex flex-col justify-between space-y-6 w-full ${containerHeight} pr-2`}
     >
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Syllabus</h2>
