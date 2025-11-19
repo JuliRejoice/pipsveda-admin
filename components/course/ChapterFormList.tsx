@@ -4,17 +4,27 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Loader2, Video as VideoIcon } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Loader2,
+  Video as VideoIcon,
+  ImageIcon,
+} from "lucide-react";
 import { toast } from "sonner";
-import { createChapter } from "@/components/api/course";
+import { createChapter, uploadImage } from "@/components/api/course";
+import Image from "next/image";
 
-interface ChapterFormData {
+interface Chapter {
+  id?: string;
   chapterName: string;
   description: string;
   duration: string;
   videoFile: File | null;
   videoUrl: string;
   chapterNo: string;
+  chapterImage: File | null;
+  chapterImageUrl: string;
 }
 
 interface Props {
@@ -28,14 +38,17 @@ export default function CustomChapterFormList({
   onSuccess,
   setChaptersList,
 }: Props) {
-  const [chapters, setChapters] = useState<ChapterFormData[]>([
+  const [chapters, setChapters] = useState<Chapter[]>([
     {
+      id: Date.now().toString(),
       chapterName: "",
       description: "",
       duration: "",
       videoFile: null,
       videoUrl: "",
       chapterNo: "",
+      chapterImage: null,
+      chapterImageUrl: "",
     },
   ]);
 
@@ -43,12 +56,22 @@ export default function CustomChapterFormList({
   const [errors, setErrors] = useState<Record<number, Record<string, string>>>(
     {}
   );
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
   const handleInputChange = (
     index: number,
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type, files } = e.target as HTMLInputElement;
+
+    // Handle video file upload with preview
+    if (name === "videoFile" && type === "file" && files?.length) {
+      const file = files[0];
+      const videoUrl = URL.createObjectURL(file);
+      setVideoPreview(videoUrl);
+    }
+
     setChapters((prev) =>
       prev.map((ch, i) =>
         i === index
@@ -65,16 +88,73 @@ export default function CustomChapterFormList({
     );
   };
 
+  const handleImageUpload = async (file: File, index: number) => {
+    const validImageTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+    if (!validImageTypes.includes(file.type)) {
+      toast.error(
+        "Invalid file format. Thumbnail must be an image (JPEG, JPG, PNG, or WebP)"
+      );
+      return;
+    } else if (file.size >= 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await uploadImage(file);
+      setImagePreview(URL.createObjectURL(file));
+
+      if (!response.success) {
+        throw new Error("Image upload failed");
+      }
+      const imageUrl = response.payload || "";
+
+      setChapters((prev) => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          chapterImage: imageUrl,
+        };
+        return updated;
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file, index);
+    }
+  };
+
   const handleAddChapter = () => {
-    setChapters((prev) => [
-      ...prev,
+    setChapters([
+      ...chapters,
       {
+        id: Date.now().toString(),
         chapterName: "",
         description: "",
         duration: "",
         videoFile: null,
         videoUrl: "",
         chapterNo: "",
+        chapterImage: null,
+        chapterImageUrl: "",
       },
     ]);
   };
@@ -163,6 +243,10 @@ export default function CustomChapterFormList({
         data.append("courseId", courseId);
         if (chapter.videoFile) data.append("image", chapter.videoFile);
 
+        if (chapter.chapterImage) {
+          data.append("chapterImage", chapter.chapterImage);
+        }
+
         await createChapter(data);
       }
 
@@ -175,6 +259,8 @@ export default function CustomChapterFormList({
           videoFile: null,
           videoUrl: "",
           chapterNo: "",
+          chapterImage: null,
+          chapterImageUrl: "",
         },
       ]);
       onSuccess?.();
@@ -213,13 +299,13 @@ export default function CustomChapterFormList({
           )}
 
           <div>
-            <Label>Chapter Title</Label>
+            <Label className="block text-sm mb-1">Chapter Title *</Label>
             <Input
               name="chapterName"
               value={chapter.chapterName}
               onChange={(e) => handleInputChange(index, e)}
               placeholder="Enter chapter title"
-              className={errors[index]?.chapterName ? "" : ""}
+              className="text-md font-normal"
             />
             {errors[index]?.chapterName && (
               <p className="text-sm text-red-600 mt-1">
@@ -229,7 +315,7 @@ export default function CustomChapterFormList({
           </div>
 
           <div>
-            <Label>Description</Label>
+            <Label className="block text-sm mb-1">Description *</Label>
             <textarea
               name="description"
               value={chapter.description}
@@ -246,10 +332,173 @@ export default function CustomChapterFormList({
               </p>
             )}
           </div>
+          <div className="w-full">
+            <Label className="block text-sm mb-1">Chapter Thumbnail</Label>
+            <div className="w-full mt-1">
+              <div className="border border-dashed border-gray-300 rounded-md p-4">
+                <div className="flex items-center space-x-4">
+                  {chapter.chapterImage ? (
+                    <div className="relative">
+                      <Image
+                        src={
+                          imagePreview
+                            ? imagePreview
+                            : typeof chapter.chapterImage === "string"
+                            ? chapter.chapterImage
+                            : chapter.chapterImage instanceof File
+                            ? URL.createObjectURL(chapter.chapterImage)
+                            : ""
+                        }
+                        width={1000}
+                        height={1000}
+                        alt="Chapter thumbnail"
+                        className="h-20 w-20 object-cover rounded-md"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white hover:bg-red-600"
+                        onClick={() => {
+                          const updatedChapters = [...chapters];
+                          updatedChapters[index] = {
+                            ...updatedChapters[index],
+                            chapterImage: null,
+                          };
+                          setChapters(updatedChapters);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="h-20 w-20 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
+                      <ImageIcon className="h-6 w-6" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {chapter.chapterImage
+                        ? chapter.chapterImage.name
+                        : "No thumbnail selected"}
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id={`image-upload-${index}`}
+                        name="chapterImage"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageChange(e, index)}
+                        className="hidden"
+                      />
+                      <Label
+                        htmlFor={`image-upload-${index}`}
+                        className="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#6b4fd8] cursor-pointer"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        {chapter.chapterImage ? "Change" : "Upload"} Thumbnail
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {errors[index]?.chapterImage && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors[index].chapterImage}
+              </p>
+            )}
+          </div>
+          <div className="w-full">
+            <Label className="block text-sm mb-1">Video File *</Label>
+            <div className="w-full">
+              <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
+                <div className="flex items-center space-x-4">
+                  {chapter.videoFile || videoPreview ? (
+                    <div className="relative">
+                      <video
+                        src={videoPreview ? videoPreview : chapter.videoUrl}
+                        className="h-20 w-20 object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity"
+                        muted
+                        onMouseEnter={(e) => {
+                          const video = e.currentTarget;
+                          video.currentTime = 1;
+                        }}
+                        onClick={() => {
+                          window.open(chapter.videoUrl, "_blank");
+                        }}
+                      />
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white hover:bg-red-600"
+                        onClick={() => {
+                          const updatedChapters = [...chapters];
+                          updatedChapters[index] = {
+                            ...updatedChapters[index],
+                            videoFile: null,
+                          };
+                          setChapters(updatedChapters);
+                          const input = document.getElementById(
+                            `video-upload-${index}`
+                          ) as HTMLInputElement;
+                          if (input) input.value = "";
+                        }}
+                      >
+                        <Trash2 className=" text-white h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="h-20 w-20 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
+                      <VideoIcon className="h-6 w-6" />
+                    </div>
+                  )}
+
+                  <div className="flex flex-col">
+                    <p className="text-sm text-gray-600 text-start">
+                      {chapter.videoFile
+                        ? chapter.videoFile.name
+                        : chapter.videoUrl
+                        ? "Using video URL"
+                        : "No video file selected"}
+                    </p>
+                    {/* File Input */}
+                    <Input
+                      type="file"
+                      name="videoFile"
+                      id={`video-upload-${index}`}
+                      accept="video/mp4,video/webm,video/quicktime"
+                      onChange={(e) => handleInputChange(index, e)}
+                      className="hidden"
+                    />
+                    <div className="mt-2 flex items-center">
+                      <Label
+                        htmlFor={`video-upload-${index}`}
+                        className="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        {chapter.videoFile ? "Change Video" : "Upload Video"}
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+                {/* Remove button if file is selected */}
+                
+              </div>
+
+              {(errors[index]?.videoFile || errors[index]?.videoUrl) && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors[index].videoFile || errors[index].videoUrl}
+                </p>
+              )}
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Chapter No</Label>
+              <Label className="block text-sm mb-1">Chapter No *</Label>
               <Input
                 name="chapterNo"
                 type="number"
@@ -266,7 +515,7 @@ export default function CustomChapterFormList({
               )}
             </div>
             <div>
-              <Label>Duration (hours)</Label>
+              <Label className="block text-sm mb-1">Duration (hours) *</Label>
               <Input
                 name="duration"
                 type="number"
@@ -280,74 +529,6 @@ export default function CustomChapterFormList({
               {errors[index]?.duration && (
                 <p className="text-sm text-red-600 mt-1">
                   {errors[index].duration}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <Label className="block text-sm font-medium mb-1">Video File</Label>
-            <div className="w-full">
-              <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
-                <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-600 mb-2">
-                  {chapter.videoFile
-                    ? chapter.videoFile.name
-                    : chapter.videoUrl
-                    ? "Using video URL"
-                    : "No video file selected"}
-                </p>
-
-                {/* File Input */}
-                <Input
-                  type="file"
-                  name="videoFile"
-                  id={`video-upload-${index}`}
-                  accept="video/mp4,video/webm,video/quicktime"
-                  onChange={(e) => handleInputChange(index, e)}
-                  className="hidden"
-                />
-
-                {/* Upload Button */}
-                <div className="mt-2">
-                  <Label
-                    htmlFor={`video-upload-${index}`}
-                    className="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    {chapter.videoFile ? "Change Video" : "Upload Video"}
-                  </Label>
-                </div>
-
-                {/* Remove button if file is selected */}
-                {chapter.videoFile && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => {
-                      const updatedChapters = [...chapters];
-                      updatedChapters[index] = {
-                        ...updatedChapters[index],
-                        videoFile: null,
-                      };
-                      setChapters(updatedChapters);
-                      // Reset file input
-                      const input = document.getElementById(
-                        `video-upload-${index}`
-                      ) as HTMLInputElement;
-                      if (input) input.value = "";
-                    }}
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
-
-              {(errors[index]?.videoFile || errors[index]?.videoUrl) && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors[index].videoFile || errors[index].videoUrl}
                 </p>
               )}
             </div>

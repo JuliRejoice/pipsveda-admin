@@ -108,7 +108,7 @@ export default function NewsletterPage() {
 
     XLSX.writeFile(
       workbook,
-      `newsletter_subscribers_${new Date().toISOString().split("T")[0]}.csv`
+      `newsletter_subscribers_${new Date().toISOString().split("T")[0]}.xlsx`
     );
   };
 

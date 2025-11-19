@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Loader2,
   X,
+  ImageIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -28,6 +29,7 @@ import {
   updateChapter,
   deleteChapter,
   getChapters,
+  uploadImage,
 } from "@/components/api/course";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -38,8 +40,10 @@ import {
 import { MoreVertical } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 
 export interface Chapter {
+  chapterImage: string;
   _id: string;
   chapterName: string; // new
   title?: string; // keep for backward compatibility
@@ -86,7 +90,16 @@ export function CourseChapters({
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [chapterThumbnailFile, setChapterThumbnailFile] = useState<File | null>(
+    null
+  );
+  const [isImageUploadSuccessful, setIsImageUploadSuccessful] = useState(false);
+  const [isImageUploading, setIsImageUploading] = useState(false);
+
   const [formData, setFormData] = useState<{
+    chapterImage: string;
     chapterName: string;
     description: string;
     duration: string;
@@ -95,6 +108,7 @@ export function CourseChapters({
     chapterNo: string;
     image: File | null;
   }>({
+    chapterImage: "",
     chapterName: "",
     description: "",
     duration: "",
@@ -105,6 +119,7 @@ export function CourseChapters({
   });
 
   const [errors, setErrors] = useState<{
+    chapterImage?: string;
     chapterName?: string;
     description?: string;
     duration?: string;
@@ -211,6 +226,10 @@ export function CourseChapters({
     if (type === "file") {
       const file = (e.target as HTMLInputElement).files?.[0] || null;
       if (name === "videoFile") {
+        if (file) {
+          // Set immediate local preview
+          setVideoPreview(URL.createObjectURL(file));
+        }
         setFormData((prev) => ({
           ...prev,
           videoFile: file,
@@ -251,23 +270,94 @@ export function CourseChapters({
 
     try {
       const data = new FormData();
-      data.append("chapterName", formData.chapterName);
-      data.append("description", formData.description);
-      const durationValue = formData.duration
-        ? String(Number(formData.duration))
-        : "";
-      data.append("duration", durationValue);
-      if (formData.videoFile) {
-        data.append("image", formData.videoFile);
-      } else if (formData.videoUrl) {
-        data.append("image", formData.videoUrl);
-        data.append("chapterVideo", formData.videoUrl);
-      }
-      data.append("chapterNo", formData.chapterNo);
-      data.append("courseId", courseId);
 
-      if (formData.image) {
-        data.append("image", formData.image);
+      if (selectedChapter) {
+        // Update mode - only send changed fields
+        if (
+          formData.chapterName !==
+          (selectedChapter.chapterName || selectedChapter.title || "")
+        ) {
+          data.append("chapterName", formData.chapterName);
+        }
+        if (formData.description !== selectedChapter.description) {
+          data.append("description", formData.description);
+        }
+
+        const originalDuration =
+          typeof selectedChapter.courseId === "string"
+            ? ""
+            : selectedChapter.courseId.hours.toString();
+        const currentDuration = formData.duration
+          ? String(Number(formData.duration))
+          : "";
+        if (currentDuration !== originalDuration) {
+          data.append("duration", currentDuration);
+        }
+
+        const originalVideoUrl =
+          selectedChapter.videoUrl || selectedChapter.chapterVideo || "";
+        if (formData.videoFile) {
+          // New video file uploaded
+          data.append("image", formData.videoFile);
+        } else if (formData.videoUrl !== originalVideoUrl) {
+          // Video URL changed
+          data.append("image", formData.videoUrl);
+          data.append("chapterVideo", formData.videoUrl);
+        }
+
+        const originalChapterNo = String(
+          selectedChapter.chapterNo || selectedChapter.order || ""
+        );
+        if (formData.chapterNo !== originalChapterNo) {
+          data.append("chapterNo", formData.chapterNo);
+        }
+
+        // Update chapter thumbnail
+        if (chapterThumbnailFile) {
+          data.append("chapterImage", chapterThumbnailFile);
+        } else {
+          // Ensure we always send a string, not a File object
+          const imageUrl =
+            typeof formData.chapterImage === "string"
+              ? formData.chapterImage
+              : "";
+          console.log("Updating chapterImage:", imageUrl, typeof imageUrl);
+          data.append("chapterImage", imageUrl); // Always a string
+        }
+
+        // Always include courseId for updates
+        data.append("courseId", courseId);
+      } else {
+        // Create mode - send all fields
+        data.append("chapterName", formData.chapterName);
+        data.append("description", formData.description);
+        const durationValue = formData.duration
+          ? String(Number(formData.duration))
+          : "";
+        data.append("duration", durationValue);
+        if (formData.videoFile) {
+          // New video file uploaded
+          data.append("image", formData.videoFile);
+        } else if (formData.videoUrl) {
+          // Video URL changed
+          data.append("image", formData.videoUrl);
+          data.append("chapterVideo", formData.videoUrl);
+        }
+        data.append("chapterNo", formData.chapterNo);
+        data.append("courseId", courseId);
+
+        if (formData.image) {
+          data.append("image", formData.image);
+        }
+        // Only send chapterImage if it's a string URL
+        if (typeof formData.chapterImage === "string") {
+          console.log(
+            "Creating chapterImage:",
+            formData.chapterImage,
+            typeof formData.chapterImage
+          );
+          data.append("chapterImage", formData.chapterImage);
+        }
       }
 
       if (selectedChapter) {
@@ -290,6 +380,7 @@ export function CourseChapters({
       setIsAddDialogOpen(false);
       setSelectedChapter(null);
       setFormData({
+        chapterImage: "",
         chapterName: "",
         description: "",
         duration: "",
@@ -298,6 +389,8 @@ export function CourseChapters({
         chapterNo: "",
         image: null,
       });
+      setImagePreview(null);
+      setVideoPreview(null);
     } catch (error) {
       console.error("Error saving chapter:", error);
       toast.error("Failed to save chapter");
@@ -339,9 +432,64 @@ export function CourseChapters({
       videoFile: null,
       chapterNo: String(chapter.chapterNo || chapter.order || ""),
       image: null,
+      chapterImage: chapter.chapterImage,
     });
+    // Set video preview for existing video URL
+    const existingVideoUrl = chapter.videoUrl || chapter.chapterVideo || "";
+    if (existingVideoUrl) {
+      setVideoPreview(existingVideoUrl);
+    } else {
+      setVideoPreview(null);
+    }
     setErrors({});
     setIsAddDialogOpen(true);
+  };
+  const handleImageUpload = async (file: File) => {
+    // Validate the file before upload
+    const validImageTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+    if (!validImageTypes.includes(file.type)) {
+      toast.error(
+        "Invalid file format. Thumbnail must be an image (JPEG, JPG, PNG, or WebP)"
+      );
+      return;
+    } else if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    try {
+      setIsImageUploading(true);
+      setIsImageUploadSuccessful(false);
+      setImagePreview(URL.createObjectURL(file));
+      const response = await uploadImage(file);
+
+      if (!response.success) {
+        throw new Error("Image upload failed");
+      }
+      const imageUrl = response.payload || "";
+      setFormData({
+        ...formData,
+        chapterImage: imageUrl,
+      });
+      setIsImageUploadSuccessful(true);
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      setIsImageUploadSuccessful(false);
+      toast.error("Failed to upload image");
+    } finally {
+      setIsImageUploading(false);
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    handleImageUpload(file);
   };
 
   if (loading) {
@@ -353,7 +501,6 @@ export function CourseChapters({
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -364,7 +511,7 @@ export function CourseChapters({
             className="gap-2"
           >
             <ArrowLeft className="h-5 w-5" />
-            <span className="text-base font-semibold">Back to Courses</span>
+            <span className="test-sm ">Back to Courses</span>
           </Button>
         </div>
         <Button
@@ -378,7 +525,10 @@ export function CourseChapters({
               chapterNo: "",
               videoFile: null,
               image: null,
+              chapterImage: "",
             });
+            setVideoPreview(null);
+            setImagePreview(null);
             setErrors({});
             setIsAddDialogOpen(true);
           }}
@@ -428,7 +578,7 @@ export function CourseChapters({
                       : 0;
                   return aNo - bNo;
                 })
-                .map((chapter) => {
+                .map((chapter, index) => {
                   // Helper for YouTube thumbnail
                   const url =
                     typeof chapter.chapterVideo === "string" &&
@@ -469,9 +619,7 @@ export function CourseChapters({
                                 className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded"
                                 onClick={() => openEditDialog(chapter)}
                               >
-                                <span className="text-base font-semibold">
-                                  Edit
-                                </span>
+                                <span className="test-sm ">Edit</span>
                               </button>
                               <button
                                 className="w-full text-left px-3 py-2 hover:bg-red-50 rounded"
@@ -480,7 +628,7 @@ export function CourseChapters({
                                   setIsDeleteDialogOpen(true);
                                 }}
                               >
-                                <span className="text-base font-semibold text-red-600">
+                                <span className="test-sm  text-red-600">
                                   Delete
                                 </span>
                               </button>
@@ -558,17 +706,46 @@ export function CourseChapters({
                             ) : (
                               <div className="flex flex-col items-center justify-center text-center p-2">
                                 <VideoIcon className="h-6 w-6 text-primary mb-1" />
-                                <span className="text-xs text-muted-foreground">
+                                <span className="test-sm text-muted-foreground">
                                   No video
                                 </span>
                               </div>
                             )}
                           </div>
+
+                          {/* Chapter Thumbnail */}
+                          {/* <div className="p-2 bg-light rounded-lg w-[120px] min-w-[120px] h-[120px] flex items-center justify-center relative group overflow-hidden">
+                            {chapter.chapterImage ? (
+                              typeof chapter.chapterImage === "string" ? (
+                                <img
+                                  src={chapter.chapterImage}
+                                  alt="Chapter thumbnail"
+                                  className="w-full h-full object-cover rounded-md border border-gray-200"
+                                />
+                              ) : (
+                                <img
+                                  src={URL.createObjectURL(
+                                    chapter.chapterImage
+                                  )}
+                                  alt="Chapter thumbnail"
+                                  className="w-full h-full object-cover rounded-md border border-gray-200"
+                                />
+                              )
+                            ) : (
+                              <div className="flex flex-col items-center justify-center text-center p-2">
+                                <ImageIcon className="h-6 w-6 text-primary mb-1" />
+                                <span className="test-sm text-muted-foreground">
+                                  No image
+                                </span>
+                              </div>
+                            )}
+                          </div> */}
+
                           <div>
                             <h3 className="font-semibold text-lg mb-1 line-clamp-1 max-w-[95%]">
                               {chapter.chapterName}
                             </h3>
-                            <div className="flex flex-wrap gap-2 items-center text-xs text-muted-foreground mb-1">
+                            <div className="flex flex-wrap gap-2 items-center test-sm text-muted-foreground mb-1">
                               <span className="bg-gray-100 px-2 py-0.5 rounded text-sm">
                                 Chapter {chapter.chapterNo}
                               </span>
@@ -583,7 +760,7 @@ export function CourseChapters({
                                 )}
                               </span>
                             </div>
-                            <p className="text-base font-semibold text-gray-700 mb-2 line-clamp-2 my-2.5 overflow-hidden text-ellipsis">
+                            <p className="test-sm  text-gray-700 mb-2 line-clamp-1 my-2.5 overflow-hidden text-ellipsis">
                               {chapter.description}
                             </p>
                             {url && (
@@ -591,7 +768,7 @@ export function CourseChapters({
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-block mt-1 px-3 py-1 text-background gradient-bg rounded-sm text-base font-medium transition"
+                                className="inline-block mt-1 px-3 py-1 text-background gradient-bg rounded-sm test-sm font-medium transition"
                               >
                                 ▶ Watch Video
                               </a>
@@ -609,15 +786,15 @@ export function CourseChapters({
 
       {/* Add/Edit Chapter Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
               {selectedChapter ? "Edit Chapter" : "Add New Chapter"}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 ">
             <div>
-              <Label className="block text-sm font-medium mb-1">Title</Label>
+              <Label className="block text-sm font-medium mb-1">Title *</Label>
               <div className="w-full">
                 <Input
                   name="chapterName"
@@ -636,7 +813,7 @@ export function CourseChapters({
                   className="w-full"
                 />
                 {errors.chapterName && (
-                  <p className="text-sm font-semibold text-red-500 mt-1">
+                  <p className="text-sm  text-red-500 mt-1">
                     {errors.chapterName}
                   </p>
                 )}
@@ -644,7 +821,7 @@ export function CourseChapters({
             </div>
             <div>
               <Label className="block text-sm font-medium mb-1">
-                Description
+                Description *
               </Label>
               <div className="w-full">
                 <textarea
@@ -664,16 +841,187 @@ export function CourseChapters({
                   className="w-full p-2 border rounded-md min-h-[100px] resize-none"
                 />
                 {errors.description && (
-                  <p className="text-sm font-semibold text-red-500 mt-1">
+                  <p className="text-sm  text-red-500 mt-1">
                     {errors.description}
                   </p>
                 )}
               </div>
             </div>
+            <div className="flex justify-between items-center gap-4">
+              <div className="w-full">
+                <Label>Chapter Thumbnail</Label>
+                <div className="w-full mt-1">
+                  <div className="border border-dashed border-gray-300 rounded-md p-4">
+                    <div className="flex items-center space-x-4">
+                      {formData.chapterImage && formData.chapterImage !== "" ? (
+                        <div className="relative">
+                          <Image
+                            src={
+                              imagePreview
+                                ? imagePreview
+                                : typeof formData.chapterImage === "string"
+                                ? formData.chapterImage
+                                : URL.createObjectURL(formData.chapterImage)
+                            }
+                            width={1000}
+                            height={1000}
+                            alt="Chapter thumbnail"
+                            className="h-20 w-20 object-cover rounded-md"
+                            defaultValue={formData.chapterImage}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white hover:bg-red-600"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                chapterImage: "",
+                              });
+                              setImagePreview(null);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="h-20 w-20 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
+                          <ImageIcon className="h-6 w-6" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {formData.chapterImage
+                            ? "Thumbnail uploaded"
+                            : "No thumbnail selected"}
+                        </p>
+                        <div className="flex items-center">
+                          <Input
+                            id="image-upload"
+                            name="image"
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                            onChange={(e) => handleImageChange(e)}
+                            className="hidden"
+                          />
+                          <Label
+                            htmlFor="image-upload"
+                            className="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#6b4fd8] cursor-pointer"
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            {formData.chapterImage ? "Change" : "Upload"}{" "}
+                            Thumbnail
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {errors.chapterImage && (
+                  <p className="text-sm  text-red-500 mt-1">
+                    {errors.chapterImage}
+                  </p>
+                )}
+              </div>
+              <div className="w-full">
+                <div>
+                  <Label className="block text-sm font-medium mb-1">
+                    Video File *
+                  </Label>
+                  <div className="w-full">
+                    <div className="border border-dashed border-gray-300 rounded-md p-4">
+                      <div className="flex space-x-4 ">
+                        {formData.videoFile || videoPreview ? (
+                          <div className="relative">
+                            <video
+                              src={
+                                videoPreview ? videoPreview : formData.videoUrl
+                              }
+                              className="h-20 w-20 object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity"
+                              muted
+                              onMouseEnter={(e) => {
+                                const video = e.currentTarget;
+                                video.currentTime = 1;
+                              }}
+                              onClick={() => {
+                                window.open(formData.videoUrl, "_blank");
+                              }}
+                            />
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white hover:bg-red-600"
+                              onClick={() => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  videoFile: null,
+                                }));
+                                setVideoPreview(null);
+                                // Reset file input
+                                const input = document.getElementById(
+                                  "video-upload"
+                                ) as HTMLInputElement;
+                                if (input) input.value = "";
+                              }}
+                            >
+                              <Trash2 className=" text-white h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="h-20 w-20 border-2 border-dashed rounded-md flex items-center justify-center text-gray-400">
+                            <VideoIcon className="h-6 w-6" />
+                          </div>
+                        )}
+                        <div className=" flex flex-col items-start justify-center">
+                          <p className="text-sm text-gray-600 line-clamp-1 w-40">
+                            {formData.videoFile
+                              ? formData.videoFile.name
+                              : formData.videoUrl
+                              ? "Using video URL"
+                              : "No video file selected"}
+                          </p>
+
+                          {/* File Input */}
+                          <Input
+                            type="file"
+                            name="videoFile"
+                            id="video-upload"
+                            accept="video/mp4,video/webm,video/quicktime"
+                            onChange={handleInputChange}
+                            className="hidden"
+                          />
+                          {/* Upload Button */}
+                          <div className="mt-2">
+                            <Label
+                              htmlFor="video-upload" // This connects the label to the input
+                              className="inline-flex items-center px-4 py-1.5 border border-transparent test-sm font-normal rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              {formData.videoFile
+                                ? "Change Video"
+                                : "Upload Video"}
+                            </Label>
+                          </div>
+                        </div>
+                        {/* Remove button if file is selected */}
+                      </div>
+                    </div>
+                    {errors.videoFile && (
+                      <p className="text-sm  text-red-500 mt-1">
+                        {errors.videoFile}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="block text-sm font-medium mb-1">
-                  Chapter No
+                  Chapter No *
                 </Label>
                 <div className="w-full">
                   <Input
@@ -696,7 +1044,7 @@ export function CourseChapters({
                     }}
                   />
                   {errors.chapterNo && (
-                    <p className="text-sm font-semibold text-red-500 mt-1">
+                    <p className="text-sm  text-red-500 mt-1">
                       {errors.chapterNo}
                     </p>
                   )}
@@ -704,7 +1052,7 @@ export function CourseChapters({
               </div>
               <div>
                 <Label className="block text-sm font-medium mb-1">
-                  Duration (hours)
+                  Duration (hours) *
                 </Label>
                 <div className="w-full">
                   <Input
@@ -726,82 +1074,14 @@ export function CourseChapters({
                     }}
                   />
                   {errors.duration && (
-                    <p className="text-sm font-semibold text-red-500 mt-1">
+                    <p className="text-sm  text-red-500 mt-1">
                       {errors.duration}
                     </p>
                   )}
                 </div>
               </div>
             </div>
-            <div>
-              <div>
-                <Label className="block text-sm font-medium mb-1">
-                  Video File
-                </Label>
-                <div className="w-full">
-                  <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
-                    <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600 mb-2">
-                      {formData.videoFile
-                        ? formData.videoFile.name
-                        : formData.videoUrl
-                        ? "Using video URL"
-                        : "No video file selected"}
-                    </p>
 
-                    {/* File Input */}
-                    <Input
-                      type="file"
-                      name="videoFile"
-                      id="video-upload"
-                      accept="video/mp4,video/webm,video/quicktime"
-                      onChange={handleInputChange}
-                      className="hidden"
-                    />
-
-                    {/* Upload Button */}
-                    <div className="mt-2">
-                      <Label
-                        htmlFor="video-upload" // This connects the label to the input
-                        className="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        {formData.videoFile ? "Change Video" : "Upload Video"}
-                      </Label>
-                    </div>
-
-                    {/* Remove button if file is selected */}
-                    {formData.videoFile && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={() => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            videoFile: null,
-                          }));
-                          // Reset file input
-                          const input = document.getElementById(
-                            "video-upload"
-                          ) as HTMLInputElement;
-                          if (input) input.value = "";
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    )}
-
-                    {errors.videoFile && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.videoFile}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
             <DialogFooter>
               <Button
                 type="button"
@@ -810,7 +1090,13 @@ export function CourseChapters({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isCreating || isUpdating}>
+              <Button
+                type="submit"
+                disabled={
+                  isCreating ||
+                  isUpdating
+                }
+              >
                 {isCreating || isUpdating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

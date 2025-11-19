@@ -31,6 +31,10 @@ export function ImageUpload({
     const file = e.target.files?.[0];
 
     if (file && file.type.startsWith("image/")) {
+      if (file.size >= 5 * 1024 * 1024) {
+        toast.error("Image size must be less than 5MB");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -58,6 +62,10 @@ export function ImageUpload({
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("image/")) {
+      if (file.size >= 5 * 1024 * 1024) {
+        toast.error("Image size must be less than 5MB");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -98,10 +106,10 @@ export function ImageUpload({
           className="hidden"
           onChange={handleFileChange}
         />
-        {imagePreview ? (
+        {imagePreview || initialImage ? (
           <div className="relative">
             <img
-              src={imagePreview}
+              src={imagePreview || initialImage || undefined}
               alt="Preview"
               className="max-h-20 object-cover rounded-md"
             />
