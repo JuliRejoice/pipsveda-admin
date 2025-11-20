@@ -1152,7 +1152,7 @@ export default function Courses() {
                     : ""
                 }
               >
-                Recorded
+                On-Demand
               </TabsTrigger>
               <TabsTrigger
                 value="live"
@@ -1161,7 +1161,7 @@ export default function Courses() {
                   isTabDisabled("live") ? "opacity-50 cursor-not-allowed" : ""
                 }
               >
-                Live
+                Live-Online
               </TabsTrigger>
               <TabsTrigger
                 value="physical"
@@ -1198,7 +1198,7 @@ export default function Courses() {
                           id="course-thumbnail"
                           error={formErrors.image}
                           onChange={handleImageChange}
-                          initialImage={editCourse?.courseVideo || null}
+                          initialImage={editCourse?.courseVideo || null}                          
                         />
                       </div>
                       <div>
@@ -2594,10 +2594,10 @@ export default function Courses() {
             value="recorded"
             className="text-base font-semibold w-full"
           >
-            Recorded
+            On-Demand
           </TabsTrigger>
           <TabsTrigger value="live" className="text-base font-semibold w-full">
-            Live
+            Live-Online
           </TabsTrigger>
           <TabsTrigger
             value="physical"
