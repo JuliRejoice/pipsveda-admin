@@ -22,7 +22,7 @@ const formSchema = z.object({
     .string()
     .min(2, "Bot name must be at least 2 characters")
     .max(50, "Bot name must be at most 50 characters")
-    .regex(/^[a-zA-Z0-9\s-]+$/, "Bot name can only contain letters, numbers, spaces, and hyphens"),
+    .regex(/^[a-zA-Z0-9_\s\.-]+$/,"Bot name can only contain letters, numbers, spaces, and hyphens"),
 
   botProviderId: z.string().min(1, "Bot provider is required"),
 });
@@ -228,8 +228,8 @@ export default function BotPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bot Company</h1>
-          <p className="text-muted-foreground">Manage your trading bots and their provider companies.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Bot Name</h1>
+          <p className="text-muted-foreground">Manage your trading bots names and their provider companies.</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
