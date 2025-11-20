@@ -387,7 +387,6 @@ export default function CouponPage() {
                                 Edit
                               </span>
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => handleDeleteClick(coupon)}

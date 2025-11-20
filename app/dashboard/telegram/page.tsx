@@ -198,10 +198,18 @@ export default function TelegramManagement() {
     setValue,
     getValues,
     trigger,
+    watch,
     setError,
     clearErrors,
     formState: { errors },
   } = form;
+
+  const watchedPlanValue = watch("plan");
+  const selectedPlanValue =
+    planEdit && editingPlanId
+      ? plans.find((plan) => plan._id === editingPlanId)?.planType ??
+        watchedPlanValue
+      : watchedPlanValue;
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1037,58 +1045,72 @@ export default function TelegramManagement() {
                   >
                     <div className="space-y-2">
                       <Label htmlFor="plan">Plan Duration</Label>
-                      <select
-                        id="plan"
-                        {...register("plan")}
-                        onChange={(e) => {
-                          setValue("plan", e.target.value);
+                      <Select
+                        value={
+                          planEdit && editingPlanId
+                            ? plans.find((p) => p._id === editingPlanId)
+                                ?.planType
+                            : watch("plan")
+                        }
+                        onValueChange={(value) => {
+                          setValue("plan", value, { shouldValidate: true });
+
                           if (planEdit && editingPlanId) {
                             setPlans((prev) =>
                               prev.map((plan) =>
                                 plan._id === editingPlanId
-                                  ? { ...plan, planType: e.target.value }
+                                  ? { ...plan, planType: value }
                                   : plan
                               )
                             );
                           }
                         }}
-                        className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.plan ? "border-red-500" : ""
-                        }`}
                       >
-                        <option value="">Select a plan</option>
-                        {[
-                          { value: "1Month", label: "1 month" },
-                          { value: "3Months", label: "3 months" },
-                          { value: "6Months", label: "6 months" },
-                          { value: "9Months", label: "9 months" },
-                          { value: "12Months", label: "12 months" },
-                        ]
-                          .filter((planOption) => {
-                            if (planEdit && editingPlanId) {
-                              const editingPlan = plans.find(
-                                (p) => p._id === editingPlanId
-                              );
-                              if (
-                                editingPlan &&
-                                editingPlan.planType === planOption.value
-                              ) {
+                        <SelectTrigger
+                          className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:outline-none ${
+                            errors.plan ? "border-red-500" : ""
+                          }`}
+                        >
+                          <SelectValue
+                            placeholder={
+                              planEdit && editingPlanId
+                                ? plans
+                                    .find((p) => p._id === editingPlanId)
+                                    ?.planType?.replace(/([A-Z])/g, " $1")
+                                    .trim() || "Select a plan"
+                                : "Select a plan"
+                            }
+                          />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {[
+                            { value: "1Month", label: "1 month" },
+                            { value: "3Months", label: "3 months" },
+                            { value: "6Months", label: "6 months" },
+                            { value: "9Months", label: "9 months" },
+                            { value: "12Months", label: "12 months" },
+                          ]
+                            .filter((planOption) => {
+                              if (planEdit && editingPlanId) {
                                 return true;
                               }
-                            }
-                            return !plans.some(
-                              (p) => p.planType === planOption.value
-                            );
-                          })
-                          .map((planOption) => (
-                            <option
-                              key={planOption.value}
-                              value={planOption.value}
-                            >
-                              {planOption.label}
-                            </option>
-                          ))}
-                      </select>
+
+                              return !plans.some(
+                                (p) => p.planType === planOption.value
+                              );
+                            })
+                            .map((planOption) => (
+                              <SelectItem
+                                key={planOption.value}
+                                value={planOption.value}
+                              >
+                                {planOption.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+
                       {errors.plan && (
                         <p className="text-sm font-semibold text-red-500">
                           {String((errors as any).plan?.message || "")}

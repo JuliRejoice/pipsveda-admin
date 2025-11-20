@@ -656,7 +656,6 @@ export default function Users() {
                                     </>
                                   )}
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();

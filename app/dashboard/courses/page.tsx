@@ -809,7 +809,6 @@ export default function Courses() {
       if (videoFile) {
         try {
           const videoResponse = await uploadImage(videoFile);
-
           if (videoResponse?.success && videoResponse?.payload) {
             apiFormData.append("courseIntroVideo", videoResponse.payload);
           } else {
@@ -818,10 +817,11 @@ export default function Courses() {
         } catch (error) {
           console.error("Error uploading video:", error);
           toast.error("Failed to upload video");
+          setIsSubmitting(false);
           return;
         }
-      } else if (editCourse?.courseIntroVideo) {
-        // Only include if there's an existing video URL
+      }
+      else if (!editCourse?._id && editCourse?.courseIntroVideo) {
         if (editCourse.courseIntroVideo !== "undefined") {
           apiFormData.append("courseIntroVideo", editCourse.courseIntroVideo);
         }
@@ -1026,6 +1026,33 @@ export default function Courses() {
   if (isPhysicalBatchVisible) activeStep = 3;
   if (isLiveBatchVisible) activeStep = 3;
 
+  const handleStepperClick = (step: number) => {
+    if (step === activeStep) return;
+
+    if (step === 1) {
+      setIsSyllabusVisible(false);
+      setIsChaptersVisible(false);
+      setIsLiveBatchVisible(false);
+      setIsPhysicalBatchVisible(false);
+      return;
+    }
+
+    if (!latestCourse?._id) {
+      toast.error("Please save the course before navigating the steps.");
+      return;
+    }
+
+    const showSyllabus = step === 2;
+    const showRecordedChapters = step === 3 && formActiveTab === "recorded";
+    const showLiveBatch = step === 3 && formActiveTab === "live";
+    const showPhysicalBatch = step === 3 && formActiveTab === "physical";
+
+    setIsSyllabusVisible(showSyllabus);
+    setIsChaptersVisible(showRecordedChapters);
+    setIsLiveBatchVisible(showLiveBatch);
+    setIsPhysicalBatchVisible(showPhysicalBatch);
+  };
+
   return (
     <div>
       <Dialog
@@ -1176,83 +1203,91 @@ export default function Courses() {
               </TabsTrigger>
             </TabsList>
             {formActiveTab === "recorded" && (
-              <div className="flex ">
+              <div className="flex h-[54vh] ">
                 {!editCourse && (
-                  <Stepper steps={recordedSteps} activeStep={activeStep} />
+                  <Stepper
+                    steps={recordedSteps}
+                    activeStep={activeStep}
+                    onStepClick={handleStepperClick}
+                  />
                 )}
 
                 {/* Recorded Course Form */}
-                {!isSyllabusVisible && !isChaptersVisible && (
-                  <TabsContent value="recorded" className="w-full">
-                    <form
-                      className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
-                      onSubmit={handleCourseSubmit}
-                    >
-                      <input type="hidden" name="courseType" value="recorded" />
+                <TabsContent
+                  value="recorded"
+                  className={`w-full ${
+                    isSyllabusVisible || isChaptersVisible ? "hidden" : ""
+                  }`}
+                >
+                  <form
+                    className="space-y-4 h-[54vh]  overflow-y-auto px-1 scroll-thin"
+                    onSubmit={handleCourseSubmit}
+                  >
+                    <input type="hidden" name="courseType" value="recorded" />
+                    <div>
+                      <label className="block font-medium mb-1">
+                        Course Thumbnail Image *
+                      </label>
+                      <ImageUpload
+                        name="image"
+                        id="course-thumbnail"
+                        error={formErrors.image}
+                        onChange={handleImageChange}
+                        initialImage={editCourse?.courseVideo || null}
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">
+                        Course Name *
+                      </label>
+                      <Input
+                        placeholder="Course Name"
+                        name="name"
+                        defaultValue={editCourse?.CourseName || ""}
+                        onBlur={handleTrimInput}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === " " &&
+                            !(e.target as HTMLInputElement).value.trim()
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                      {formErrors.name && (
+                        <div className="text-red-500">{formErrors.name}</div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">
+                        Course Description *
+                      </label>
+                      <Input
+                        placeholder="Course Description"
+                        name="description"
+                        defaultValue={editCourse?.description || ""}
+                        onBlur={handleTrimInput}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === " " &&
+                            !(e.target as HTMLInputElement).value.trim()
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                      {formErrors.description && (
+                        <div className="text-red-500">
+                          {formErrors.description}
+                        </div>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block font-medium mb-1">
-                          Course Thumbnail Image *
+                          Instructor Name *
                         </label>
-                        <ImageUpload
-                          name="image"
-                          id="course-thumbnail"
-                          error={formErrors.image}
-                          onChange={handleImageChange}
-                          initialImage={editCourse?.courseVideo || null}                          
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-medium mb-1">
-                          Course Name *
-                        </label>
-                        <Input
-                          placeholder="Course Name"
-                          name="name"
-                          defaultValue={editCourse?.CourseName || ""}
-                          onBlur={handleTrimInput}
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === " " &&
-                              !(e.target as HTMLInputElement).value.trim()
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                        />
-                        {formErrors.name && (
-                          <div className="text-red-500">{formErrors.name}</div>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block font-medium mb-1">
-                          Course Description *
-                        </label>
-                        <Input
-                          placeholder="Course Description"
-                          name="description"
-                          defaultValue={editCourse?.description || ""}
-                          onBlur={handleTrimInput}
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === " " &&
-                              !(e.target as HTMLInputElement).value.trim()
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                        />
-                        {formErrors.description && (
-                          <div className="text-red-500">
-                            {formErrors.description}
-                          </div>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block font-medium mb-1">
-                            Instructor Name *
-                          </label>
-                          {/* <Input
+                        {/* <Input
                       placeholder="Instructor Name"
                       name="instructor"
                       defaultValue={editCourse?.instructor || ""}
@@ -1263,220 +1298,213 @@ export default function Courses() {
                         }
                       }}
                     /> */}
-                          <Select
-                            name="instructor"
-                            defaultValue={
-                              editCourse?.instructor?._id ||
-                              editCourse?.instructor
-                            }
-                          >
-                            <SelectTrigger className="font-normal">
-                              <SelectValue placeholder="Select an instructor" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {instructors.map((instructor) => (
-                                <SelectItem
-                                  key={instructor._id}
-                                  value={instructor._id}
-                                >
-                                  {instructor.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {formErrors.instructor && (
-                            <div className="text-red-500">
-                              {formErrors.instructor}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block font-medium mb-1">
-                            Language *
-                          </label>
-                          <Select
-                            name="language"
-                            defaultValue={editCourse?.language || "english"}
-                          >
-                            <SelectTrigger className="h-[55px] w-full font-normal">
-                              <SelectValue placeholder="Select language" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="english">English</SelectItem>
-                              <SelectItem value="spanish">Spanish</SelectItem>
-                              <SelectItem value="french">French</SelectItem>
-                              <SelectItem value="german">German</SelectItem>
-                              <SelectItem value="hindi">Hindi</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block font-medium mb-1">
-                            Course Price *
-                          </label>
-                          <Input
-                            placeholder="Course Price"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            name="price"
-                            defaultValue={editCourse?.price || ""}
-                            onInput={(e) => {
-                              const value = e.currentTarget.value;
-                              if (value.includes(".")) {
-                                const [whole, decimal] = value.split(".");
-                                if (decimal && decimal.length > 2) {
-                                  e.currentTarget.value = `${whole}.${decimal.slice(
-                                    0,
-                                    2
-                                  )}`;
-                                }
-                              }
-                            }}
-                          />
-                          {formErrors.price && (
-                            <div className="text-red-500">
-                              {formErrors.price}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block font-medium mb-1">
-                            Hours *
-                          </label>
-                          <Input
-                            placeholder="Hours"
-                            type="number"
-                            name="hours"
-                            defaultValue={editCourse?.hours || ""}
-                            onBlur={handleTrimInput}
-                            onKeyDown={(e) => {
-                              if (
-                                e.key === " " &&
-                                !(e.target as HTMLInputElement).value.trim()
-                              ) {
-                                e.preventDefault();
-                              }
-                            }}
-                            required
-                          />
-                          {formErrors.hours && (
-                            <div className="text-red-500">
-                              {formErrors.hours}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col">
-                        <label className="block font-medium mb-1">
-                          Course Level *
-                        </label>
                         <Select
-                          name="courseLevel"
-                          defaultValue={editCourse?.courseLevel || undefined}
-                          // required
+                          name="instructor"
+                          defaultValue={
+                            editCourse?.instructor?._id ||
+                            editCourse?.instructor
+                          }
                         >
-                          <SelectTrigger className="h-[55px] w-full ">
-                            <SelectValue placeholder="Select course level" />
+                          <SelectTrigger className="font-normal">
+                            <SelectValue placeholder="Select an instructor" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="beginner">
-                              Beginner Level
-                            </SelectItem>
-                            <SelectItem value="intermediate">
-                              Intermediate Level
-                            </SelectItem>
-                            <SelectItem value="expert">Expert Level</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {formErrors.courseLevel && (
-                          <div className="text-red-500 ">
-                            {formErrors.courseLevel}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col">
-                        <label className="block font-medium mb-1">
-                          Intro Video *
-                        </label>
-
-                        <div className="w-full">
-                          <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
-                            {editCourse?.courseIntroVideo ? (
-                              <div className="flex justify-center mb-2 items-center">
-                                <video
-                                  src={editCourse?.courseIntroVideo}
-                                  controls
-                                  className=" h-auto max-h-20 rounded-md"
-                                />
-                              </div>
-                            ) : (
-                              <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
-                            )}
-                            <p className="text-sm text-gray-600 mb-2">
-                              {videoFile
-                                ? videoFile.name
-                                : editCourse?.courseIntroVideo
-                                ? "Video file selected"
-                                : "No video file selected"}
-                            </p>
-
-                            <Input
-                              type="file"
-                              name="courseIntroVideo"
-                              accept="video/mp4,video/webm,video/quicktime"
-                              className="hidden"
-                              id="courseIntroVideo"
-                              onChange={handleIntroVideoChange}
-                            />
-
-                            <Label
-                              htmlFor="courseIntroVideo"
-                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
-                            >
-                              {videoFile || editCourse?.courseIntroVideo
-                                ? "Change Video"
-                                : "Upload Video"}
-                            </Label>
-                          </div>
-                          {formErrors.videoFile && (
-                            <div className=" text-red-500 mt-1">
-                              {formErrors.videoFile}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block font-medium mb-1">
-                          Course Category *
-                        </label>
-                        <Select
-                          name="courseCategory"
-                          defaultValue={editCourse?.courseCategory || ""}
-                          required
-                        >
-                          <SelectTrigger className="h-[55px] w-full font-normal">
-                            <SelectValue placeholder="Select Category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((category) => (
+                            {instructors.map((instructor) => (
                               <SelectItem
-                                key={category._id}
-                                value={category._id}
+                                key={instructor._id}
+                                value={instructor._id}
                               >
-                                {category.name}
+                                {instructor.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        {formErrors.instructor && (
+                          <div className="text-red-500">
+                            {formErrors.instructor}
+                          </div>
+                        )}
                       </div>
-                      {/* <div>
+                      <div>
+                        <label className="block font-medium mb-1">
+                          Language *
+                        </label>
+                        <Select
+                          name="language"
+                          defaultValue={editCourse?.language || "english"}
+                        >
+                          <SelectTrigger className="h-[55px] w-full font-normal">
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="english">English</SelectItem>
+                            <SelectItem value="spanish">Spanish</SelectItem>
+                            <SelectItem value="french">French</SelectItem>
+                            <SelectItem value="german">German</SelectItem>
+                            <SelectItem value="hindi">Hindi</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-medium mb-1">
+                          Course Price *
+                        </label>
+                        <Input
+                          placeholder="Course Price"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          name="price"
+                          defaultValue={editCourse?.price || ""}
+                          onInput={(e) => {
+                            const value = e.currentTarget.value;
+                            if (value.includes(".")) {
+                              const [whole, decimal] = value.split(".");
+                              if (decimal && decimal.length > 2) {
+                                e.currentTarget.value = `${whole}.${decimal.slice(
+                                  0,
+                                  2
+                                )}`;
+                              }
+                            }
+                          }}
+                        />
+                        {formErrors.price && (
+                          <div className="text-red-500">{formErrors.price}</div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block font-medium mb-1">
+                          Hours *
+                        </label>
+                        <Input
+                          placeholder="Hours"
+                          type="number"
+                          name="hours"
+                          defaultValue={editCourse?.hours || ""}
+                          onBlur={handleTrimInput}
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === " " &&
+                              !(e.target as HTMLInputElement).value.trim()
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
+                          required
+                        />
+                        {formErrors.hours && (
+                          <div className="text-red-500">{formErrors.hours}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="block font-medium mb-1">
+                        Course Level *
+                      </label>
+                      <Select
+                        name="courseLevel"
+                        defaultValue={editCourse?.courseLevel || undefined}
+                        // required
+                      >
+                        <SelectTrigger className="h-[55px] w-full ">
+                          <SelectValue placeholder="Select course level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">
+                            Beginner Level
+                          </SelectItem>
+                          <SelectItem value="intermediate">
+                            Intermediate Level
+                          </SelectItem>
+                          <SelectItem value="expert">Expert Level</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {formErrors.courseLevel && (
+                        <div className="text-red-500 ">
+                          {formErrors.courseLevel}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="block font-medium mb-1">
+                        Intro Video *
+                      </label>
+
+                      <div className="w-full">
+                        <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
+                          {editCourse?.courseIntroVideo ? (
+                            <div className="flex justify-center mb-2 items-center">
+                              <video
+                                src={editCourse?.courseIntroVideo}
+                                controls
+                                className=" h-auto max-h-20 rounded-md"
+                              />
+                            </div>
+                          ) : (
+                            <VideoIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                          )}
+                          <p className="text-sm text-gray-600 mb-2">
+                            {videoFile
+                              ? videoFile.name
+                              : editCourse?.courseIntroVideo
+                              ? "Video file selected"
+                              : "No video file selected"}
+                          </p>
+
+                          <Input
+                            type="file"
+                            name="courseIntroVideo"
+                            accept="video/mp4,video/webm,video/quicktime"
+                            className="hidden"
+                            id="courseIntroVideo"
+                            onChange={handleIntroVideoChange}
+                          />
+
+                          <Label
+                            htmlFor="courseIntroVideo"
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                          >
+                            {videoFile || editCourse?.courseIntroVideo
+                              ? "Change Video"
+                              : "Upload Video"}
+                          </Label>
+                        </div>
+                        {formErrors.videoFile && (
+                          <div className=" text-red-500 mt-1">
+                            {formErrors.videoFile}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-medium mb-1">
+                        Course Category *
+                      </label>
+                      <Select
+                        name="courseCategory"
+                        defaultValue={editCourse?.courseCategory || ""}
+                        required
+                      >
+                        <SelectTrigger className="h-[55px] w-full font-normal">
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category._id} value={category._id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {/* <div>
                   <label className="block font-medium mb-1">Define Course</label>
                   <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || ""}>
                     <option value="">Choose Option</option>
@@ -1484,18 +1512,17 @@ export default function Courses() {
                     <option value="trending">Trending</option>
                   </select>
                 </div> */}
-                      <DialogFooter>
-                        <Button type="submit" disabled={isSubmitting}>
-                          {isSubmitting
-                            ? "Saving..."
-                            : editCourse
-                            ? "Update Course"
-                            : "Next"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </TabsContent>
-                )}
+                    <DialogFooter>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting
+                          ? "Saving..."
+                          : editCourse
+                          ? "Update Course"
+                          : "Next"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </TabsContent>
                 {isSyllabusVisible && (
                   <SyllabusSection
                     courseId={latestCourse?._id}
@@ -1539,7 +1566,11 @@ export default function Courses() {
             {formActiveTab === "live" && (
               <div className="flex ">
                 {!editCourse && (
-                  <Stepper steps={steps} activeStep={activeStep} />
+                  <Stepper
+                    steps={steps}
+                    activeStep={activeStep}
+                    onStepClick={handleStepperClick}
+                  />
                 )}
 
                 {!isLiveBatchVisible && !isSyllabusVisible && (
@@ -1960,7 +1991,7 @@ export default function Courses() {
                   <Stepper steps={steps} activeStep={activeStep} />
                 )}
                 {!isPhysicalBatchVisible && !isSyllabusVisible && (
-                  <TabsContent value="physical">
+                  <TabsContent value="physical" className="">
                     <form
                       className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
                       onSubmit={handleCourseSubmit}

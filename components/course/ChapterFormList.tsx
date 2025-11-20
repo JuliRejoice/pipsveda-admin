@@ -278,7 +278,7 @@ export default function CustomChapterFormList({
   };
 
   return (
-    <div className="relative h-[calc(100vh-300px)] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+    <div className="relative w-full h-[54vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
       <div className="flex justify-between items-center gap-4 mb-4">
         <h2 className="text-lg font-semibold">Chapters</h2>
         <Button type="button" variant="default" onClick={handleAddChapter}>
@@ -387,7 +387,7 @@ export default function CustomChapterFormList({
                         ? chapter.chapterImage.name
                         : "No thumbnail selected"}
                     </p>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center">
                       <Input
                         id={`image-upload-${index}`}
                         name="chapterImage"

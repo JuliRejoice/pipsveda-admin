@@ -3,18 +3,57 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Search, Plus, Bot, Edit, Trash2, AlertTriangle, MoreHorizontal } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Bot,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  MoreHorizontal,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
-import { getBotProviderDropDown, createBot, getAllBots, updateBot, deleteBot } from "@/components/api/algobot";
+import {
+  getBotProviderDropDown,
+  createBot,
+  getAllBots,
+  updateBot,
+  deleteBot,
+} from "@/components/api/algobot";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Form validation schema - simplified with only required fields
 const formSchema = z.object({
@@ -22,7 +61,10 @@ const formSchema = z.object({
     .string()
     .min(2, "Bot name must be at least 2 characters")
     .max(50, "Bot name must be at most 50 characters")
-    .regex(/^[a-zA-Z0-9_\s\.-]+$/,"Bot name can only contain letters, numbers, spaces, and hyphens"),
+    .regex(
+      /^[a-zA-Z0-9_\s\.-]+$/,
+      "Bot name can only contain letters, numbers, spaces, and hyphens"
+    ),
 
   botProviderId: z.string().min(1, "Bot provider is required"),
 });
@@ -73,6 +115,7 @@ export default function BotPage() {
     register,
     handleSubmit,
     reset,
+    watch,
     setValue,
     formState: { errors },
   } = form;
@@ -107,9 +150,13 @@ export default function BotPage() {
     }
 
     const searchLower = search.toLowerCase();
-    const filtered = bots.filter(bot => 
-      bot.name.toLowerCase().includes(searchLower) ||
-      providers.find(p => p._id === bot.botProviderId)?.companyName.toLowerCase().includes(searchLower)
+    const filtered = bots.filter(
+      (bot) =>
+        bot.name.toLowerCase().includes(searchLower) ||
+        providers
+          .find((p) => p._id === bot.botProviderId)
+          ?.companyName.toLowerCase()
+          .includes(searchLower)
     );
 
     setFilteredBots(filtered);
@@ -229,7 +276,9 @@ export default function BotPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Bot Name</h1>
-          <p className="text-muted-foreground">Manage your trading bots names and their provider companies.</p>
+          <p className="text-muted-foreground">
+            Manage your trading bots names and their provider companies.
+          </p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
@@ -240,47 +289,76 @@ export default function BotPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{isEditMode ? "Edit Bot" : "Create New Bot"}</DialogTitle>
+              <DialogTitle>
+                {isEditMode ? "Edit Bot" : "Create New Bot"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="botProviderId">Bot Provider Company</Label>
-                <select id="botProviderId" className="w-full h-[55px] px-3 py-2 border border-input bg-background rounded-md text-base font-semibold" {...register("botProviderId")}>
-                  <option value="">Select a provider company</option>
-                  {providers?.map((company) => (
-                    <option key={company._id} value={company._id}>
-                      {company.companyName}
-                    </option>
-                  ))}
-                </select>
-                {errors.botProviderId && <p className="text-sm font-semibold text-red-500">{errors.botProviderId.message}</p>}
+                <Select
+                  value={watch("botProviderId")}
+                  onValueChange={(value) =>
+                    setValue("botProviderId", value, { shouldValidate: true })
+                  }
+                >
+                  <SelectTrigger className="w-full h-[55px] px-3 py-2 border border-input bg-background rounded-md text-base font-semibold">
+                    <SelectValue placeholder="Select a provider company" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {providers?.map((company) => (
+                      <SelectItem key={company._id} value={company._id}>
+                        {company.companyName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {errors.botProviderId && (
+                  <p className="text-sm font-semibold text-red-500">
+                    {errors.botProviderId.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="name">Bot Name</Label>
-                <Input 
-                  id="name" 
-                  placeholder="Enter bot name" 
-                  {...register("name")} 
+                <Input
+                  id="name"
+                  placeholder="Enter bot name"
+                  {...register("name")}
                   onBlur={(e) => {
                     const value = e.target.value.trim();
                     setValue("name", value, { shouldValidate: true });
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === ' ' && !e.currentTarget.value.trim()) {
+                    if (e.key === " " && !e.currentTarget.value.trim()) {
                       e.preventDefault();
                     }
                   }}
                 />
-                {errors.name && <p className="text-sm font-semibold text-red-500">{errors.name.message}</p>}
+                {errors.name && (
+                  <p className="text-sm font-semibold text-red-500">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : isEditMode ? "Update Bot" : "Create Bot"}
+                  {isLoading
+                    ? "Saving..."
+                    : isEditMode
+                    ? "Update Bot"
+                    : "Create Bot"}
                 </Button>
               </div>
             </form>
@@ -292,7 +370,13 @@ export default function BotPage() {
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2/4 -translate-y-2/4 h-4 w-4 text-muted-foreground" />
-          <Input type="search" placeholder="Search bots..." value={searchTerm} onChange={handleSearch} className="pl-8 font-normal" />
+          <Input
+            type="search"
+            placeholder="Search bots..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="pl-8 font-normal"
+          />
         </div>
       </div>
 
@@ -311,7 +395,11 @@ export default function BotPage() {
               <Bot className="h-12 w-12 text-muted-foreground" />
               <div>
                 <h3 className="text-lg font-medium">No bots found</h3>
-                <p className="text-sm text-muted-foreground font-lexend">{searchTerm ? "Try a different search term" : "Get started by creating a new bot"}</p>
+                <p className="text-sm text-muted-foreground font-lexend">
+                  {searchTerm
+                    ? "Try a different search term"
+                    : "Get started by creating a new bot"}
+                </p>
               </div>
             </div>
           ) : (
@@ -327,18 +415,31 @@ export default function BotPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredBots
-                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((bot,index) => {
-                    const provider = providers?.find(p => p._id === bot.botProviderId);
-                    return (
-                      <TableRow key={bot._id}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{bot.name}</TableCell>
-                        <TableCell className="font-medium"><button onClick={() => handleEdit(bot)}><Edit className="mr-2 h-4 w-4" /></button></TableCell>
-                        <TableCell className="font-medium"><button onClick={() => handleDeleteClick(bot._id)}><Trash2 className="mr-2 h-4 w-4" /></button></TableCell>
-                      </TableRow>
-                    );
-                  })}
+                    .slice(
+                      (currentPage - 1) * itemsPerPage,
+                      currentPage * itemsPerPage
+                    )
+                    .map((bot, index) => {
+                      const provider = providers?.find(
+                        (p) => p._id === bot.botProviderId
+                      );
+                      return (
+                        <TableRow key={bot._id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{bot.name}</TableCell>
+                          <TableCell className="font-medium">
+                            <button onClick={() => handleEdit(bot)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                            </button>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            <button onClick={() => handleDeleteClick(bot._id)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                            </button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </div>
@@ -373,13 +474,24 @@ export default function BotPage() {
           <div className="space-y-4">
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>Are you sure you want to delete this bot? This action cannot be undone.</AlertDescription>
+              <AlertDescription>
+                Are you sure you want to delete this bot? This action cannot be
+                undone.
+              </AlertDescription>
             </Alert>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
                 {isDeleting ? "Deleting..." : "Delete"}
               </Button>
             </div>

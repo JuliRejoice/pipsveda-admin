@@ -4,9 +4,14 @@ import React from "react";
 interface StepperProps {
   steps: string[];
   activeStep: number; // 1-based index
+  onStepClick?: (step: number) => void;
 }
 
-const Stepper: React.FC<StepperProps> = ({ steps, activeStep }) => {
+const Stepper: React.FC<StepperProps> = ({
+  steps,
+  activeStep,
+  onStepClick,
+}) => {
   return (
     <div className="flex flex-col items-start w-1/3 border-r-2 mr-4">
       {steps.map((label, index) => {
@@ -17,7 +22,10 @@ const Stepper: React.FC<StepperProps> = ({ steps, activeStep }) => {
         return (
           <div
             key={index}
-            className="flex items-center mb-8 last:mb-0 relative w-full"
+            className={`flex items-center mb-8 last:mb-0 relative w-full ${
+              onStepClick ? "cursor-pointer" : ""
+            }`}
+            onClick={() => onStepClick?.(stepNumber)}
           >
             {/* Step Circle */}
             <div

@@ -1360,21 +1360,25 @@ export default function AlgoBots() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="categoryId">Category *</Label>
-                      <select
-                        id="categoryId"
+
+                      <Select
                         {...register("categoryId")}
-                        className={`flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                          errors.categoryId ? "border-red-500" : ""
-                        }`}
                         disabled={isFetchingCategories}
                       >
-                        <option value="">Select a category</option>
-                        {categories.map((categoryId) => (
-                          <option key={categoryId._id} value={categoryId._id}>
-                            {categoryId.title}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger className="font-normal">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((categoryId) => (
+                            <SelectItem
+                              key={categoryId._id}
+                              value={categoryId._id}
+                            >
+                              {categoryId.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       {isFetchingCategories && (
                         <p className="text-sm text-muted-foreground font-lexend">
                           Loading categories...
@@ -1558,58 +1562,67 @@ export default function AlgoBots() {
                   >
                     <div className="space-y-2">
                       <Label htmlFor="plan">Plan Duration *</Label>
-                      <select
-                        id="plan"
-                        {...register("plan")}
-                        onChange={(e) => {
-                          setValue("plan", e.target.value);
+                      <Select
+                        value={watch("plan")}
+                        onValueChange={(value) => {
+                          setValue("plan", value, { shouldValidate: true });
+
                           if (planEdit && editingPlanId) {
                             setPlans((prev) =>
                               prev.map((plan) =>
                                 plan._id === editingPlanId
-                                  ? { ...plan, planType: e.target.value }
+                                  ? { ...plan, planType: value }
                                   : plan
                               )
                             );
                           }
                         }}
-                        className={`flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                          errors.plan ? "border-red-500" : ""
-                        }`}
                       >
-                        <option value="">Select a plan</option>
-                        {[
-                          { value: "1Month", label: "1 month" },
-                          { value: "3Months", label: "3 months" },
-                          { value: "6Months", label: "6 months" },
-                          { value: "9Months", label: "9 months" },
-                          { value: "12Months", label: "12 months" },
-                        ]
-                          .filter((planOption) => {
-                            if (planEdit && editingPlanId) {
-                              const editingPlan = plans.find(
-                                (p) => p._id === editingPlanId
-                              );
-                              if (
-                                editingPlan &&
-                                editingPlan.planType === planOption.value
-                              ) {
+                        <SelectTrigger
+                          className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:outline-none ${
+                            errors.plan ? "border-red-500" : ""
+                          }`}
+                        >
+                          <SelectValue
+                            placeholder={
+                              planEdit && editingPlanId
+                                ? plans
+                                    .find((p) => p._id === editingPlanId)
+                                    ?.planType?.replace(/([A-Z])/g, " $1")
+                                    .trim() || "Select a plan"
+                                : "Select a plan"
+                            }
+                          />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {[
+                            { value: "1Month", label: "1 month" },
+                            { value: "3Months", label: "3 months" },
+                            { value: "6Months", label: "6 months" },
+                            { value: "9Months", label: "9 months" },
+                            { value: "12Months", label: "12 months" },
+                          ]
+                            .filter((planOption) => {
+                              if (planEdit && editingPlanId) {
                                 return true;
                               }
-                            }
-                            return !plans.some(
-                              (p) => p.planType === planOption.value
-                            );
-                          })
-                          .map((planOption) => (
-                            <option
-                              key={planOption.value}
-                              value={planOption.value}
-                            >
-                              {planOption.label}
-                            </option>
-                          ))}
-                      </select>
+
+                              return !plans.some(
+                                (p) => p.planType === planOption.value
+                              );
+                            })
+                            .map((planOption) => (
+                              <SelectItem
+                                key={planOption.value}
+                                value={planOption.value}
+                              >
+                                {planOption.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+
                       {errors.plan && (
                         <p className="text-sm font-semibold text-red-500">
                           {String((errors as any).plan?.message || "")}
@@ -1682,21 +1695,32 @@ export default function AlgoBots() {
                       <Label htmlFor="botProviderId">
                         Bot Provider Company *
                       </Label>
-                      <select
-                        id="botProviderId"
-                        {...register("botProviderId")}
-                        className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.botProviderId ? "border-red-500" : ""
-                        }`}
+                      <Select
                         disabled={isFetchingProviders}
+                        onValueChange={(value) => {
+                          setValue("botProviderId", value, {
+                            shouldValidate: true,
+                          });
+                        }}
+                        value={watch("botProviderId")}
                       >
-                        <option value="">Select a provider</option>
-                        {providers.map((prov) => (
-                          <option key={prov._id} value={prov._id}>
-                            {prov.companyName}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger
+                          className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:outline-none ${
+                            errors.botProviderId ? "border-red-500" : ""
+                          }`}
+                        >
+                          <SelectValue placeholder="Select a provider" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {providers.map((prov) => (
+                            <SelectItem key={prov._id} value={prov._id}>
+                              {prov.companyName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
                       {isFetchingProviders && (
                         <p className="text-sm text-muted-foreground font-lexend">
                           Loading providers...
@@ -1711,27 +1735,38 @@ export default function AlgoBots() {
 
                     <div className="space-y-2">
                       <Label htmlFor="botId">Bot Name *</Label>
-                      <select
-                        id="botId"
-                        {...register("botId")}
-                        className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.botId ? "border-red-500" : ""
-                        }`}
+                      <Select
+                        onValueChange={(value) => {
+                          setValue("botId", value, {
+                            shouldValidate: true,
+                          });
+                        }}
+                        value={watch("botId")}
                         disabled={
                           !getValues().botProviderId || isFetchingBotsList
                         }
                       >
-                        <option value="">
-                          {getValues().botProviderId
-                            ? "Select a bot"
-                            : "Select a provider first"}
-                        </option>
-                        {filteredBots.map((b) => (
-                          <option key={b._id} value={b._id}>
-                            {b.name}
+                        <SelectTrigger
+                          className={`w-full h-[55px] bg-background rounded-md border px-3 py-2 text-base font-semibold shadow-sm focus:outline-none ${
+                            errors.botId ? "border-red-500" : ""
+                          }`}
+                        >
+                          <SelectValue placeholder="Select a bot" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <option value="">
+                            {getValues().botProviderId
+                              ? "Select a bot"
+                              : "Select a provider first"}
                           </option>
-                        ))}
-                      </select>
+                          {filteredBots.map((b) => (
+                            <SelectItem key={b._id} value={b._id}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       {isFetchingBotsList && (
                         <p className="text-sm text-muted-foreground font-lexend">
                           Loading bots...
