@@ -57,7 +57,9 @@ export default function CustomChapterFormList({
     {}
   );
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoPreviews, setVideoPreviews] = useState<Record<number, string>>(
+    {}
+  );
 
   const handleInputChange = (
     index: number,
@@ -69,7 +71,10 @@ export default function CustomChapterFormList({
     if (name === "videoFile" && type === "file" && files?.length) {
       const file = files[0];
       const videoUrl = URL.createObjectURL(file);
-      setVideoPreview(videoUrl);
+      setVideoPreviews((prev) => ({
+        ...prev,
+        [index]: videoUrl, // store preview for this index only
+      }));
     }
 
     setChapters((prev) =>
@@ -414,10 +419,15 @@ export default function CustomChapterFormList({
             <div className="w-full">
               <div className="border border-dashed border-gray-300 rounded-md p-4 text-center">
                 <div className="flex items-center space-x-4">
-                  {chapter.videoFile || videoPreview ? (
+                  {chapter.videoFile || videoPreviews[index] ? (
                     <div className="relative">
                       <video
-                        src={videoPreview ? videoPreview : chapter.videoUrl}
+                        key={index}
+                        src={
+                          videoPreviews[index]
+                            ? videoPreviews[index]
+                            : chapter.videoUrl
+                        }
                         className="h-20 w-20 object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity"
                         muted
                         onMouseEnter={(e) => {
@@ -485,7 +495,6 @@ export default function CustomChapterFormList({
                   </div>
                 </div>
                 {/* Remove button if file is selected */}
-                
               </div>
 
               {(errors[index]?.videoFile || errors[index]?.videoUrl) && (
