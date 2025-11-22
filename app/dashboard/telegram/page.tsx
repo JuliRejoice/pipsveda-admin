@@ -58,6 +58,7 @@ import {
 import { initScriptLoader } from "next/script";
 import { uploadImage } from "@/components/api/course";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 // Form validation schema
 const formSchema = z.object({
@@ -690,19 +691,29 @@ export default function TelegramManagement() {
 
   const handleEditPlan = (index: number) => {
     const plan = plans[index];
-
     if (!plan) return;
 
     setPlanEdit(true);
     setEditingPlanId(plan._id || null);
 
-    // Reset the form first to clear any existing values
-    reset({
-      ...getValues(),
+    // Reset the form with the plan's values
+    const formValues = {
       plan: plan.planType || "",
       price: (plan.initialPrice || plan.price)?.toString() || "",
       discount: plan.discount?.toString() || "0",
-    });
+    };
+
+    // Set all form values at once to prevent race conditions
+    // Force update the plan type by first setting it to empty and then to the actual value
+    setValue("plan", "", { shouldValidate: false });
+    setTimeout(() => {
+      setValue("plan", formValues.plan, { shouldValidate: true });
+      setValue("price", formValues.price, { shouldValidate: true });
+      setValue("discount", formValues.discount, { shouldValidate: true });
+    }, 0);
+
+    // Force update the form state
+    trigger(["plan", "price", "discount"]);
 
     // Scroll to the form
     setTimeout(() => {
@@ -712,7 +723,6 @@ export default function TelegramManagement() {
       }
     }, 100);
   };
-
   const handleRemovePlan = async (indexToRemove: number) => {
     const planToDelete = plans[indexToRemove];
 
@@ -1046,12 +1056,7 @@ export default function TelegramManagement() {
                     <div className="space-y-2">
                       <Label htmlFor="plan">Plan Duration</Label>
                       <Select
-                        value={
-                          planEdit && editingPlanId
-                            ? plans.find((p) => p._id === editingPlanId)
-                                ?.planType
-                            : watch("plan")
-                        }
+                        value={watch("plan") || ""}
                         onValueChange={(value) => {
                           setValue("plan", value, { shouldValidate: true });
 
@@ -1059,10 +1064,26 @@ export default function TelegramManagement() {
                             setPlans((prev) =>
                               prev.map((plan) =>
                                 plan._id === editingPlanId
-                                  ? { ...plan, planType: value }
+                                  ? {
+                                      ...plan,
+                                      planType: value,
+                                      // Preserve other plan properties
+                                      ...(plan.initialPrice
+                                        ? { initialPrice: plan.initialPrice }
+                                        : {}),
+                                      ...(plan.price
+                                        ? { price: plan.price }
+                                        : {}),
+                                      ...(plan.discount
+                                        ? { discount: plan.discount }
+                                        : {}),
+                                    }
                                   : plan
                               )
                             );
+                          } else {
+                            // For new plans, update the form value
+                            setValue("plan", value, { shouldValidate: true });
                           }
                         }}
                       >
@@ -1179,48 +1200,54 @@ export default function TelegramManagement() {
                     {plans.length > 0 && (
                       <div className="space-y-3">
                         <h4 className="font-semibold">Added Plans</h4>
-                        {plans.map((plan, index) => (
-                          <div
-                            key={index}
-                            className="border rounded-md p-3 bg-background text-sm flex justify-between items-center"
-                          >
-                            <div>
-                              <p>
-                                <strong>Duration:</strong>{" "}
-                                {plan.planType.replace(
-                                  /(\d+)([A-Za-z]+)/,
-                                  "$1 $2"
-                                )}
-                              </p>
-                              <p>
-                                <strong>Price:</strong>{" "}
-                                {plan?._id
-                                  ? `$${plan.initialPrice.toFixed(2)}`
-                                  : `$${plan.price}`}
-                              </p>
+                        <div className="max-h-60 overflow-y-auto pr-2 space-y-3">
+                          {" "}
+                          {/* Added max height and scrolling */}
+                          {plans.map((plan, index) => (
+                            <div
+                              key={index}
+                              className="border rounded-md p-3 bg-background text-sm flex justify-between items-center"
+                            >
+                              <div>
+                                <p>
+                                  <strong>Duration:</strong>{" "}
+                                  {plan.planType
+                                    ? plan.planType.replace(
+                                        /(\d+)([A-Za-z]+)/,
+                                        "$1 $2"
+                                      )
+                                    : ""}
+                                </p>
+                                <p>
+                                  <strong>Price:</strong>{" "}
+                                  {plan?._id
+                                    ? `$${plan.initialPrice.toFixed(2)}`
+                                    : `$${plan.price}`}
+                                </p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditPlan(index)}
+                                  className="text-blue-500 hover:text-blue-700"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemovePlan(index)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditPlan(index)}
-                                className="text-blue-500 hover:text-blue-700"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemovePlan(index)}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     )}
 
@@ -1308,14 +1335,16 @@ export default function TelegramManagement() {
             >
               <CardHeader className="pb-4">
                 <div className="w-full rounded-md overflow-hidden border-2 border-white shadow-sm">
-                  <img
+                  <Image
                     src={
                       channel?.image?.startsWith?.("blob:") || !channel?.image
                         ? ""
                         : channel.image
                     }
+                    width={1000}
+                    height={1000}
                     alt={channel.channelName}
-                    className="w-full h-48 object-cover rounded-t-lg"
+                    className="w-full aspect-video object-cover rounded-t-lg"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                     }}
@@ -1401,14 +1430,33 @@ export default function TelegramManagement() {
                           <SelectValue placeholder="Select duration" />
                         </SelectTrigger>
                         <SelectContent>
-                          {channel?.telegramPlan?.map((plan: any) => (
-                            <SelectItem key={plan._id} value={plan.planType}>
-                              {plan.planType.replace(
-                                /(\d+)([A-Za-z]+)/,
-                                "$1 $2"
-                              )}
-                            </SelectItem>
-                          ))}
+                          {[...(channel?.telegramPlan || [])]
+                            .filter((plan: any) => {
+                              // Only show plans that are not already selected in other dropdowns
+                              return !Object.values(selectedPlans).some(
+                                (selectedPlan) =>
+                                  selectedPlan?.planType === plan.planType &&
+                                  selectedPlan?._id !== plan._id
+                              );
+                            })
+                            .sort((a, b) => {
+                              // Extract the numeric part for proper numeric sorting
+                              const numA = parseInt(
+                                a.planType.match(/\d+/)?.[0] || "0"
+                              );
+                              const numB = parseInt(
+                                b.planType.match(/\d+/)?.[0] || "0"
+                              );
+                              return numA - numB;
+                            })
+                            .map((plan: any) => (
+                              <SelectItem key={plan._id} value={plan.planType}>
+                                {plan.planType.replace(
+                                  /(\d+)([A-Za-z]+)/,
+                                  "$1 $2"
+                                )}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
 

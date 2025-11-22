@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -49,19 +48,18 @@ const formSchema = z.object({
       (file) => {
         if (file === null || file === undefined) return false;
         if (typeof file === "string") return true;
-        return file.size <= 5 * 1024 * 1024; 
+        return file.size <= 5 * 1024 * 1024;
       },
       { message: "Image size must be under 5MB" }
     ),
 });
-
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface BannerItem {
   _id: string;
   image: string;
-  isActive: boolean;  
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -98,7 +96,11 @@ export default function BannerPage() {
     try {
       setIsFetching(true);
       const response = await getAllBanners();
-      setBanners(response?.payload?.data || []);
+      // Filter out banners where isOnboarding is true or not present
+      const filteredBanners = (response?.payload?.data || []).filter(
+        (banner: any) => banner.isOnboarding === false
+      );
+      setBanners(filteredBanners);
     } catch (error) {
       toast.error("Failed to fetch banners");
     } finally {
@@ -152,7 +154,7 @@ export default function BannerPage() {
     setIsOpen(true);
   };
 
-    const handleDeleteClick = (id: string) => {
+  const handleDeleteClick = (id: string) => {
     setBannerToDelete(id);
     setDeleteDialogOpen(true);
   };
@@ -307,7 +309,6 @@ export default function BannerPage() {
         </Dialog>
       </div>
 
-      {/* ✅ Banner List */}
       {isFetching ? (
         <div className="text-center py-10 text-gray-500">
           Loading banners...

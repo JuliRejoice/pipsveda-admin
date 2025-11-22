@@ -1042,17 +1042,24 @@ export default function AlgoBots() {
 
   const handleEditPlan = (index: number) => {
     const plan = plans[index];
+    if (!plan) return;
 
     setPlanEdit(true);
     setEditingPlanId(plan._id || null);
 
-    // Set form values for editing
-    setValue("plan", plan.planType);
-    setValue(
-      "price",
-      plan.initialPrice?.toString() || plan.price?.toString() || ""
-    );
-    setValue("discount", plan.discount?.toString() || "0");
+    // Reset the form with the plan's values
+    const formValues = {
+      plan: plan.planType || "",
+      price: (plan.initialPrice || plan.price)?.toString() || "",
+      discount: plan.discount?.toString() || "0",
+    };
+
+    setValue("plan", "", { shouldValidate: false });
+    setTimeout(() => {
+      setValue("plan", formValues.plan, { shouldValidate: true });
+      setValue("price", formValues.price, { shouldValidate: true });
+      setValue("discount", formValues.discount, { shouldValidate: true });
+    }, 0);
 
     // Handle nested bot and provider structure
     if (plan.botId && typeof plan.botId === "object") {

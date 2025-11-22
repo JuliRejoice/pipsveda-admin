@@ -100,3 +100,30 @@ export const deleteBanner = async (id: string) => {
   }
 };
 
+export const updateOnboardingStatus = async (
+  isActive: boolean
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await axios.put(
+      `${BaseUrl}/banner/updateOnboarding`,
+      {},
+      {
+        params: { isActive },
+        headers: getHeaders(),
+      }
+    );
+
+    return {
+      success: response.data?.success ?? true,
+      message:
+        response.data?.message || "Onboarding status updated successfully",
+    };
+  } catch (error: any) {
+    console.error("Error updating onboarding status:", error);
+    return {
+      success: false,
+      message:
+        error.response?.data?.message || "Failed to update onboarding status",
+    };
+  }
+};
