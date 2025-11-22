@@ -53,6 +53,7 @@ interface BannerItem {
 export default function OnboardingManager() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
+  const [activeScreen, setActiveScreen] = useState<number | null>(null);
   const [screens, setScreens] = useState<OnboardingScreen[]>([
     {
       id: "1",
@@ -131,31 +132,28 @@ export default function OnboardingManager() {
       setIsLoading(true);
       const imageData = await validateImage(file, true);
 
+      // Set the active screen based on which screen's file input was used
+      const screenIndex = screens.findIndex((screen) => screen.id === id);
+      setActiveScreen(screenIndex);
+
       const existingScreen = screens.find((screen) => screen.id === id);
       let response;
 
       if (existingScreen?.mobileImage?.id) {
+        // Update existing banner
         response = await updateBanner(existingScreen.mobileImage.id, file);
       } else {
+        // Create new banner
         response = await createBanner(file);
       }
 
-      const updatedScreens = screens.map((screen) => {
-        if (screen.id === id) {
-          return {
-            ...screen,
-            mobileImage: {
-              ...imageData,
-              id: response.payload._id || response.payload.id,
-              url: response.payload.imageUrl || URL.createObjectURL(file),
-            },
-            error: undefined,
-          };
-        }
-        return screen;
-      });
+      // Reload all banners to maintain order
+      await loadOnboardingBanners();
 
-      setScreens(updatedScreens);
+      // Clear the file input
+      if (e.target) {
+        e.target.value = "";
+      }
     } catch (error) {
       console.error("Error uploading image:", error);
       setScreens((prevScreens) =>
@@ -246,16 +244,17 @@ export default function OnboardingManager() {
       setIsLoading(true);
       const response = await getAllBanners();
 
-      const onboardingBanners = response?.payload?.data
-        .reverse()
-        .filter((banner: any) => banner.isOnboarding === false);
-      console.log(
-        response?.payload?.data,
-        onboardingBanners,
-        "================"
-      );
+      // Get onboarding banners and sort them by creation date (oldest first)
+      const onboardingBanners = (response?.payload?.data || [])
+        .filter((banner: any) => banner.isOnboarding === false)
+        .sort(
+          (a: any, b: any) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
 
-      setOnboardingBanners(onboardingBanners);
+      console.log("Loaded onboarding banners:", onboardingBanners);
+
+      // Update screens with banners in order
       const updatedScreens = screens.map((screen, index) => {
         const banner = onboardingBanners[index];
         if (banner) {
@@ -270,8 +269,20 @@ export default function OnboardingManager() {
             error: undefined,
           };
         }
-        return screen;
+        // Clear the screen if no banner is assigned
+        return {
+          ...screen,
+          mobileImage: null,
+          error: undefined,
+        };
       });
+
+      // If we have an active screen, ensure it's still selected after reload
+      if (activeScreen !== null) {
+        setActiveScreen(activeScreen);
+      }
+
+      setOnboardingBanners(onboardingBanners);
 
       setScreens(updatedScreens);
     } catch (error) {
@@ -359,10 +370,15 @@ export default function OnboardingManager() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {screens.map((screen) => (
+        {screens.map((screen, index) => (
           <div
             key={screen.id}
-            className="border border-gray-200 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-shadow"
+            className={`border-2 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-all ${
+              activeScreen === index
+                ? "border-blue-500 ring-2 ring-blue-200"
+                : "border-gray-200"
+            }`}
+            onClick={() => setActiveScreen(index)}
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
