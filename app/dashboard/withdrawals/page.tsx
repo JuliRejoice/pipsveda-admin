@@ -628,22 +628,23 @@ export default function WithdrawalsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {getFilteredWithdrawals().map((w, idx) => (
-                    <TableRow key={w._id}>
-                      <TableCell className="font-medium">
-                        {(currentPage - 1) * itemsPerPage + idx + 1}
-                      </TableCell>
-                      <TableCell>{w.name}</TableCell>
-                      <TableCell className="lowercase">{w.email}</TableCell>
-                      <TableCell>{w.phone}</TableCell>
-                      <TableCell>${w.amount}</TableCell>
-                      <TableCell>
-                        {w.transactionId ? (
-                          <div className="flex items-center space-x-2">
-                            <span className="font-mono text-sm break-all">
-                              {w.transactionId}
-                            </span>
-                            {/* <button
+                  {getFilteredWithdrawals().length > 0 ? (
+                    getFilteredWithdrawals().map((w, idx) => (
+                      <TableRow key={w._id}>
+                        <TableCell className="font-medium">
+                          {(currentPage - 1) * itemsPerPage + idx + 1}
+                        </TableCell>
+                        <TableCell>{w.name}</TableCell>
+                        <TableCell className="lowercase">{w.email}</TableCell>
+                        <TableCell>{w.phone}</TableCell>
+                        <TableCell>${w.amount}</TableCell>
+                        <TableCell>
+                          {w.transactionId ? (
+                            <div className="flex items-center space-x-2">
+                              <span className="font-mono text-sm break-all">
+                                {w.transactionId}
+                              </span>
+                              {/* <button
                               onClick={() => {
                                 navigator.clipboard?.writeText(
                                   w.transactionId || ""
@@ -654,50 +655,60 @@ export default function WithdrawalsPage() {
                             >
                               Copy
                             </button> */}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-500">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            w.status === "approved"
-                              ? "bg-green-100 text-green-800"
-                              : w.status === "rejected"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {w.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {w.requestedAt
-                          ? new Date(w.requestedAt).toLocaleString()
-                          : "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        {w.status === "approved" ? (
-                          <Button variant="outline" size="sm" disabled>
-                            <Lock className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditClick(w);
-                            }}
-                            disabled={isLoadingAction}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-500">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              w.status === "approved"
+                                ? "bg-green-100 text-green-800"
+                                : w.status === "rejected"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
                           >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
+                            {w.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {w.requestedAt
+                            ? new Date(w.requestedAt).toLocaleString()
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {w.status === "approved" ? (
+                            <Button variant="outline" size="sm" disabled>
+                              <Lock className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditClick(w);
+                              }}
+                              disabled={isLoadingAction}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={9}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        No data found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
