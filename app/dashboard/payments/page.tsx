@@ -74,13 +74,21 @@ interface Payment {
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  if (isNaN(date.getTime())) return "Invalid date";
+
+  // Format day, month, year
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+
+  // Format hours, minutes, and AM/PM
+  let hours = date.getHours();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
 };
 
 export default function Payments() {
@@ -209,7 +217,6 @@ export default function Payments() {
 
         const link = document.createElement("a");
         link.href = url;
-        console.log(link.href);
         link.download = `invoice-${payment.orderId || Date.now()}.pdf`;
 
         document.body.appendChild(link);
@@ -352,7 +359,10 @@ export default function Payments() {
                       <TableHead className="text-base">
                         Transaction ID
                       </TableHead>
-                      <TableHead className="text-base">Status</TableHead>
+                      <TableHead className="text-base">
+                        Payment Method
+                      </TableHead>
+                      {/* <TableHead className="text-base">Status</TableHead> */}
                       <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -432,9 +442,10 @@ export default function Payments() {
                             </TableCell>
                             <TableCell>${payment.price || "0.00"}</TableCell>
                             <TableCell>{payment.orderId || "N/A"}</TableCell>
-                            <TableCell>
+                            <TableCell>{payment.paymentMethod || "-"}</TableCell>
+                            {/* <TableCell>
                               {renderStatusBadge(payment.status)}
-                            </TableCell>
+                            </TableCell> */}
                             <TableCell className="px-6 py-4 text-left whitespace-nowrap">
                               <Button
                                 variant="outline"
@@ -504,7 +515,8 @@ export default function Payments() {
                         Transaction ID
                       </TableHead>
                       <TableHead className="text-base">Meta Acc No.</TableHead>
-                      <TableHead className="text-base">Status</TableHead>
+                      <TableHead className="text-base">Payment Method</TableHead>
+                      {/* <TableHead className="text-base">Status</TableHead> */}
                       <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -585,7 +597,7 @@ export default function Payments() {
                             <TableCell>${payment?.price || "0.00"}</TableCell>
                             <TableCell className="font-mono">
                               {payment.orderId || "N/A"}
-                            </TableCell>
+                            </TableCell>                         
                             <TableCell>
                               <Dialog>
                                 <DialogTrigger asChild>
@@ -646,8 +658,12 @@ export default function Payments() {
                               </Dialog>
                             </TableCell>
                             <TableCell>
-                              {renderStatusBadge(payment.status)}
+                              {payment.paymentMethod || "-"}
                             </TableCell>
+
+                            {/* <TableCell>
+                              {renderStatusBadge(payment.status)}
+                            </TableCell> */}
                             <TableCell className="px-6 py-4 text-left whitespace-nowrap">
                               <Button
                                 variant="outline"
@@ -721,7 +737,10 @@ export default function Payments() {
                       <TableHead className="text-base">
                         Transaction ID
                       </TableHead>
-                      <TableHead className="text-base">Status</TableHead>
+                      <TableHead className="text-base">
+                        Payment Method
+                      </TableHead>
+                      {/* <TableHead className="text-base">Status</TableHead> */}
                       <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -803,8 +822,11 @@ export default function Payments() {
                           <TableCell>${payment?.price || "0.00"}</TableCell>
                           <TableCell>{payment?.orderId || "N/A"}</TableCell>
                           <TableCell>
-                            {renderStatusBadge(payment?.status)}
+                            {payment?.paymentMethod || "-"}
                           </TableCell>
+                          {/* <TableCell>
+                            {renderStatusBadge(payment?.status)}
+                          </TableCell> */}
                           <TableCell className="px-6 py-4 text-left whitespace-nowrap">
                             <Button
                               variant="outline"
@@ -896,9 +918,12 @@ export default function Payments() {
                     <TableHead className="text-base px-6 text-left w-[180px]">
                       Meta Account No
                     </TableHead>
-                    <TableHead className="text-base px-6 text-left w-[100px]">
-                      Status
+                    <TableHead className="text-base px-6 text-left w-[180px]">
+                      Payment Method
                     </TableHead>
+                    {/* <TableHead className="text-base px-6 text-left w-[100px]">
+                      Status
+                    </TableHead> */}
                     <TableHead className="text-base px-6 text-left w-[100px]">
                       Invoice
                     </TableHead>
@@ -1041,9 +1066,12 @@ export default function Payments() {
                               </DialogContent>
                             </Dialog>
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-left whitespace-nowrap">
-                            {renderStatusBadge(payment?.status)}
+                          <TableCell>
+                            {payment?.paymentMethod || "-"}
                           </TableCell>
+                          {/* <TableCell className="px-6 py-4 text-left whitespace-nowrap">
+                            {renderStatusBadge(payment?.status)}
+                          </TableCell> */}
                           <TableCell className="px-6 py-4 text-left whitespace-nowrap">
                             <Button
                               variant="outline"

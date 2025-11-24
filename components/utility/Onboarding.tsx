@@ -95,9 +95,8 @@ export default function OnboardingManager() {
         const height = img.height;
         const aspectRatio = width / height;
 
-        // Desktop: 16:9 (1.78), Mobile: 9:16 (0.5625)
         const targetRatio = isMobile ? 0.5625 : 1.78;
-        const tolerance = 0.1; // 10% tolerance
+        const tolerance = 0.1;
 
         if (Math.abs(aspectRatio - targetRatio) > targetRatio * tolerance) {
           URL.revokeObjectURL(objectUrl);
@@ -129,49 +128,34 @@ export default function OnboardingManager() {
     if (!file) return;
 
     try {
-      setIsLoading(true);
       const imageData = await validateImage(file, true);
 
-      // Set the active screen based on which screen's file input was used
-      const screenIndex = screens.findIndex((screen) => screen.id === id);
-      setActiveScreen(screenIndex);
-
-      const existingScreen = screens.find((screen) => screen.id === id);
-      let response;
-
-      if (existingScreen?.mobileImage?.id) {
-        // Update existing banner
-        response = await updateBanner(existingScreen.mobileImage.id, file);
-      } else {
-        // Create new banner
-        response = await createBanner(file);
-      }
-
-      // Reload all banners to maintain order
-      await loadOnboardingBanners();
-
-      // Clear the file input
-      if (e.target) {
-        e.target.value = "";
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      setScreens((prevScreens) =>
-        prevScreens.map((screen) => {
-          if (screen.id === id) {
-            return {
-              ...screen,
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "Failed to upload image",
-            };
-          }
-          return screen;
-        })
+      setScreens((prev) =>
+        prev.map((screen) =>
+          screen.id === id
+            ? {
+                ...screen,
+                mobileImage: {
+                  id: "", // empty because not saved yet
+                  url: imageData.url,
+                  width: imageData.width,
+                  height: imageData.height,
+                },
+              }
+            : screen
+        )
       );
-    } finally {
-      setIsLoading(false);
+
+      // Clear input
+      if (e.target) e.target.value = "";
+    } catch (error: any) {
+      setScreens((prev) =>
+        prev.map((screen) =>
+          screen.id === id
+            ? { ...screen, error: error.message || "Failed to load image" }
+            : screen
+        )
+      );
     }
   };
 
@@ -235,28 +219,33 @@ export default function OnboardingManager() {
   };
 
   const removeImage = (id: string) => {
-    handleDeleteClick(id);
+    // ❗Local remove only — do NOT call delete API
+    setScreens((prev) =>
+      prev.map((screen) =>
+        screen.mobileImage?.id === id || screen.mobileImage?.url === id
+          ? { ...screen, mobileImage: null }
+          : screen
+      )
+    );
   };
 
-  // Load existing onboarding banners from API
   const loadOnboardingBanners = async () => {
     try {
       setIsLoading(true);
       const response = await getAllBanners();
 
-      // Get onboarding banners and sort them by creation date (oldest first)
-      const onboardingBanners = (response?.payload?.data || [])
-        .filter((banner: any) => banner.isOnboarding === false)
-        .sort(
-          (a: any, b: any) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
+      const onboardingBanners = (response?.payload?.data || []).filter(
+        (banner: any) => banner.isOnboarding === false
+      );
 
-      console.log("Loaded onboarding banners:", onboardingBanners);
+      const currentActiveScreenId = screens.find(
+        (screen) => screen.isActive
+      )?.id;
 
-      // Update screens with banners in order
       const updatedScreens = screens.map((screen, index) => {
         const banner = onboardingBanners[index];
+        const isActive = screen.id === currentActiveScreenId;
+
         if (banner) {
           return {
             ...screen,
@@ -266,6 +255,7 @@ export default function OnboardingManager() {
               width: banner.width || 720,
               height: banner.height || 1280,
             },
+            isActive,
             error: undefined,
           };
         }
@@ -273,6 +263,7 @@ export default function OnboardingManager() {
         return {
           ...screen,
           mobileImage: null,
+          isActive,
           error: undefined,
         };
       });
@@ -300,20 +291,88 @@ export default function OnboardingManager() {
     }
   };
 
-  console.log(screens, "screen");
+  const saveChanges = async () => {
+    try {
+      setIsLoading(true);
 
-  // Handle edit banner
-  const handleEdit = (banner: any) => {
-    // Find the screen index that corresponds to this banner
-    const screenIndex = screens.findIndex(
-      (screen) => screen.mobileImage?.id === banner._id
-    );
+      const currentActiveScreenId = screens.find(
+        (screen) => screen.isActive
+      )?.id;
 
-    if (
-      screenIndex !== -1 &&
-      fileInputRefs.current[`${screenIndex + 1}-mobile`]
-    ) {
-      fileInputRefs.current[`${screenIndex + 1}-mobile`]?.click();
+      for (const screen of screens) {
+        try {
+          if (!screen.mobileImage) continue;
+
+          const formData = new FormData();
+          formData.append("isOnboarding", "true");
+
+          if (screen.mobileImage.url.startsWith("blob:")) {
+            const response = await fetch(screen.mobileImage.url);
+            const blob = await response.blob();
+            const file = new File([blob], `onboarding-${screen.id}.jpg`, {
+              type: "image/jpeg",
+            });
+            formData.append("image", file);
+
+            if (screen.mobileImage.id) {
+              await updateBanner(screen.mobileImage.id, file);
+            } else {
+              await createBanner(file);
+            }
+          } else if (screen.mobileImage.id) {
+            await updateBanner(
+              screen.mobileImage.id,
+              screen.mobileImage.url as any
+            );
+          }
+        } catch (error) {
+          console.error(`Error processing screen ${screen.id}:`, error);
+          setScreens((prev) =>
+            prev.map((s) =>
+              s.id === screen.id
+                ? {
+                    ...s,
+                    error:
+                      error instanceof Error
+                        ? error.message
+                        : "Failed to save changes",
+                  }
+                : s
+            )
+          );
+          continue;
+        }
+      }
+
+      const existingBannerIds = onboardingBanners.map((banner) => banner._id);
+      const currentBannerIds = screens
+        .map((screen) => screen.mobileImage?.id)
+        .filter(Boolean) as string[];
+
+      const bannersToDelete = existingBannerIds.filter(
+        (id) => !currentBannerIds.includes(id)
+      );
+
+      for (const bannerId of bannersToDelete) {
+        try {
+          await deleteBanner(bannerId);
+        } catch (error) {
+          console.error(`Error deleting banner ${bannerId}:`, error);
+        }
+      }
+      await loadOnboardingBanners();
+
+      // Restore the active screen after loading banners
+      setScreens((prevScreens) =>
+        prevScreens.map((screen) => ({
+          ...screen,
+          isActive: screen.id === currentActiveScreenId,
+        }))
+      );
+    } catch (error) {
+      console.error("Error saving changes:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -353,7 +412,7 @@ export default function OnboardingManager() {
               }
             }}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              isEnabled ? "bg-blue-600" : "bg-gray-200"
+              isEnabled ? "bg-[#6b4fd8]" : "bg-gray-200"
             }`}
             disabled={isLoading}
           >
@@ -363,19 +422,16 @@ export default function OnboardingManager() {
               } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
             />
           </button>
-          {isLoading && (
-            <div className="text-sm text-gray-500">Updating...</div>
-          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {screens.map((screen, index) => (
           <div
             key={screen.id}
             className={`border-2 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-all ${
               activeScreen === index
-                ? "border-blue-500 ring-2 ring-blue-200"
+                ? "border-blue-500 ring-none"
                 : "border-gray-200"
             }`}
             onClick={() => setActiveScreen(index)}
@@ -383,15 +439,19 @@ export default function OnboardingManager() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center justify-between w-full">
-                  <span className="text-sm font-medium text-gray-500">
+                  <div className="leading-[40px] text-sm font-medium text-gray-500">
                     Screen {screens.findIndex((s) => s.id === screen.id) + 1}
-                  </span>
+                  </div>
                   {screen.mobileImage && (
                     <Button
                       variant="ghost"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteClick(screen?.mobileImage?.id as string);
+                        removeImage(
+                          screen?.mobileImage?.id ||
+                            screen?.mobileImage?.url ||
+                            ""
+                        );
                       }}
                       className="text-red-500 hover:text-red-700"
                       title="Remove image"
@@ -406,10 +466,10 @@ export default function OnboardingManager() {
               {/* Mobile Preview */}
               <div className="space-y-2">
                 {screen.mobileImage ? (
-                  <div className="relative group">
+                  <div className="relative  group">
                     {/* Image Preview */}
-                    <div className="relative w-full mx-auto aspect-[9/16] rounded-xl overflow-hidden border border-gray-200">
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <div className="relative w-1/2 mx-auto aspect-[9/16] rounded-xl overflow-hidden border border-gray-200">
+                      <div className="w-full flex items-center justify-center bg-gray-100">
                         <Image
                           src={screen.mobileImage.url}
                           alt={`Onboarding screen ${
@@ -430,17 +490,19 @@ export default function OnboardingManager() {
                       {/* Hover Overlay with Change Button */}
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
                         <Button
+                          variant="outline"
+                          size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             fileInputRefs.current[
                               `${screen.id}-mobile`
                             ]?.click();
                           }}
-                          className="flex items-center gap-2 px-4 py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="bg-white/90 hover:bg-white/100 shadow-sm"
                           title="Change image"
                         >
-                          <Edit className="w-4 h-4" />
-                          <span className="text-sm font-medium">Change</span>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Change
                         </Button>
                       </div>
 
@@ -466,7 +528,7 @@ export default function OnboardingManager() {
                     onClick={() =>
                       fileInputRefs.current[`${screen.id}-mobile`]?.click()
                     }
-                    className="w-full aspect-[9/16] rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-400 flex flex-col items-center justify-center cursor-pointer transition-colors bg-gray-50"
+                    className=" w-1/2 mx-auto aspect-[9/16] rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-400 flex flex-col items-center justify-center cursor-pointer transition-colors bg-gray-50"
                   >
                     <Input
                       type="file"
@@ -479,15 +541,7 @@ export default function OnboardingManager() {
                     />
                     <div className="p-4 text-center">
                       <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-gray-500">
-                        {screens.findIndex((s) => s.id === screen.id) === 0
-                          ? "First Screen Image"
-                          : screens.findIndex((s) => s.id === screen.id) === 1
-                          ? "Second Screen Image"
-                          : "Third Screen Image"}
-                      </p>
                       <p className="text-xs text-gray-400">9:16 aspect ratio</p>
-                      <p className="text-xs text-gray-400">(e.g., 720×1280)</p>
                     </div>
                   </div>
                 )}
@@ -505,10 +559,11 @@ export default function OnboardingManager() {
       </div>
       <div className="flex justify-end pt-4">
         <Button
-          onClick={async () => await loadOnboardingBanners()}
+          onClick={saveChanges}
           className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+          disabled={isLoading}
         >
-          Save Changes
+          {isLoading ? "Saving..." : "Save Changes"}
         </Button>
       </div>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

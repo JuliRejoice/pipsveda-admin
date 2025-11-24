@@ -33,13 +33,11 @@ export default function UserSignupChart() {
   useEffect(() => {
     const fetchData = async () => {
       const response = await getUserSignupReport();
-      console.log(response);
       setData(response.payload || []); 
     };
     fetchData();
   }, []);
 
-  console.log(data)
   return (
     <ResponsiveContainer width="100%" height={300}>
     <BarChart data={data}>

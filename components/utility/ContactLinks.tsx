@@ -60,14 +60,11 @@ export default function ContactLinks() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
   const fetchUtilitySettings = async () => {
     try {
       // Replace with actual API call
       const res = await getUtility();
-      console.log(res, "res");
       setUtilitySettings(res?.payload || {});
     } catch (err) {
       console.error("Failed to fetch utility settings:", err);
@@ -83,7 +80,6 @@ export default function ContactLinks() {
       const updateData = { [field]: value };
       const utilityId = utilitySettings?._id || "";
 
-      console.log(utilityId, "id");
 
       const response = await updateUtility(utilityId, updateData);
 
@@ -137,7 +133,13 @@ export default function ContactLinks() {
   const tableData = Object.entries(utilitySettings)
     .filter(
       ([key]) =>
-        !["_id", "deletedAt", "updatedAt", "lastEmailSentDate"].includes(key)
+        ![
+          "_id",
+          "deletedAt",
+          "updatedAt",
+          "lastEmailSentDate",
+          "referralPercentage",
+        ].includes(key)
     )
     .map(([key, value], index) => ({
       id: key,
@@ -147,7 +149,6 @@ export default function ContactLinks() {
       value: value || "Not set",
     }));
 
-  // Apply search filter
   const filteredData = searchTerm
     ? tableData.filter(
         (item) =>
@@ -156,11 +157,22 @@ export default function ContactLinks() {
       )
     : tableData;
 
-  // Apply pagination
+  const totalItems = filteredData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1);
+  };
 
   const formatPhoneNumber = (phone: string): string => {
     if (!phone || phone === "Not set") return phone;
@@ -204,11 +216,9 @@ export default function ContactLinks() {
                     </div>
                   </TableCell>
                   <TableCell className="max-w-[400px] truncate">
-                    <TableCell className="max-w-[400px] truncate">
-                      {item.field === "phoneNo" || item.field === "chatNumber"
-                        ? formatPhoneNumber(item.value)
-                        : item.value}
-                    </TableCell>{" "}
+                    {item.field === "phoneNo" || item.field === "chatNumber"
+                      ? formatPhoneNumber(item.value)
+                      : item.value}
                   </TableCell>
                   <TableCell>
                     <Button
@@ -239,14 +249,20 @@ export default function ContactLinks() {
         </Table>
       </div>
 
-      {/* <DataTablePagination
-        currentPage={currentPage}
-        totalPages={Math.ceil(filteredData.length / itemsPerPage)}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={setItemsPerPage}
-        pageSize={itemsPerPage}
-        totalItems={filteredData.length}
-      /> */}
+      {totalItems > itemsPerPage && (
+        <div className="mt-6">
+          <DataTablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            itemsPerPageOptions={[10, 20, 30, 50]}
+            className="border-t pt-4"
+          />
+        </div>
+      )}
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">

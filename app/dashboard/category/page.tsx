@@ -72,11 +72,11 @@ const formSchema = z.object({
     .refine(
       (file) => {
         if (typeof file === "string") return true;
-        if (file instanceof File) return file.size <= 5 * 1024 * 1024;
+        if (file instanceof File) return file.size <= 1 * 1024 * 1024;
         return true;
       },
       {
-        message: "Image size must be less than 5MB",
+        message: "Image size must be less than 1MB",
       }
     ),
 });
@@ -151,9 +151,9 @@ export default function Category() {
       return;
     }
 
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    const MAX_FILE_SIZE = 1 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Image size must be less than 5MB");
+      toast.error("Image size must be less than 1MB");
       return;
     }
 
@@ -165,9 +165,9 @@ export default function Category() {
     if (!file) return;
     if (file && !file.type.startsWith("image/"))
       toast.error("File must be Image");
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    const MAX_FILE_SIZE = 1 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Image size must be less than 5MB");
+      toast.error("Image size must be less than 1MB");
       return;
     }
 
@@ -316,7 +316,6 @@ export default function Category() {
       setCategoryToDelete(null);
     }
   };
-  console.log(categories);
 
   // Reset form for creating new category
   const handleCreateNew = () => {
@@ -332,7 +331,6 @@ export default function Category() {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value.trimStart());
   };
-  console.log("categories", filteredCategories);
 
   return (
     <div className="space-y-6">

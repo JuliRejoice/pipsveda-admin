@@ -18,8 +18,6 @@ export default function ContentManagement() {
   });
 
   const handleInstagramUpdate = () => {
-    // Handle Instagram profile update
-    console.log('Instagram profile updated:', instagramProfile);
   };
 
   return (

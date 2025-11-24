@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Pipslogo from "@/public/images/pipslogo";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell, UserPlus, Settings, ChevronLeft, ChevronRight, Mail, MessageSquare, User, LogOut, ChevronDown, Settings as SettingsIcon, Waves, Gift, LayoutList, MapPin, FileVideo, Video, VideoIcon } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell, UserPlus, Settings, ChevronLeft, ChevronRight, Mail, MessageSquare, User, LogOut, ChevronDown, Settings as SettingsIcon, Waves, Gift, LayoutList, MapPin, FileVideo, Video, VideoIcon, HandCoins } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -64,6 +64,11 @@ const sidebarItems = [
     title: "Payments",
     href: "/dashboard/payments",
     icon: CreditCard,
+  },
+  {
+    title: "Withdrawals",
+    href: "/dashboard/withdrawals",
+    icon: HandCoins,
   },
   // {
   //   title: 'Notifications',

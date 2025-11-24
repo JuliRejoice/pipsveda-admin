@@ -75,9 +75,9 @@ const formSchema = z.object({
     .refine(
       (file) => {
         if (!file || typeof file === "string") return true; // Skip validation for existing images
-        return file.size <= 5 * 1024 * 1024; // 5MB
+        return file.size <= 1 * 1024 * 1024; 
       },
-      { message: "Image size must be less than 5MB" }
+      { message: "Image size must be less than 1MB" }
     )
     .refine(
       (file) => {
@@ -177,10 +177,9 @@ export default function InstructorPage() {
       return;
     }
 
-    // Check file size (5MB max)
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_FILE_SIZE = 1 * 1024 * 1024; 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Image size must be less than 5MB");
+      toast.error("Image size must be less than 1MB");
       return;
     }
 
@@ -201,10 +200,9 @@ export default function InstructorPage() {
       return;
     }
 
-    // Check file size (5MB max)
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_FILE_SIZE = 1 * 1024 * 1024; 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Image size must be less than 5MB");
+      toast.error("Image size must be less than 1MB");
       return;
     }
 
@@ -514,7 +512,7 @@ export default function InstructorPage() {
                             <p className="pl-1">or drag and drop</p>
                           </div>
                           <p className="text-xs text-gray-500">
-                            PNG, JPG, GIF up to 5MB
+                            PNG, JPG, GIF up to 1MB
                           </p>
                         </>
                       )}

@@ -105,8 +105,8 @@ export default function CustomChapterFormList({
         "Invalid file format. Thumbnail must be an image (JPEG, JPG, PNG, or WebP)"
       );
       return;
-    } else if (file.size >= 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+    } else if (file.size >= 1 * 1024 * 1024) {
+      toast.error("Image size must be less than 1MB");
       return;
     }
 

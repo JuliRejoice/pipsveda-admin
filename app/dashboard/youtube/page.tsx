@@ -24,6 +24,7 @@ import {
   Edit,
   Trash2,
   AlertTriangle,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,7 +84,7 @@ const formSchema = z.object({
     .refine(
       (file) => {
         if (typeof file === "string") return true; // existing URL allowed when editing
-        if (file instanceof File) return file.size <= 1 * 1024 * 1024; // <=5MB
+        if (file instanceof File) return file.size <= 1 * 1024 * 1024;
         return true;
       },
       {
@@ -194,9 +195,9 @@ export default function YoutubeManager() {
       toast.error("File must be an image");
       return;
     }
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    const MAX_FILE_SIZE = 1 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Image size must be less than 5MB");
+      toast.error("Image size must be less than 1MB");
       return;
     }
     // Convert to a new File object to ensure it's properly handled by react-hook-form
@@ -215,9 +216,9 @@ export default function YoutubeManager() {
     if (!file) return;
     if (file && !file.type.startsWith("image/"))
       toast.error("File must be Image");
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    const MAX_FILE_SIZE = 1 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Image size must be less than 5MB");
+      toast.error("Image size must be less than 1MB");
       return;
     }
 
@@ -325,8 +326,6 @@ export default function YoutubeManager() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  console.log(paginated, "jhv");
 
   return (
     <div className="space-y-6">
@@ -527,40 +526,55 @@ export default function YoutubeManager() {
                     </div>
                   )}
                 </div>
-                <div className="p-3 flex items-center justify-between">
-                  <h3 className="font-medium text-sm truncate max-w-[70%]">
-                    {item?.description}
-                  </h3>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Actions</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(item);
-                        }}
-                        className="cursor-pointer"
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Edit</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(item._id);
-                        }}
-                        className="cursor-pointer text-red-600 focus:text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-3 min-h-[40px]">
+                    <h3 className="font-medium text-sm line-clamp-2">
+                      {item?.description}
+                    </h3>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 ml-2 flex-shrink-0"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(item);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          <span>Edit</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(item._id);
+                          }}
+                          className="cursor-pointer text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <a
+                    href={item.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-2/3 flex items-center justify-center space-x-2 bg-[#6B4FD8] text-white text-sm font-medium rounded-md py-2 px-4 transition-colors duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-white">▶ Watch Video</span>
+                  </a>
                 </div>
               </div>
             ))}

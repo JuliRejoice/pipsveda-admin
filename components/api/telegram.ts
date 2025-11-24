@@ -24,7 +24,6 @@ export const getAllTelegram = async (searchTerm?: string) => {
     const res = await axios.get(`${BaseUrl}/telegram/getAllTelegram${searchTerm ? `?search=${searchTerm}` : ""}`, {
       headers,
     });
-    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error on Contact Fetch", error);
@@ -33,7 +32,6 @@ export const getAllTelegram = async (searchTerm?: string) => {
 };
 
 export const createChannel = async (telegramData: any) => {
-  console.log(telegramData, "formData");
   const token = getAuthToken();
   try {
     const response = await axios.post(
@@ -108,7 +106,6 @@ export const getAllTelegramPlan = async (id: string) => {
       `${BaseUrl}/telegramPlan/getAllTelegramPlan?telegramId=${id}`,
       { headers }
     );
-    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error on Contact Fetch", error);

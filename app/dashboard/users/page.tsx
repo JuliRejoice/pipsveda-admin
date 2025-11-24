@@ -230,7 +230,6 @@ export default function Users() {
       // roleId: "",
     },
   });
-  console.log(customers, "customer");
 
   const fetchCustomersData = async () => {
     try {
@@ -450,8 +449,6 @@ export default function Users() {
   if (error) {
     return <div className="text-red-500 p-4">{error}</div>;
   }
-
-  console.log(viewingCustomer);
 
   return (
     <div className="space-t-6 max-h-[90vh]">

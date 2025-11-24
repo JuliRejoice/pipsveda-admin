@@ -222,7 +222,6 @@ export default function TelegramManagement() {
       try {
         setIsLoading(true);
         const response: any = await uploadImage(file);
-        console.log("Upload response:", response);
         if (response?.success) {
           setImageFile(response.payload);
           setImagePreview(URL.createObjectURL(file)); // Use object URL for preview
@@ -255,7 +254,6 @@ export default function TelegramManagement() {
         if (response?.success) {
           setLogoFile(response.payload);
           setLogoPreview(URL.createObjectURL(file));
-          console.log(response.payload, "sjdhyj");
           // setLogoPreview(response.payload);
           setValue("logo", response.payload, { shouldValidate: true });
           toast.success("Logo uploaded successfully");
@@ -322,7 +320,6 @@ export default function TelegramManagement() {
         formData.logo = logoFile || data.logo || "";
       }
 
-      console.log("Submitting form data:", formData);
 
       let response;
 

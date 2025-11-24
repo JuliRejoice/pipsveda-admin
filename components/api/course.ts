@@ -209,7 +209,6 @@ export const getChapters = async (id: string) => {
       `${BaseUrl}/chapter/getAllChapter?courseId=${id}`,
       { headers }
     );
-    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error fetching chapters", error);
@@ -295,7 +294,6 @@ export const getSession = async (id: string) => {
       `${BaseUrl}/sesstion/getAllSession?courseId=${id}`,
       { headers }
     );
-    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error fetching chapters", error);

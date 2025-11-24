@@ -22,7 +22,6 @@ export const getUtility = async () => {
         }
 
         const res = await axios.get(`${BaseUrl}/utilitySetting/`, { headers });
-        console.log(res.data);
         return res.data;
     } catch (error) {
         console.error("Error on Contact Fetch", error);

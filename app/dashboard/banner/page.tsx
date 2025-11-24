@@ -48,9 +48,9 @@ const formSchema = z.object({
       (file) => {
         if (file === null || file === undefined) return false;
         if (typeof file === "string") return true;
-        return file.size <= 5 * 1024 * 1024;
+        return file.size <= 1 * 1024 * 1024;
       },
-      { message: "Image size must be under 5MB" }
+      { message: "Image size must be under 1MB" }
     ),
 });
 
@@ -98,7 +98,7 @@ export default function BannerPage() {
       const response = await getAllBanners();
       // Filter out banners where isOnboarding is true or not present
       const filteredBanners = (response?.payload?.data || []).filter(
-        (banner: any) => banner.isOnboarding === false
+        (banner: any) => banner.isOnboarding !== false
       );
       setBanners(filteredBanners);
     } catch (error) {
@@ -184,6 +184,12 @@ export default function BannerPage() {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/"))
       setValue("image", file, { shouldValidate: true });
+    if (file && file.size > 1 * 1024 * 1024) {
+      setValue("image", null, { shouldValidate: true });
+      toast.error("Image size must be less than 1MB");
+      return;
+    }
+    
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {

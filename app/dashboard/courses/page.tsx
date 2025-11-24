@@ -436,9 +436,8 @@ export default function Courses() {
   };
 
   const handleImageChange = (file: File | null) => {
-    if (file && file.size >= 5 * 1024 * 1024) {
-      // 5MB in bytes
-      toast.error("Image size must be less than 5MB");
+    if (file && file.size >= 1 * 1024 * 1024) {
+      toast.error("Image size must be less than 1MB");
       return;
     }
     setImageFile(file);
@@ -509,7 +508,6 @@ export default function Courses() {
     const instructor = formData.get("instructor")?.toString().trim() || "";
     const courseLevel = formData.get("courseLevel")?.toString().trim() || "";
     const introVideo = formData.get("introVideo")?.toString().trim() || "";
-    console.log(courseLevel, "courseLevel", editCourse, ":65444");
 
     if (!courseLevel) {
       errors.courseLevel = "Course level is required";
@@ -548,8 +546,8 @@ export default function Courses() {
     // Image required on create (skip when editing)
     if (!editCourse && !imageFile) {
       errors.image = "Please upload an image";
-    } else if (imageFile && imageFile.size >= 5 * 1024 * 1024) {
-      errors.image = "Image size must be less than 5MB";
+    } else if (imageFile && imageFile.size >= 1 * 1024 * 1024) {
+      errors.image = "Image size must be less than 1MB";
     }
 
     if (!editCourse && !videoFile) {
@@ -577,7 +575,6 @@ export default function Courses() {
       //   errors.phone = "Please enter a valid phone number (min 10 digits)";
       // }
     }
-    console.log(errors);
     return errors;
   };
 
@@ -652,15 +649,6 @@ export default function Courses() {
       setVideoFile(null);
     }
   }, [editCourse]);
-  useEffect(() => {
-    console.log("Pagination state changed:", {
-      currentPage,
-      itemsPerPage,
-      totalItems,
-      totalPages,
-      coursesCount: courses.length,
-    });
-  }, [currentPage, itemsPerPage, totalItems, totalPages, courses]);
 
   // Fetch instructors and courses when component mounts
   useEffect(() => {

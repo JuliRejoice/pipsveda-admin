@@ -156,7 +156,6 @@ export default function CouponPage() {
         search: searchTerm,
       });
 
-      console.log("response", response);
 
       setCoupons(response.payload.data);
       setTotalItems(response.payload.data.length);
@@ -196,7 +195,6 @@ export default function CouponPage() {
     try {
       setIsDeleting(true);
       await deleteCoupon(couponToDelete._id);
-      console.log("Deleting coupon:", couponToDelete._id);
       setCoupons(coupons.filter((c) => c._id !== couponToDelete._id));
       toast.success("Coupon deleted successfully");
       setIsDeleteDialogOpen(false);
@@ -213,7 +211,6 @@ export default function CouponPage() {
     try {
       setIsLoading(true);
 
-      console.log("data", data);
 
       // Ensure expiryDate is sent as YYYY-MM-DD
       const payload = {

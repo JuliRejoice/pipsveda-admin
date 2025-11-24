@@ -282,12 +282,11 @@ export default function CourseSessions({ params }: CourseSessionsProps) {
         return;
       }
 
-      // Validate file size (5MB max)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 1 * 1024 * 1024; 
       if (file.size > maxSize) {
         setErrors(prev => ({
           ...prev,
-          image: 'Image size should be less than 5MB'
+          image: 'Image size should be less than 1MB'
         }));
         return;
       }
