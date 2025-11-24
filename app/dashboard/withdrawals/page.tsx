@@ -616,7 +616,7 @@ export default function WithdrawalsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[60px]">Sr. No</TableHead>
+                    <TableHead >Sr. No</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone No.</TableHead>
