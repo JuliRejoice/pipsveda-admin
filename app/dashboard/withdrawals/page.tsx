@@ -399,7 +399,7 @@ export default function WithdrawalsPage() {
               className="w-full  sm:w-auto"
             >
               <Settings className="mr-2 h-4 w-4" />
-              Set Commission
+              Earning Rate
             </Button>
             {/* <div className="ml-6 text-xs text-muted-foreground">
               Current: {utilitySettings?.referralPercentage || 0}%
@@ -440,7 +440,6 @@ export default function WithdrawalsPage() {
                       setFormErrors((prev) => ({ ...prev, status: undefined }));
                     }
                   }}
-                  defaultValue={editStatus}
                 >
                   <SelectTrigger className="h-11 w-full">
                     <SelectValue placeholder="Select status" />
@@ -624,7 +623,7 @@ export default function WithdrawalsPage() {
                             <span className="font-mono text-sm break-all">
                               {w.transactionId}
                             </span>
-                            <button
+                            {/* <button
                               onClick={() => {
                                 navigator.clipboard?.writeText(
                                   w.transactionId || ""
@@ -634,7 +633,7 @@ export default function WithdrawalsPage() {
                               className="text-xs px-2 py-1 border rounded"
                             >
                               Copy
-                            </button>
+                            </button> */}
                           </div>
                         ) : (
                           <span className="text-sm text-gray-500">—</span>
