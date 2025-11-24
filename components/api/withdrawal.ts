@@ -49,10 +49,23 @@ export const getWithdrawals = async (
 
     params.append("page", page.toString());
     params.append("limit", limit.toString());
-    if (search) params.append("search", search);
-    if (status) params.append("status", status);
 
-    const res = await axios.get(`${BaseUrl}/withdrawal/getAllRequest`, {
+    if (search) {
+      params.append("search", search);
+    }
+
+    // Only append status if it's a valid status and not "all"
+    if (status && status !== "all") {
+      // Ensure the status is lowercase to match backend expectations
+      params.append("status", status.toLowerCase());
+    }
+
+    const url = new URL(`${BaseUrl}/withdrawal/getAllRequest`);
+    url.search = params.toString();
+
+    console.log("API Request URL:", url.toString());
+
+    const res = await axios.get(url.toString(), {
       headers: getHeaders(),
     });
 

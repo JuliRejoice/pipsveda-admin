@@ -112,7 +112,7 @@ export default function WithdrawalsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "" | WithdrawalStatus | "all"
-  >("");
+  >("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -142,7 +142,6 @@ export default function WithdrawalsPage() {
   const [selectedWithdrawalForCommission, setSelectedWithdrawalForCommission] =
     useState<WithdrawalItem | null>(null);
 
-  // Fetch utility settings on component mount
   useEffect(() => {
     const fetchUtilitySettings = async () => {
       try {
@@ -168,23 +167,41 @@ export default function WithdrawalsPage() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
+  // Function to filter withdrawals based on status
+  const getFilteredWithdrawals = () => {
+    if (statusFilter === "all" || !statusFilter) {
+      return withdrawals;
+    }
+    return withdrawals.filter((w) => w.status === statusFilter);
+  };
+
   // Fetch function (calls your API)
   const fetchWithdrawals = async () => {
     try {
       setIsFetching(true);
+
       const query = {
         page: currentPage,
         limit: itemsPerPage,
-        search: debouncedSearch,
+        search: debouncedSearch || undefined,
         status:
-          statusFilter === "all" || statusFilter === ""
-            ? undefined
-            : statusFilter,
+          statusFilter === "all" || !statusFilter ? undefined : statusFilter,
       };
-      const res = await getWithdrawals(); // implement this
+
+      console.log("API Request Query:", query);
+
+      const res = await getWithdrawals(query);
+
+      console.log("API Response:", {
+        success: res.success,
+        count: res.payload?.count,
+        dataLength: res.payload?.data?.length,
+        data: res.payload?.data,
+      });
+
       const list: WithdrawalItem[] = res.payload?.data || [];
-      console.log(res, "res", list);
       const count: number = res.payload?.count || 0;
+
       setWithdrawals(list);
       setTotalItems(count);
       setTotalPages(Math.max(1, Math.ceil(count / itemsPerPage)));
@@ -378,16 +395,19 @@ export default function WithdrawalsPage() {
             </div>
 
             <Select
-              onValueChange={(value) =>
-                setStatusFilter(value as "" | "all" | WithdrawalStatus)
-              }
+              value={statusFilter}
+              onValueChange={(value: "" | WithdrawalStatus | "all") => {
+                setStatusFilter(value);
+                setCurrentPage(1); // Reset to first page when filter changes
+              }}
             >
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Select statuses" />
+                <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
@@ -608,7 +628,7 @@ export default function WithdrawalsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {withdrawals.map((w, idx) => (
+                  {getFilteredWithdrawals().map((w, idx) => (
                     <TableRow key={w._id}>
                       <TableCell className="font-medium">
                         {(currentPage - 1) * itemsPerPage + idx + 1}
@@ -616,7 +636,7 @@ export default function WithdrawalsPage() {
                       <TableCell>{w.name}</TableCell>
                       <TableCell className="lowercase">{w.email}</TableCell>
                       <TableCell>{w.phone}</TableCell>
-                      <TableCell>₹{w.amount}</TableCell>
+                      <TableCell>${w.amount}</TableCell>
                       <TableCell>
                         {w.transactionId ? (
                           <div className="flex items-center space-x-2">
@@ -694,94 +714,6 @@ export default function WithdrawalsPage() {
         )}
       </div>
 
-      {/* View Dialog */}
-      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          {viewing && (
-            <div className="space-y-6">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold">
-                  Withdrawal Details
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Name</Label>
-                  <p className="text-sm text-gray-900">{viewing.name}</p>
-                </div>
-
-                <div>
-                  <Label>Email</Label>
-                  <p className="text-sm text-gray-900">{viewing.email}</p>
-                </div>
-
-                <div>
-                  <Label>Phone</Label>
-                  <p className="text-sm text-gray-900">{viewing.phone}</p>
-                </div>
-
-                <div>
-                  <Label>Amount</Label>
-                  <p className="text-sm text-gray-900">₹{viewing.amount}</p>
-                </div>
-
-                <div>
-                  <Label>Transaction ID</Label>
-                  <p className="font-mono break-words">
-                    {viewing.transactionId || "—"}
-                  </p>
-                </div>
-
-                <div>
-                  <Label>Status</Label>
-                  <p className="text-sm text-gray-900">{viewing.status}</p>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label>Requested Date</Label>
-                  <p className="text-sm text-gray-900">
-                    {viewing.requestedAt
-                      ? new Date(viewing.requestedAt).toLocaleString()
-                      : "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4 border-t">
-                <Button variant="outline" onClick={() => setIsViewOpen(false)}>
-                  Close
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <div className="flex flex-col items-center">
-            <Trash2 className="h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Delete Withdrawal
-            </h3>
-            <p className="text-sm text-gray-500 text-center mb-6">
-              Are you sure you want to delete this withdrawal request? This
-              action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3 w-full">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Commission Dialog */}
       <Dialog
         open={commissionDialogOpen}
@@ -789,7 +721,7 @@ export default function WithdrawalsPage() {
       >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>Set Commission</DialogTitle>
+            <DialogTitle>Earning Rate</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -804,7 +736,7 @@ export default function WithdrawalsPage() {
             </div>
 
             <div>
-              <Label>Commission Percent (%)</Label>
+              <Label>Earning Rate (%)</Label>
               <Input
                 type="number"
                 min={0}
