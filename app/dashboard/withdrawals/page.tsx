@@ -390,7 +390,7 @@ export default function WithdrawalsPage() {
                 placeholder="Search by name..."
                 className="pl-10 w-full"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value.trimStart())}
               />
             </div>
 
@@ -616,7 +616,7 @@ export default function WithdrawalsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead >Sr. No</TableHead>
+                    <TableHead>Sr. No</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone No.</TableHead>
@@ -636,7 +636,9 @@ export default function WithdrawalsPage() {
                         </TableCell>
                         <TableCell>{w.name}</TableCell>
                         <TableCell className="lowercase">{w.email}</TableCell>
-                        <TableCell>{w.phone}</TableCell>
+                        <TableCell>
+                          {w.phone.startsWith("+") ? w.phone : "+" + w.phone}
+                        </TableCell>
                         <TableCell>${w.amount}</TableCell>
                         <TableCell>
                           {w.transactionId ? (
@@ -667,15 +669,15 @@ export default function WithdrawalsPage() {
                                 ? "bg-green-100 text-green-800"
                                 : w.status === "rejected"
                                 ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-800"
+                                : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
                             {w.status}
                           </span>
                         </TableCell>
                         <TableCell>
-                          {w.requestedAt
-                            ? new Date(w.requestedAt).toLocaleString()
+                          {w.updatedAt
+                            ? new Date(w.updatedAt).toLocaleDateString()
                             : "N/A"}
                         </TableCell>
                         <TableCell>

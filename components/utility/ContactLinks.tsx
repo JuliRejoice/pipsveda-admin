@@ -59,7 +59,7 @@ export default function ContactLinks() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
 
   const fetchUtilitySettings = async () => {
     try {
@@ -79,7 +79,6 @@ export default function ContactLinks() {
       setIsLoading(true);
       const updateData = { [field]: value };
       const utilityId = utilitySettings?._id || "";
-
 
       const response = await updateUtility(utilityId, updateData);
 
@@ -258,7 +257,7 @@ export default function ContactLinks() {
             itemsPerPage={itemsPerPage}
             onPageChange={handlePageChange}
             onItemsPerPageChange={handleItemsPerPageChange}
-            itemsPerPageOptions={[10, 20, 30, 50]}
+            itemsPerPageOptions={[8, 10, 20, 30, 50]}
             className="border-t pt-4"
           />
         </div>
