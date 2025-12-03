@@ -25,13 +25,10 @@ import {
   Settings,
   Edit,
   Lock,
+  View,
+  EyeIcon,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { WithdrawalDetailsDialog } from "@/components/withdrawal/WithdrawalDetailsDialog";
 import {
   Table,
   TableBody,
@@ -54,6 +51,7 @@ import {
 } from "@/components/api/withdrawal";
 import { updateCustomer } from "@/components/api/customer";
 import { getUtility, updateUtility } from "@/components/api/utility";
+import { CryptoChainModal } from "@/components/withdrawal/CryptoChainModal";
 
 // Types
 type WithdrawalStatus = "approved" | "rejected" | "pending" | "";
@@ -127,20 +125,16 @@ export default function WithdrawalsPage() {
   const [transactionId, setTransactionId] = useState("");
 
   // Modals
-  const [viewing, setViewing] = useState<WithdrawalItem | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [toDeleteId, setToDeleteId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedWithdrawal, setSelectedWithdrawal] =
+    useState<WithdrawalItem | null>(null);
 
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
   const [commissionPercent, setCommissionPercent] = useState<number | "">("");
   const [selectedCommissionTarget, setSelectedCommissionTarget] = useState<
     "all" | "selected" | null
   >(null);
-  const [selectedWithdrawalForCommission, setSelectedWithdrawalForCommission] =
-    useState<WithdrawalItem | null>(null);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   useEffect(() => {
     const fetchUtilitySettings = async () => {
@@ -368,6 +362,12 @@ export default function WithdrawalsPage() {
     }
   };
 
+  useEffect(() => {
+    if (commissionDialogOpen && utilitySettings) {
+      setCommissionPercent(utilitySettings.referralPercentage || 0);
+    }
+  }, [commissionDialogOpen, utilitySettings]);
+
   return (
     <div className="container mx-auto px-4">
       {/* Header */}
@@ -419,7 +419,7 @@ export default function WithdrawalsPage() {
               className="w-full  sm:w-auto"
             >
               <Settings className="mr-2 h-4 w-4" />
-              Earning Rate
+              Settings
             </Button>
             {/* <div className="ml-6 text-xs text-muted-foreground">
               Current: {utilitySettings?.referralPercentage || 0}%
@@ -624,7 +624,8 @@ export default function WithdrawalsPage() {
                     <TableHead>Transaction ID</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Requested Date</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead>Update</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -681,6 +682,18 @@ export default function WithdrawalsPage() {
                             : "N/A"}
                         </TableCell>
                         <TableCell>
+                          <Button
+                            onClick={() => {
+                              setSelectedWithdrawal(w);
+                              setIsViewOpen(true);
+                            }}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                        <TableCell>
                           {w.status === "approved" ? (
                             <Button variant="outline" size="sm" disabled>
                               <Lock className="h-4 w-4" />
@@ -727,52 +740,48 @@ export default function WithdrawalsPage() {
         )}
       </div>
 
+      {/* View Withdrawal Details Dialog */}
+      <WithdrawalDetailsDialog
+        isOpen={isViewOpen}
+        onOpenChange={setIsViewOpen}
+        withdrawal={selectedWithdrawal}
+      />
+
       {/* Commission Dialog */}
       <Dialog
         open={commissionDialogOpen}
         onOpenChange={setCommissionDialogOpen}
       >
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent >
           <DialogHeader>
-            <DialogTitle>Earning Rate</DialogTitle>
+            <DialogTitle>Settings</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <Label>Target</Label>
-              <p className="text-sm text-gray-700">
-                {selectedCommissionTarget === "selected" &&
-                selectedWithdrawalForCommission
-                  ? `Selected withdrawal — ${selectedWithdrawalForCommission.name} (₹${selectedWithdrawalForCommission.amount})`
-                  : "All withdrawals"}
-              </p>
-            </div>
-
-            <div>
               <Label>Earning Rate (%)</Label>
               <Input
+                id="rate"
                 type="number"
-                min={0}
-                max={100}
-                value={
-                  commissionPercent === ""
-                    ? utilitySettings?.referralPercentage || 0
-                    : commissionPercent
-                }
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === "") return setCommissionPercent("");
-                  const num = parseFloat(val);
-                  if (Number.isNaN(num)) return;
-                  setCommissionPercent(num);
+                min="0"
+                step="1"
+                max="100"
+                placeholder="0"
+                value={commissionPercent}
+                onKeyDown={(e) => {
+                  if (e.key === "." || e.key === "e") {
+                    e.preventDefault();
+                  }
                 }}
-                className="w-full px-3 py-2 border rounded-md mt-2 focus:outline-none focus:ring-none"
-                placeholder="e.g. 5"
+                onChange={(e) => {
+                  setCommissionPercent(
+                    e.target.value.replace(/\D/g, "") as any
+                  );
+                }}
+                className="h-[55px] px-4 text-base font-semibold mt-2"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Commission will be applied to payout calculations.
-              </p>
             </div>
+            <CryptoChainModal />
 
             <div className="flex justify-end space-x-3 pt-2">
               <Button
@@ -782,7 +791,7 @@ export default function WithdrawalsPage() {
                 Cancel
               </Button>
               <Button onClick={submitCommission} disabled={isLoadingAction}>
-                {isLoadingAction ? "Saving..." : "Set Commission"}
+                {isLoadingAction ? "Saving..." : "Save"}
               </Button>
             </div>
           </div>

@@ -60,6 +60,8 @@ interface BannerItem {
   _id: string;
   image: string;
   isActive: boolean;
+  isOnboarding: boolean;
+  isBanner: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -98,7 +100,8 @@ export default function BannerPage() {
       const response = await getAllBanners();
       // Filter out banners where isOnboarding is true or not present
       const filteredBanners = (response?.payload?.data || []).filter(
-        (banner: any) => banner.isOnboarding !== false
+        (banner: any) =>
+          banner.isOnboarding == false && banner.isBanner == true
       );
       setBanners(filteredBanners);
     } catch (error) {
@@ -125,7 +128,7 @@ export default function BannerPage() {
         response = await updateBanner(currentBannerId, data.image);
       } else {
         // create banner
-        response = await createBanner(data.image);
+        response = await createBanner(data.image, false, true);
       }
 
       if (response?.success) {
@@ -189,7 +192,6 @@ export default function BannerPage() {
       toast.error("Image size must be less than 1MB");
       return;
     }
-    
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {

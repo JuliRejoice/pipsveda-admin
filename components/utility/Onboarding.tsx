@@ -136,7 +136,7 @@ export default function OnboardingManager() {
             ? {
                 ...screen,
                 mobileImage: {
-                  id: "", // empty because not saved yet
+                  id: screen.mobileImage?.id || "", // Preserve existing ID if it exists
                   url: imageData.url,
                   width: imageData.width,
                   height: imageData.height,
@@ -157,11 +157,6 @@ export default function OnboardingManager() {
         )
       );
     }
-  };
-
-  const handleDeleteClick = (id: string) => {
-    setBannerToDelete(id);
-    setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -234,10 +229,12 @@ export default function OnboardingManager() {
       setIsLoading(true);
       const response = await getAllBanners();
 
-      const onboardingBanners = (response?.payload?.data || []).filter(
-        (banner: any) => banner.isOnboarding === false
-      );
-
+      const onboardingBanners = (response?.payload?.data || [])
+        .filter((banner: any) => banner.isOnboarding == true)
+        .sort(
+          (a: any, b: any) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       const currentActiveScreenId = screens.find(
         (screen) => screen.isActive
       )?.id;
@@ -272,7 +269,6 @@ export default function OnboardingManager() {
       if (activeScreen !== null) {
         setActiveScreen(activeScreen);
       }
-
       setOnboardingBanners(onboardingBanners);
 
       setScreens(updatedScreens);
@@ -295,16 +291,14 @@ export default function OnboardingManager() {
     try {
       setIsLoading(true);
 
-      const currentActiveScreenId = screens.find(
-        (screen) => screen.isActive
-      )?.id;
+      // Store the current active screen ID before making any changes
+      const currentActiveScreenId =
+        screens.find((screen) => screen.isActive)?.id || "1";
+      console.log(onboardingBanners, "onboardingBanners", screens);
 
       for (const screen of screens) {
         try {
           if (!screen.mobileImage) continue;
-
-          const formData = new FormData();
-          formData.append("isOnboarding", "true");
 
           if (screen.mobileImage.url.startsWith("blob:")) {
             const response = await fetch(screen.mobileImage.url);
@@ -312,18 +306,12 @@ export default function OnboardingManager() {
             const file = new File([blob], `onboarding-${screen.id}.jpg`, {
               type: "image/jpeg",
             });
-            formData.append("image", file);
 
             if (screen.mobileImage.id) {
               await updateBanner(screen.mobileImage.id, file);
             } else {
-              await createBanner(file);
+              await createBanner(file, true, false);
             }
-          } else if (screen.mobileImage.id) {
-            await updateBanner(
-              screen.mobileImage.id,
-              screen.mobileImage.url as any
-            );
           }
         } catch (error) {
           console.error(`Error processing screen ${screen.id}:`, error);
@@ -360,15 +348,19 @@ export default function OnboardingManager() {
           console.error(`Error deleting banner ${bannerId}:`, error);
         }
       }
+
+      // Reload banners and maintain the current active screen
       await loadOnboardingBanners();
 
-      // Restore the active screen after loading banners
+      // Set the active screen back to the one that was active before saving
       setScreens((prevScreens) =>
         prevScreens.map((screen) => ({
           ...screen,
           isActive: screen.id === currentActiveScreenId,
         }))
       );
+
+      setActiveScreen(parseInt(currentActiveScreenId));
     } catch (error) {
       console.error("Error saving changes:", error);
     } finally {
