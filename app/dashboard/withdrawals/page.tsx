@@ -346,7 +346,7 @@ export default function WithdrawalsPage() {
         ...response.payload,
         referralPercentage,
       }));
-      toast.success(`Referral percentage updated to ${referralPercentage}%`);
+      toast.success(`Saved Successfully`);
       setCommissionDialogOpen(false);
       setCommissionPercent("");
       fetchWithdrawals();

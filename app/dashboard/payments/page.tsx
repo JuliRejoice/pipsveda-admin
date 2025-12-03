@@ -442,7 +442,9 @@ export default function Payments() {
                             </TableCell>
                             <TableCell>${payment.price || "0.00"}</TableCell>
                             <TableCell>{payment.orderId || "N/A"}</TableCell>
-                            <TableCell>{payment.paymentMethod || "-"}</TableCell>
+                            <TableCell>
+                              {payment.paymentMethod || "-"}
+                            </TableCell>
                             {/* <TableCell>
                               {renderStatusBadge(payment.status)}
                             </TableCell> */}
@@ -515,7 +517,9 @@ export default function Payments() {
                         Transaction ID
                       </TableHead>
                       <TableHead className="text-base">Meta Acc No.</TableHead>
-                      <TableHead className="text-base">Payment Method</TableHead>
+                      <TableHead className="text-base">
+                        Payment Method
+                      </TableHead>
                       {/* <TableHead className="text-base">Status</TableHead> */}
                       <TableHead className="text-base">Invoice</TableHead>
                     </TableRow>
@@ -592,12 +596,15 @@ export default function Payments() {
                               {payment?.botId?.strategyId?.title || "-"}
                             </TableCell>
                             <TableCell className="capitalize">
-                              {payment?.botId?.planType || "N/A"}
+                              {payment?.botId?.planType?.replace(
+                                /([A-Z])/g,
+                                " $1"
+                              ) || "N/A"}
                             </TableCell>
                             <TableCell>${payment?.price || "0.00"}</TableCell>
                             <TableCell className="font-mono">
                               {payment.orderId || "N/A"}
-                            </TableCell>                         
+                            </TableCell>
                             <TableCell>
                               <Dialog>
                                 <DialogTrigger asChild>
@@ -817,13 +824,12 @@ export default function Payments() {
                               "N/A"}
                           </TableCell>
                           <TableCell className="capitalize">
-                            {payment?.planType || "N/A"}
+                            {payment?.planType?.replace(/([A-Z])/g, " $1") ||
+                              "N/A"}
                           </TableCell>
                           <TableCell>${payment?.price || "0.00"}</TableCell>
                           <TableCell>{payment?.orderId || "N/A"}</TableCell>
-                          <TableCell>
-                            {payment?.paymentMethod || "-"}
-                          </TableCell>
+                          <TableCell>{payment?.paymentMethod || "-"}</TableCell>
                           {/* <TableCell>
                             {renderStatusBadge(payment?.status)}
                           </TableCell> */}
@@ -1066,9 +1072,7 @@ export default function Payments() {
                               </DialogContent>
                             </Dialog>
                           </TableCell>
-                          <TableCell>
-                            {payment?.paymentMethod || "-"}
-                          </TableCell>
+                          <TableCell>{payment?.paymentMethod || "-"}</TableCell>
                           {/* <TableCell className="px-6 py-4 text-left whitespace-nowrap">
                             {renderStatusBadge(payment?.status)}
                           </TableCell> */}
