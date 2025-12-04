@@ -91,6 +91,9 @@ const classNames = {
 };
 
 interface Customer {
+  referredBy: any;
+  referralCode: any;
+  countryCode: any;
   city: string;
   state: string;
   country: string;
@@ -501,6 +504,8 @@ export default function Users() {
                     <TableHead className="text-base">Contact</TableHead>
                     <TableHead className="text-base">Gender</TableHead>
                     <TableHead className="text-base">Birthday</TableHead>
+                    <TableHead className="text-base">Referby</TableHead>
+                    <TableHead className="text-base">Referral Code</TableHead>
                     <TableHead className="text-base">Status</TableHead>
                     <TableHead className="text-base">Joined Date</TableHead>
                     <TableHead className="text-base">Actions</TableHead>
@@ -551,9 +556,9 @@ export default function Users() {
                             </div>
                             {customer.phone && (
                               <div className="text-xs text-muted-foreground flex items-center gap-1 font-lexend">
-                                {customer.phone.startsWith("+")
-                                  ? customer.phone
-                                  : `+${customer.phone}`}
+                                {customer.countryCode.startsWith("+")
+                                  ? `${customer.countryCode}${customer.phone}`
+                                  : `+${customer.countryCode}${customer.phone}`}
                               </div>
                             )}
                           </TableCell>
@@ -575,6 +580,8 @@ export default function Users() {
                                 )
                               : "N/A"}
                           </TableCell>
+                          <TableCell>{customer.referredBy}</TableCell>
+                          <TableCell>{customer.referralCode}</TableCell>
                           <TableCell>
                             <Badge
                               variant={
@@ -1073,7 +1080,7 @@ export default function Users() {
             <div className="space-y-6 py-2">
               {/* Header Section */}
               <div className="flex items-start space-x-4 pb-4 border-b">
-                <Avatar className="h-20 w-20">
+                <Avatar className="h-16 w-16">
                   <AvatarFallback className="text-lg">
                     {viewingCustomer.name
                       .split(" ")
@@ -1112,7 +1119,6 @@ export default function Users() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-3">
                       <div className="flex items-start">
-                        <MapPin className="h-4 w-4 mt-0.5 mr-2 text-muted-foreground" />
                         <div>
                           <p className="text-sm text-muted-foreground">
                             Location
@@ -1128,20 +1134,6 @@ export default function Users() {
                           </p>
                         </div>
                       </div>
-
-                      {viewingCustomer.phone && (
-                        <div className="flex items-start">
-                          <Phone className="h-4 w-4 mt-0.5 mr-2 text-muted-foreground" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Phone
-                            </p>
-                            <p className="text-sm font-medium">
-                              {viewingCustomer.phone}
-                            </p>
-                          </div>
-                        </div>
-                      )}
                     </div>
 
                     <div className="space-y-3">
@@ -1158,11 +1150,43 @@ export default function Users() {
                         </div>
                       </div>
                     </div>
+                    {viewingCustomer.phone && (
+                      <div className="flex flex-col items-start">
+                        <p className="text-sm text-muted-foreground">Phone</p>
+                        <p className="text-sm font-medium">
+                          {viewingCustomer.countryCode}
+                          {viewingCustomer.phone}
+                        </p>
+                      </div>
+                    )}
+                    {viewingCustomer.referredBy && (
+                      <div className="flex items-start pt-3">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Referred By
+                          </p>
+                          <p className="text-sm font-medium">
+                            {viewingCustomer.referredBy}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {viewingCustomer.referralCode && (
+                      <div className="flex items-start pt-3">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Referral Code
+                          </p>
+                          <p className="text-sm font-medium">
+                            {viewingCustomer.referralCode}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-
-              
             </div>
           )}
         </DialogContent>

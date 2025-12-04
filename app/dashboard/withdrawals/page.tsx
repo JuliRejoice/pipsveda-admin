@@ -56,6 +56,7 @@ import { CryptoChainModal } from "@/components/withdrawal/CryptoChainModal";
 // Types
 type WithdrawalStatus = "approved" | "rejected" | "pending" | "";
 interface WithdrawalItem {
+  withdrawalType: any;
   _id: string;
   accountHolderName: string;
   accountNumber: string;
@@ -277,6 +278,7 @@ export default function WithdrawalsPage() {
         accountNumber: editingWithdrawal.accountNumber,
         ifscCode: editingWithdrawal.ifscCode,
         accountHolderName: editingWithdrawal.accountHolderName,
+        withdrawalType: editingWithdrawal.withdrawalType,
         status: editStatus,
         transactionId:
           editStatus === "approved" ? transactionId.trim() : undefined,
@@ -285,6 +287,7 @@ export default function WithdrawalsPage() {
           typeof editingWithdrawal.uid === "object"
             ? editingWithdrawal.uid._id
             : editingWithdrawal.uid,
+
       };
 
       const response = await updateWithdrawalStatus(
@@ -622,6 +625,7 @@ export default function WithdrawalsPage() {
                     <TableHead>Phone No.</TableHead>
                     <TableHead>Withdraw Amount</TableHead>
                     <TableHead>Transaction ID</TableHead>
+                    <TableHead>Withdrawal Type</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Requested Date</TableHead>
                     <TableHead>Details</TableHead>
@@ -664,6 +668,17 @@ export default function WithdrawalsPage() {
                           )}
                         </TableCell>
                         <TableCell>
+                          {w.withdrawalType ? (
+                            <div className="flex items-center space-x-2">
+                              <span className="font-mono text-sm break-all">
+                                {w.withdrawalType}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-500">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               w.status === "approved"
@@ -694,7 +709,7 @@ export default function WithdrawalsPage() {
                           </Button>
                         </TableCell>
                         <TableCell>
-                          {w.status === "approved" ? (
+                          {w.status !== "pending" ? (
                             <Button variant="outline" size="sm" disabled>
                               <Lock className="h-4 w-4" />
                             </Button>
@@ -752,7 +767,7 @@ export default function WithdrawalsPage() {
         open={commissionDialogOpen}
         onOpenChange={setCommissionDialogOpen}
       >
-        <DialogContent >
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Settings</DialogTitle>
           </DialogHeader>
