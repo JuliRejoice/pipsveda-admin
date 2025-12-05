@@ -8,10 +8,50 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Pipslogo from "@/public/images/pipslogo";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LayoutDashboard, Users, BookOpen, Bot, MessageCircle, CreditCard, Bell, UserPlus, Settings, ChevronLeft, ChevronRight, Mail, MessageSquare, User, LogOut, ChevronDown, Settings as SettingsIcon, Waves, Gift, LayoutList, MapPin, FileVideo, Video, VideoIcon, HandCoins } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  Bot,
+  MessageCircle,
+  CreditCard,
+  Bell,
+  UserPlus,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Mail,
+  MessageSquare,
+  User,
+  LogOut,
+  ChevronDown,
+  Settings as SettingsIcon,
+  Waves,
+  Gift,
+  LayoutList,
+  MapPin,
+  FileVideo,
+  Video,
+  VideoIcon,
+  HandCoins,
+  Wallet,
+  CircleDollarSign,
+} from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import InstructorImg from "@/public/images/instructor.js";
 
 const sidebarItems = [
@@ -63,12 +103,12 @@ const sidebarItems = [
   {
     title: "Payments",
     href: "/dashboard/payments",
-    icon: CreditCard,
+    icon: CircleDollarSign,
   },
   {
     title: "Withdrawals",
     href: "/dashboard/withdrawals",
-    icon: HandCoins,
+    icon: Wallet,
   },
   // {
   //   title: 'Notifications',
@@ -107,8 +147,16 @@ const sidebarItems = [
     icon: VideoIcon,
   },
 ];
-
-export default function Sidebar() {
+interface SidebarProps {
+  setToogle: (value: boolean) => void;
+  toogle: boolean;
+  unreadCount: number; // or whatever type unreadCount should be
+}
+export default function Sidebar({
+  setToogle,
+  toogle,
+  unreadCount,
+}: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [user, setUser] = useState<{ name?: string; email?: string }>({});
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -143,17 +191,44 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <div className={cn("bg-[#f5f5f5] transition-all duration-300 flex flex-col h-screen sticky top-0", isCollapsed ? "w-16" : "w-[280px]")}>
+    <div
+      className={cn(
+        "bg-[#f5f5f5] transition-all duration-300 flex flex-col h-screen sticky top-0",
+        isCollapsed ? "w-16" : "w-[280px]"
+      )}
+    >
       {/* Toggle Button - Fixed at the top right */}
-      <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn("absolute -right-5 top-14 z-10 rounded-lg border bg-background p-0", "flex items-center justify-center hover:bg-muted w-8 h-8")}>
-        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleSidebar}
+        className={cn(
+          "absolute -right-5 top-14 z-10 rounded-lg border bg-background p-0",
+          "flex items-center justify-center hover:bg-muted w-8 h-8"
+        )}
+      >
+        {isCollapsed ? (
+          <ChevronRight className="h-4 w-4" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
         <span className="sr-only">Toggle sidebar</span>
       </Button>
 
       {/* Header with Logo */}
       <div className="flex items-center justify-between px-4 border-b relative">
-        <div className={cn("flex items-center space-x-2 transition-all duration-400 ease-in-out", isCollapsed ? "w-full justify-center" : "")}>
-          <div className={cn("relative transition-all duration-400 ease-in-out", isCollapsed ? "h-[72px] w-16" : "h-[75px] w-[75px]")}>
+        <div
+          className={cn(
+            "flex items-center space-x-2 transition-all duration-400 ease-in-out",
+            isCollapsed ? "w-full justify-center" : ""
+          )}
+        >
+          <div
+            className={cn(
+              "relative transition-all duration-400 ease-in-out",
+              isCollapsed ? "h-[72px] w-16" : "h-[75px] w-[75px]"
+            )}
+          >
             {/* <Image 
               src="/images/logo.svg" 
               alt="Valor Trading Academy Logo"
@@ -162,9 +237,15 @@ export default function Sidebar() {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority
             /> */}
-            {isCollapsed ? <Pipslogo width="60px" height="70px" /> : <Pipslogo width="w-500px" height="h-400px" />}
+            {isCollapsed ? (
+              <Pipslogo width="60px" height="70px" />
+            ) : (
+              <Pipslogo width="w-500px" height="h-400px" />
+            )}
           </div>
-          {!isCollapsed && <h2 className="text-xl font-bold text-[#6B4FD8]">Five Veda</h2>}
+          {!isCollapsed && (
+            <h2 className="text-xl font-bold text-[#6B4FD8]">Five Veda</h2>
+          )}
         </div>
       </div>
 
@@ -172,15 +253,53 @@ export default function Sidebar() {
         <nav className="space-y-2">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
             return (
-              <Link key={item.href} href={item.href}>
-                <Button variant={isActive ? "default" : "ghost"} className={cn(`w-full justify-start group ${isCollapsed ? "!px-0 flex items-center justify-center" : ""} ${isActive && !isCollapsed ? "px-0" : "px-4"}`, isCollapsed ? "h-10" : "h-12")}>
-                  <div className={cn("h-6 w-6", !isCollapsed && "mr-3")}>
+              <Link key={item.href} href={item.href} >
+                <Button
+                  variant={isActive ? "default" : "ghost"}
+                  className={cn(
+                    `w-full justify-start  group ${
+                      isCollapsed
+                        ? "!px-0 flex items-center justify-center"
+                        : ""
+                    } ${isActive && !isCollapsed ? "px-0" : "px-4"}`,
+                    isCollapsed ? "h-10" : "h-12",
+                    "relative" 
+                  )}
+                >
+                  <div className={cn("h-6 w-6 relative", !isCollapsed && "mr-3")}>
                     <Icon />
+                  {item.title === "Withdrawals" &&
+                    unreadCount > 0 &&
+                    (
+                    <span className="absolute -top-2 -right-2 ml-2 bg-red-500 text-white text-xs  rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
                   </div>
-                  <span className={`text-base font-medium ${!isActive ? "text-gray-900" : "text-white"}`}>{!isCollapsed && item.title}</span>
+                  <span
+                    className={`text-base font-medium ${
+                      !isActive ? "text-gray-900" : "text-white"
+                    }`}
+                  >
+                    {!isCollapsed && (
+                      <div className="flex items-center">
+                        {item.title}
+                      </div>
+                    )}
+                    {isCollapsed &&
+                      item.title === "Withdrawals" &&
+                      unreadCount > 0 &&
+                      (
+                        <span className="absolute -top-1 -right-0 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                  </span>
                 </Button>
               </Link>
             );
@@ -189,25 +308,50 @@ export default function Sidebar() {
       </ScrollArea>
 
       {/* Profile Section */}
-      <div className={cn("border-t border-muted p-4 mt-auto", isCollapsed ? "px-2 py-4" : "p-4")}>
+      <div
+        className={cn(
+          "border-t border-muted p-4 mt-auto",
+          isCollapsed ? "px-2 py-4" : "p-4"
+        )}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className={cn("w-full justify-between h-auto p-2", isCollapsed ? "flex-col items-center justify-center space-y-1" : "flex items-center")}>
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-between h-auto p-2",
+                isCollapsed
+                  ? "flex-col items-center justify-center space-y-1"
+                  : "flex items-center"
+              )}
+            >
               <div className="flex items-center">
-                <Avatar className={cn("h-8 w-8", isCollapsed ? "mx-auto" : "mr-2")}>
-                  <AvatarFallback className="text-base font-semibold">{user?.name ? user.name.charAt(0).toUpperCase() : "A"}</AvatarFallback>
+                <Avatar
+                  className={cn("h-8 w-8", isCollapsed ? "mx-auto" : "mr-2")}
+                >
+                  <AvatarFallback className="text-base font-semibold">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
+                  </AvatarFallback>
                 </Avatar>
                 {!isCollapsed && (
                   <div className="text-left">
                     <p className="text-base font-medium">{user?.name}</p>
-                    <p className="text-sm text-muted-foreground font-lexend">{user?.email}</p>
+                    <p className="text-sm text-muted-foreground font-lexend">
+                      {user?.email}
+                    </p>
                   </div>
                 )}
               </div>
-              {!isCollapsed && <ChevronDown className="h-4 w-4 ml-auto opacity-50" />}
+              {!isCollapsed && (
+                <ChevronDown className="h-4 w-4 ml-auto opacity-50" />
+              )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align={isCollapsed ? "start" : "end"} side={isCollapsed ? "right" : "top"}>
+          <DropdownMenuContent
+            className="w-56"
+            align={isCollapsed ? "start" : "end"}
+            side={isCollapsed ? "right" : "top"}
+          >
             {/* <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
@@ -234,7 +378,10 @@ export default function Sidebar() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleLogout}>

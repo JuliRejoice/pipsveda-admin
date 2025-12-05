@@ -43,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import youtube from "@/public/icons/youtube.png";
 import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import {
   getAllYoutube,
@@ -347,7 +348,7 @@ export default function YoutubeManager() {
           <DialogTrigger asChild>
             <Button onClick={handleCreateNew}>
               <Plus className="mr-2 h-4 w-4" />
-              Add YouTube
+              Add Video
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[640px]">
@@ -519,6 +520,23 @@ export default function YoutubeManager() {
                         className="min-w-full min-h-full object-cover"
                         style={{ objectFit: "cover" }}
                       />
+                      <a
+                        href={item.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-all duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="p-2 rounded-full hover:scale-110 transition-transform duration-200">
+                          <Image
+                            width={80}
+                            height={80}
+                            src={youtube}
+                            alt="Play on YouTube"
+                            className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 transition-all duration-200"
+                          />
+                        </div>
+                      </a>
                     </div>
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
@@ -566,15 +584,6 @@ export default function YoutubeManager() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <a
-                    href={item.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-2/3 flex items-center justify-center space-x-2 bg-[#6B4FD8] text-white text-sm font-medium rounded-md py-2 px-4 transition-colors duration-200"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <span className="text-white">▶ Watch Video</span>
-                  </a>
                 </div>
               </div>
             ))}

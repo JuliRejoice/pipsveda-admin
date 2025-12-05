@@ -320,7 +320,6 @@ export default function TelegramManagement() {
         formData.logo = logoFile || data.logo || "";
       }
 
-
       let response;
 
       if (isEditMode && currentChannelId) {
@@ -1324,7 +1323,7 @@ export default function TelegramManagement() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {channels?.map((channel) => (
             <Card
               key={channel._id}
@@ -1363,7 +1362,9 @@ export default function TelegramManagement() {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <span>{channel.channelName}</span>
+                        <span className="line-clamp-1 text-ellipsis overflow-hidden">
+                          {channel.channelName}
+                        </span>
                       </CardTitle>
 
                       <p className="text-base text-gray-500 mt-2.5 line-clamp-3 h-[4.5rem] overflow-hidden text-ellipsis">

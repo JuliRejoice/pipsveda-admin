@@ -1,8 +1,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,15 +8,10 @@ import { format } from "date-fns";
 import {
   CreditCard,
   Wallet,
-  Mail,
-  Phone,
-  Clock,
-  Banknote,
-  User,
-  Users,
-  Gauge,
-  Video,
+  Copy,
+  Check,
 } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface WithdrawalDetailsDialogProps {
@@ -40,6 +33,13 @@ interface WithdrawalDetailsDialogProps {
   } | null;
 }
 
+interface DetailItem {
+  label: string;
+  value: string | undefined;
+  copyable?: boolean;
+  fullWidth?: boolean;
+}
+
 export function WithdrawalDetailsDialog({
   isOpen,
   onOpenChange,
@@ -47,7 +47,7 @@ export function WithdrawalDetailsDialog({
 }: WithdrawalDetailsDialogProps) {
   if (!withdrawal) return null;
 
-  const bankdetails = [
+  const bankdetails: DetailItem[] = [
     {
       label: "Account Number",
       value: withdrawal.accountNumber,
@@ -61,8 +61,22 @@ export function WithdrawalDetailsDialog({
       value: withdrawal.accountHolderName,
     },
   ];
-  const cryptodetails = [
-    { label: "Wallet ID", value: withdrawal.walletId, fullWidth: true },
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (text: string | undefined) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const cryptodetails: DetailItem[] = [
+    {
+      label: "Crypto Wallet Address",
+      value: withdrawal.walletId,
+      fullWidth: true,
+      copyable: true,
+    },
     { label: "Chain", value: withdrawal.chain, fullWidth: true },
   ];
 
@@ -103,9 +117,24 @@ export function WithdrawalDetailsDialog({
                         {item.label}
                       </p>
                     </div>
-                    <p className="font-semibold text-gray-900 break-all text-right">
-                      {item.value}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-900 break-all text-right">
+                        {item.value}
+                      </p>
+                      {item.copyable && (
+                        <button
+                          onClick={() => handleCopy(item.value)}
+                          className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                          title="Copy to clipboard"
+                        >
+                          {copied ? (
+                            <Check className="w-4 h-4 font-bold text-green-600" />
+                          ) : (
+                            <Copy className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
