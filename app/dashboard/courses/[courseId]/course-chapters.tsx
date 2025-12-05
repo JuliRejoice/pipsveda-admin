@@ -15,6 +15,7 @@ import {
   Loader2,
   X,
   ImageIcon,
+  UploadCloud,
 } from "lucide-react";
 import {
   Dialog,
@@ -62,6 +63,7 @@ export interface Chapter {
       };
   createdAt: string;
   updatedAt: string;
+  
 }
 
 interface CourseChaptersProps {
@@ -107,6 +109,8 @@ export function CourseChapters({
     videoFile: File | null;
     chapterNo: string;
     image: File | null;
+    srtFile: File | null;
+    srtVideoFile: string;
   }>({
     chapterImage: "",
     chapterName: "",
@@ -116,6 +120,8 @@ export function CourseChapters({
     videoFile: null,
     chapterNo: "",
     image: null,
+    srtFile: null,
+    srtVideoFile: "",
   });
 
   const [errors, setErrors] = useState<{
@@ -126,6 +132,7 @@ export function CourseChapters({
     videoUrl?: string;
     videoFile?: string;
     chapterNo?: string;
+    srtFile?: string;
   }>({});
 
   const validateForm = (): boolean => {
@@ -270,6 +277,20 @@ export function CourseChapters({
 
     try {
       const data = new FormData();
+      
+      // Handle SRT file upload if present
+      if (formData.srtFile) {
+        try {
+          const srtFileUrl = await handleSrtUpload(formData.srtFile);
+          data.append('srtVideoFile', srtFileUrl);
+        } catch (error) {
+          toast.error('Failed to upload SRT file');
+          return;
+        }
+      } else if (formData.srtVideoFile) {
+        // If SRT URL already exists (editing existing chapter)
+        data.append('srtVideoFile', formData.srtVideoFile);
+      }
 
       if (selectedChapter) {
         // Update mode - only send changed fields
@@ -278,6 +299,11 @@ export function CourseChapters({
           (selectedChapter.chapterName || selectedChapter.title || "")
         ) {
           data.append("chapterName", formData.chapterName);
+        }
+        
+        // Handle SRT file for update if it exists in the form data
+        if (formData.srtVideoFile) {
+          data.append('srtVideoFile', formData.srtVideoFile);
         }
         if (formData.description !== selectedChapter.description) {
           data.append("description", formData.description);
@@ -383,6 +409,8 @@ export function CourseChapters({
         videoFile: null,
         chapterNo: "",
         image: null,
+        srtFile: null,
+        srtVideoFile: "",
       });
       setImagePreview(null);
       setVideoPreview(null);
@@ -428,6 +456,8 @@ export function CourseChapters({
       chapterNo: String(chapter.chapterNo || chapter.order || ""),
       image: null,
       chapterImage: chapter.chapterImage,
+      srtFile: null,
+      srtVideoFile: (chapter as any).srtVideoFile || "",
     });
     // Set video preview for existing video URL
     const existingVideoUrl = chapter.videoUrl || chapter.chapterVideo || "";
@@ -481,6 +511,51 @@ export function CourseChapters({
     }
   };
 
+  const handleSrtUpload = async (file: File): Promise<string> => {
+    try {
+      const srtFormData = new FormData();
+      srtFormData.append('file', file);
+      
+      // Use the same uploadImage API for SRT files
+      const response = await uploadImage(file);
+      
+      if (!response.success) {
+        throw new Error('Failed to upload SRT file');
+      }
+      
+      return response.payload || '';
+    } catch (error) {
+      console.error('Error uploading SRT file:', error);
+      throw error;
+    }
+  };
+
+  const handleSrtChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate SRT file
+    if (file.type !== 'text/plain' && !file.name.endsWith('.srt')) {
+      setErrors(prev => ({ ...prev, srtFile: 'Please upload a valid .srt file' }));
+      return;
+    }
+    
+    try {
+      const srtUrl = await handleSrtUpload(file);
+      setFormData(prev => ({
+        ...prev,
+        srtFile: file,
+        srtVideoFile: srtUrl
+      }));
+      setErrors(prev => ({ ...prev, srtFile: undefined }));
+    } catch (error) {
+      setErrors(prev => ({
+        ...prev,
+        srtFile: 'Failed to upload SRT file. Please try again.'
+      }));
+    }
+  };
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -521,6 +596,8 @@ export function CourseChapters({
               videoFile: null,
               image: null,
               chapterImage: "",
+              srtFile:null,
+              srtVideoFile:''
             });
             setVideoPreview(null);
             setImagePreview(null);
@@ -1013,6 +1090,47 @@ export function CourseChapters({
                 </div>
               </div>
             </div>
+            
+            {/* SRT File Upload */}
+            <div className="mt-4">
+              <Label className="block text-sm font-medium mb-1">SRT File (Optional)</Label>
+              <div className="flex items-center gap-4">
+                <label className="flex-1">
+                  <div className="flex items-center justify-between w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                    <span className="text-sm text-gray-600 truncate">
+                      {formData.srtFile ? formData.srtFile.name : "Choose SRT file..."}
+                    </span>
+                    <UploadCloud className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="file"
+                    id="srt-upload"
+                    accept=".srt,text/plain"
+                    onChange={handleSrtChange}
+                    className="hidden"
+                  />
+                </label>
+                {formData.srtFile && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, srtFile: null, srtVideoFile: '' }));
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {errors.srtFile && (
+                <p className="text-sm text-red-500 mt-1">{errors.srtFile}</p>
+              )}
+              {formData.srtVideoFile && (
+                <p className="text-xs text-green-600 mt-1">SRT file uploaded successfully</p>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="block text-sm font-medium mb-1">
