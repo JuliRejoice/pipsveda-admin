@@ -1,8 +1,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,14 +8,6 @@ import { format } from "date-fns";
 import {
   CreditCard,
   Wallet,
-  Mail,
-  Phone,
-  Clock,
-  Banknote,
-  User,
-  Users,
-  Gauge,
-  Video,
   Copy,
   Check,
 } from "lucide-react";
@@ -82,7 +72,7 @@ export function WithdrawalDetailsDialog({
 
   const cryptodetails: DetailItem[] = [
     {
-      label: "Wallet ID",
+      label: "Crypto Wallet Address",
       value: withdrawal.walletId,
       fullWidth: true,
       copyable: true,

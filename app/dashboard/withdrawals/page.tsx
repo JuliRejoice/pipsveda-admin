@@ -52,12 +52,17 @@ import {
 import { updateCustomer } from "@/components/api/customer";
 import { getUtility, updateUtility } from "@/components/api/utility";
 import { CryptoChainModal } from "@/components/withdrawal/CryptoChainModal";
+import { getSocket } from "@/components/utils/webSocket";
+import { updateWithdrawalNotification } from "@/components/api/withdrawalNotification";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 // Types
 type WithdrawalStatus = "approved" | "rejected" | "pending" | "";
 interface WithdrawalItem {
+  [x: string]: any;
   withdrawalType: any;
   _id: string;
+  isRead?: boolean;
   accountHolderName: string;
   accountNumber: string;
   amount: string;
@@ -106,8 +111,9 @@ export default function WithdrawalsPage() {
   const [utilitySettings, setUtilitySettings] =
     useState<UtilitySettings | null>(null);
   const [isFetching, setIsFetching] = useState(true);
-  const [withdrawals, setWithdrawals] = useState<WithdrawalItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const socket = getSocket();
+  const [withdrawals, setWithdrawals] = useState<WithdrawalItem[]>([]);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "" | WithdrawalStatus | "all"
@@ -117,6 +123,9 @@ export default function WithdrawalsPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
+  const [viewedWithdrawals, setViewedWithdrawals] = useState<Set<string>>(
+    new Set()
+  );
 
   // Edit Dialog State
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -135,7 +144,43 @@ export default function WithdrawalsPage() {
   const [selectedCommissionTarget, setSelectedCommissionTarget] = useState<
     "all" | "selected" | null
   >(null);
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+
+  const markAllAsRead = async () => {
+    try {
+      const result = await updateWithdrawalNotification();
+
+      if (result?.error) {
+        console.error("Failed to mark notifications as read:", result.message);
+        return;
+      }
+
+      // Clear the viewed state since they're now marked as read
+      setViewedWithdrawals(new Set());
+
+      const socket = getSocket();
+      if (socket) {
+        socket.emit("check-withdrawal-request", {});
+      }
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      // Don't throw the error to prevent automatic logout
+    }
+  };
+  const pathname = usePathname();
+
+  useEffect(() => {
+    return () => {
+      const isLeavingPage = !window.location.pathname.includes("withdraw");
+      if (isLeavingPage) {
+        markAllAsRead();
+      }
+    };
+  }, [pathname]);
+
+  const getRowClassName = (withdrawal: WithdrawalItem) => {
+    const isUnread = !withdrawal.isRead;
+    return isUnread ? "bg-green-100 hover:bg-green-100" : "";
+  };
 
   useEffect(() => {
     const fetchUtilitySettings = async () => {
@@ -183,16 +228,7 @@ export default function WithdrawalsPage() {
           statusFilter === "all" || !statusFilter ? undefined : statusFilter,
       };
 
-      console.log("API Request Query:", query);
-
       const res = await getWithdrawals(query);
-
-      console.log("API Response:", {
-        success: res.success,
-        count: res.payload?.count,
-        dataLength: res.payload?.data?.length,
-        data: res.payload?.data,
-      });
 
       const list: WithdrawalItem[] = res.payload?.data || [];
       const count: number = res.payload?.count || 0;
@@ -287,7 +323,6 @@ export default function WithdrawalsPage() {
           typeof editingWithdrawal.uid === "object"
             ? editingWithdrawal.uid._id
             : editingWithdrawal.uid,
-
       };
 
       const response = await updateWithdrawalStatus(
@@ -635,7 +670,7 @@ export default function WithdrawalsPage() {
                 <TableBody>
                   {getFilteredWithdrawals().length > 0 ? (
                     getFilteredWithdrawals().map((w, idx) => (
-                      <TableRow key={w._id}>
+                      <TableRow key={w._id} className={getRowClassName(w)}>
                         <TableCell className="font-medium">
                           {(currentPage - 1) * itemsPerPage + idx + 1}
                         </TableCell>
