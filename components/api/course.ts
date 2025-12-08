@@ -241,7 +241,7 @@ export const updateChapter = async (id: string, payload: any) => {
   try {
     const token = getAuthToken();
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      "Content-Type": "multipart/form-data",
     };
 
     if (token) {

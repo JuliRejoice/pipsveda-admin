@@ -38,13 +38,20 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MoreVertical } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 
 export interface Chapter {
-  chapterImage: string;
+  thumbnail: string;
   _id: string;
   chapterName: string; // new
   title?: string; // keep for backward compatibility
@@ -55,15 +62,20 @@ export interface Chapter {
   chapterNo: string; // changed from number to string
   order?: number; // keep for backward compatibility
   courseId:
-    | string
-    | {
-        _id: string;
-        CourseName: string;
-        hours: number;
-      };
+  | string
+  | {
+    _id: string;
+    CourseName: string;
+    hours: number;
+  };
   createdAt: string;
   updatedAt: string;
-  
+  srtFiles?: {
+    file: File | null;
+    url: string;
+    language: string;
+    id: string;
+  }[];
 }
 
 interface CourseChaptersProps {
@@ -109,8 +121,7 @@ export function CourseChapters({
     videoFile: File | null;
     chapterNo: string;
     image: File | null;
-    srtFile: File | null;
-    srtVideoFile: string;
+    srtFiles: { file: File | null; url: string; language: string; id: string }[];
   }>({
     chapterImage: "",
     chapterName: "",
@@ -120,8 +131,7 @@ export function CourseChapters({
     videoFile: null,
     chapterNo: "",
     image: null,
-    srtFile: null,
-    srtVideoFile: "",
+    srtFiles: [],
   });
 
   const [errors, setErrors] = useState<{
@@ -277,20 +287,28 @@ export function CourseChapters({
 
     try {
       const data = new FormData();
-      
-      // Handle SRT file upload if present
-      if (formData.srtFile) {
-        try {
-          const srtFileUrl = await handleSrtUpload(formData.srtFile);
-          data.append('srtVideoFile', srtFileUrl);
-        } catch (error) {
-          toast.error('Failed to upload SRT file');
-          return;
+
+      // Handle SRT files
+      const srtFilesData = [];
+      for (const srt of formData.srtFiles) {
+        let url = srt.url;
+        if (srt.file) {
+          try {
+            url = await handleSrtUpload(srt.file);
+          } catch (error) {
+            toast.error(`Failed to upload SRT file for ${srt.language}`);
+            return;
+          }
         }
-      } else if (formData.srtVideoFile) {
-        // If SRT URL already exists (editing existing chapter)
-        data.append('srtVideoFile', formData.srtVideoFile);
+        if (url) {
+          srtFilesData.push({ videoFile: url, language: srt.language });
+        }
       }
+
+      srtFilesData.forEach((item, index) => {
+        data.append(`srtVideoFile[${index}][videoFile]`, item.videoFile);
+        data.append(`srtVideoFile[${index}][language]`, item.language);
+      });
 
       if (selectedChapter) {
         // Update mode - only send changed fields
@@ -300,11 +318,7 @@ export function CourseChapters({
         ) {
           data.append("chapterName", formData.chapterName);
         }
-        
-        // Handle SRT file for update if it exists in the form data
-        if (formData.srtVideoFile) {
-          data.append('srtVideoFile', formData.srtVideoFile);
-        }
+
         if (formData.description !== selectedChapter.description) {
           data.append("description", formData.description);
         }
@@ -340,14 +354,14 @@ export function CourseChapters({
 
         // Update chapter thumbnail
         if (chapterThumbnailFile) {
-          data.append("chapterImage", chapterThumbnailFile);
+          data.append("thumbnail", chapterThumbnailFile);
         } else {
           // Ensure we always send a string, not a File object
           const imageUrl =
             typeof formData.chapterImage === "string"
               ? formData.chapterImage
               : "";
-          data.append("chapterImage", imageUrl); // Always a string
+          data.append("thumbnail", imageUrl); // Always a string
         }
 
         // Always include courseId for updates
@@ -376,8 +390,8 @@ export function CourseChapters({
         }
         // Only send chapterImage if it's a string URL
         if (typeof formData.chapterImage === "string") {
-       
-          data.append("chapterImage", formData.chapterImage);
+
+          data.append("thumbnail", formData.chapterImage);
         }
       }
 
@@ -409,8 +423,7 @@ export function CourseChapters({
         videoFile: null,
         chapterNo: "",
         image: null,
-        srtFile: null,
-        srtVideoFile: "",
+        srtFiles: [{ file: null, url: '', language: 'English', id: Math.random().toString(36).substr(2, 9) }],
       });
       setImagePreview(null);
       setVideoPreview(null);
@@ -444,20 +457,52 @@ export function CourseChapters({
 
   const openEditDialog = (chapter: Chapter) => {
     setSelectedChapter(chapter);
+    setImagePreview(null);
+
+    const rawSrtFiles =
+      (chapter as any).srtFiles || (chapter as any).srtVideoFile;
+
+    let mappedSrtFiles: {
+      file: File | null;
+      url: string;
+      language: string;
+      id: string;
+    }[] = [];
+
+    if (Array.isArray(rawSrtFiles) && rawSrtFiles.length > 0) {
+      mappedSrtFiles = rawSrtFiles.map((f: any) => ({
+        file: null,
+        url: f.videoFile || f.url || "",
+        language: f.language || "English",
+        id: Math.random().toString(36).substr(2, 9),
+      }));
+    }
+
+    const defaultSrtFiles = [
+      {
+        file: null,
+        url: "",
+        language: "English",
+        id: Math.random().toString(36).substr(2, 9),
+      },
+    ];
+
+    console.log("chapter-------------", chapter);
+
+    console.log(mappedSrtFiles, "======mappedSrtFiles");
+
+
     setFormData({
       chapterName: chapter.chapterName || chapter.title || "",
       description: chapter.description,
-      duration:
-        typeof chapter.courseId === "string"
-          ? ""
-          : chapter.courseId.hours.toString(),
+      duration: chapter.duration ? String(chapter.duration) : "",
       videoUrl: chapter.videoUrl || chapter.chapterVideo || "",
       videoFile: null,
       chapterNo: String(chapter.chapterNo || chapter.order || ""),
       image: null,
-      chapterImage: chapter.chapterImage,
-      srtFile: null,
-      srtVideoFile: (chapter as any).srtVideoFile || "",
+      chapterImage: chapter.thumbnail || "",
+      srtFiles:
+        mappedSrtFiles.length > 0 ? mappedSrtFiles : defaultSrtFiles,
     });
     // Set video preview for existing video URL
     const existingVideoUrl = chapter.videoUrl || chapter.chapterVideo || "";
@@ -515,14 +560,14 @@ export function CourseChapters({
     try {
       const srtFormData = new FormData();
       srtFormData.append('file', file);
-      
+
       // Use the same uploadImage API for SRT files
       const response = await uploadImage(file);
-      
+
       if (!response.success) {
         throw new Error('Failed to upload SRT file');
       }
-      
+
       return response.payload || '';
     } catch (error) {
       console.error('Error uploading SRT file:', error);
@@ -530,30 +575,46 @@ export function CourseChapters({
     }
   };
 
-  const handleSrtChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSrtChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Validate SRT file
     if (file.type !== 'text/plain' && !file.name.endsWith('.srt')) {
-      setErrors(prev => ({ ...prev, srtFile: 'Please upload a valid .srt file' }));
+      toast.error('Please upload a valid .srt file');
       return;
     }
-    
-    try {
-      const srtUrl = await handleSrtUpload(file);
-      setFormData(prev => ({
-        ...prev,
-        srtFile: file,
-        srtVideoFile: srtUrl
-      }));
-      setErrors(prev => ({ ...prev, srtFile: undefined }));
-    } catch (error) {
-      setErrors(prev => ({
-        ...prev,
-        srtFile: 'Failed to upload SRT file. Please try again.'
-      }));
-    }
+
+    setFormData(prev => {
+      const newSrtFiles = [...prev.srtFiles];
+      newSrtFiles[index] = { ...newSrtFiles[index], file, url: '' }; // Clear URL if new file
+      return { ...prev, srtFiles: newSrtFiles };
+    });
+  };
+
+  const handleLanguageChange = (index: number, language: string) => {
+    setFormData(prev => {
+      const newSrtFiles = [...prev.srtFiles];
+      newSrtFiles[index] = { ...newSrtFiles[index], language };
+      return { ...prev, srtFiles: newSrtFiles };
+    });
+  };
+
+  const addSrtRow = () => {
+    setFormData(prev => ({
+      ...prev,
+      srtFiles: [
+        ...prev.srtFiles,
+        { file: null, url: '', language: 'English', id: Math.random().toString(36).substr(2, 9) }
+      ]
+    }));
+  };
+
+  const removeSrtRow = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      srtFiles: prev.srtFiles.filter((_, i) => i !== index)
+    }));
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -596,8 +657,7 @@ export function CourseChapters({
               videoFile: null,
               image: null,
               chapterImage: "",
-              srtFile:null,
-              srtVideoFile:''
+              srtFiles: [{ file: null, url: '', language: 'English', id: Math.random().toString(36).substr(2, 9) }],
             });
             setVideoPreview(null);
             setImagePreview(null);
@@ -615,7 +675,7 @@ export function CourseChapters({
           <CardTitle className="text-2xl font-bold tracking-tight">
             {courseName ||
               (initialChapters[0]?.courseId &&
-              typeof initialChapters[0].courseId === "object"
+                typeof initialChapters[0].courseId === "object"
                 ? initialChapters[0].courseId.CourseName
                 : "Course Chapters")}
           </CardTitle>
@@ -640,25 +700,25 @@ export function CourseChapters({
                     typeof a.chapterNo === "number"
                       ? a.chapterNo
                       : typeof a.order === "number"
-                      ? a.order
-                      : 0;
+                        ? a.order
+                        : 0;
                   const bNo =
                     typeof b.chapterNo === "number"
                       ? b.chapterNo
                       : typeof b.order === "number"
-                      ? b.order
-                      : 0;
+                        ? b.order
+                        : 0;
                   return aNo - bNo;
                 })
                 .map((chapter, index) => {
                   // Helper for YouTube thumbnail
                   const url =
                     typeof chapter.chapterVideo === "string" &&
-                    chapter.chapterVideo.length > 0
+                      chapter.chapterVideo.length > 0
                       ? chapter.chapterVideo
                       : typeof chapter.videoUrl === "string"
-                      ? chapter.videoUrl
-                      : "";
+                        ? chapter.videoUrl
+                        : "";
                   let videoId: string | null = null;
                   if (
                     typeof url === "string" &&
@@ -932,8 +992,8 @@ export function CourseChapters({
                               imagePreview
                                 ? imagePreview
                                 : typeof formData.chapterImage === "string"
-                                ? formData.chapterImage
-                                : URL.createObjectURL(formData.chapterImage)
+                                  ? formData.chapterImage
+                                  : URL.createObjectURL(formData.chapterImage)
                             }
                             width={1000}
                             height={1000}
@@ -1052,8 +1112,8 @@ export function CourseChapters({
                             {formData.videoFile
                               ? formData.videoFile.name
                               : formData.videoUrl
-                              ? "Using video URL"
-                              : "No video file selected"}
+                                ? "Using video URL"
+                                : "No video file selected"}
                           </p>
 
                           {/* File Input */}
@@ -1090,45 +1150,80 @@ export function CourseChapters({
                 </div>
               </div>
             </div>
-            
+
             {/* SRT File Upload */}
             <div className="mt-4">
-              <Label className="block text-sm font-medium mb-1">SRT File (Optional)</Label>
-              <div className="flex items-center gap-4">
-                <label className="flex-1">
-                  <div className="flex items-center justify-between w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
-                    <span className="text-sm text-gray-600 truncate">
-                      {formData.srtFile ? formData.srtFile.name : "Choose SRT file..."}
-                    </span>
-                    <UploadCloud className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="file"
-                    id="srt-upload"
-                    accept=".srt,text/plain"
-                    onChange={handleSrtChange}
-                    className="hidden"
-                  />
-                </label>
-                {formData.srtFile && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, srtFile: null, srtVideoFile: '' }));
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
+              <div className="flex items-center justify-between mb-2">
+                <Label className="block text-sm font-medium">SRT Files (Optional)</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addSrtRow}
+                  className="h-8"
+                >
+                  <Plus className="h-3 w-3 mr-1" /> Add SRT
+                </Button>
               </div>
-              {errors.srtFile && (
-                <p className="text-sm text-red-500 mt-1">{errors.srtFile}</p>
-              )}
-              {formData.srtVideoFile && (
-                <p className="text-xs text-green-600 mt-1">SRT file uploaded successfully</p>
-              )}
+
+              <div className="space-y-3">
+                {formData.srtFiles.map((srt, index) => (
+                  <div key={srt.id} className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <label className="flex items-center justify-between w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                        <span className="text-sm text-gray-600 truncate max-w-[200px]">
+                          {srt.file
+                            ? srt.file.name
+                            : srt.url
+                              ? decodeURIComponent(srt.url.split("/").pop()?.split("?")[0] || "Existing SRT File")
+                              : "Choose SRT file..."}
+                        </span>
+                        <UploadCloud className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                        <input
+                          type="file"
+                          accept=".srt,text/plain"
+                          onChange={(e) => handleSrtChange(index, e)}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="w-[120px]">
+                      <Select
+                        value={srt.language}
+                        onValueChange={(value) => handleLanguageChange(index, value)}
+                      >
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="English">English</SelectItem>
+                          <SelectItem value="Spanish">Spanish</SelectItem>
+                          <SelectItem value="French">French</SelectItem>
+                          <SelectItem value="German">German</SelectItem>
+                          <SelectItem value="Italian">Italian</SelectItem>
+                          <SelectItem value="Portuguese">Portuguese</SelectItem>
+                          <SelectItem value="Hindi">Hindi</SelectItem>
+                          <SelectItem value="Chinese">Chinese</SelectItem>
+                          <SelectItem value="Japanese">Japanese</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 text-gray-500 hover:text-red-600"
+                      onClick={() => removeSrtRow(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+
+                {/* ))} */}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
