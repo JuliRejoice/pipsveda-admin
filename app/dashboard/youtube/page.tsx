@@ -3,16 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-// Utility function to convert file to base64
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
-};
 import * as z from "zod";
 import { toast } from "sonner";
 import {
@@ -51,6 +41,7 @@ import {
   deleteYoutube,
   updateYoutube,
 } from "@/components/api/youtube";
+import { uploadImage } from "@/components/api/course";
 import Image from "next/image";
 
 // Zod schema: strict validations
@@ -58,11 +49,7 @@ const ytUrlRegex =
   /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[A-Za-z0-9_-]{11}([&?].*)?$/;
 
 const formSchema = z.object({
-  description: z
-    .string()
-    .min(2, "Title must be at least 2 characters")
-    .max(120, "Title must be at most 120 characters")
-    .regex(/^[^\n\r]+$/, "Title cannot contain new lines"),
+  description: z.string().max(120, "Title must be at most 120 characters"),
   videoUrl: z
     .string()
     .url("Must be a valid URL")
@@ -117,6 +104,7 @@ export default function YoutubeManager() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -140,8 +128,9 @@ export default function YoutubeManager() {
     formState: { errors },
   } = form;
 
-  // const thumbnailFile = watch("thumbnail");
+  // Get the current thumbnail value (either URL or File)
   const thumbnailFile = watch("thumbnail");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -187,44 +176,89 @@ export default function YoutubeManager() {
     setIsDragging(true);
   };
   const handleDragLeave = () => setIsDragging(false);
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
+
+    // Validate file type
     if (!file.type.startsWith("image/")) {
-      toast.error("File must be an image");
+      toast.error("File must be an image (JPEG, PNG, etc.)");
       return;
     }
-    const MAX_FILE_SIZE = 1 * 1024 * 1024;
+
+    // Validate file size
+    const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
     if (file.size > MAX_FILE_SIZE) {
       toast.error("Image size must be less than 1MB");
       return;
     }
-    // Convert to a new File object to ensure it's properly handled by react-hook-form
-    const newFile = new File([file], file.name, { type: file.type });
-    setValue("thumbnail", newFile, { shouldValidate: true });
-    if (fileInputRef.current) {
-      // Create a new DataTransfer to set the file
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(newFile);
-      fileInputRef.current.files = dataTransfer.files;
+
+    try {
+      setIsUploading(true);
+      // Set preview immediately
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+
+      // Upload the image
+      const response = await uploadImage(file);
+
+      if (response?.success && response?.payload) {
+        // Set the thumbnail URL in the form
+        setValue("thumbnail", response.payload, { shouldValidate: true });
+        toast.success("Thumbnail uploaded successfully");
+      } else {
+        throw new Error("Failed to upload thumbnail");
+      }
+    } catch (error) {
+      console.error("Error uploading thumbnail:", error);
+      setImagePreview(null);
+      toast.error("Failed to upload thumbnail");
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file && !file.type.startsWith("image/"))
-      toast.error("File must be Image");
-    const MAX_FILE_SIZE = 1 * 1024 * 1024;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("File must be an image (JPEG, PNG, etc.)");
+      return;
+    }
+
+    // Validate file size
+    const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
     if (file.size > MAX_FILE_SIZE) {
       toast.error("Image size must be less than 1MB");
       return;
     }
 
-    if (file && file.type.startsWith("image/")) {
-      setValue("thumbnail", file, { shouldValidate: true });
+    try {
+      setIsUploading(true);
+      // Set preview immediately
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+
+      // Upload the image
+      const response = await uploadImage(file);
+
+      if (response?.success && response?.payload) {
+        // Set the thumbnail URL in the form
+        setValue("thumbnail", response.payload, { shouldValidate: true });
+        toast.success("Thumbnail uploaded successfully");
+      } else {
+        throw new Error("Failed to upload thumbnail");
+      }
+    } catch (error) {
+      console.error("Error uploading thumbnail:", error);
+      setImagePreview(null);
+      toast.error("Failed to upload thumbnail");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -232,10 +266,14 @@ export default function YoutubeManager() {
 
   const removeThumbnail = () => {
     setValue("thumbnail", null, { shouldValidate: true });
+    setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    // Revoke the object URL to avoid memory leaks
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
   };
 
-  // Submit
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
 
@@ -245,15 +283,9 @@ export default function YoutubeManager() {
         videoUrl: data.videoUrl,
       };
 
-      // Handle thumbnail
+      // Handle thumbnail - it's already a URL from the uploadImage API
       if (data.thumbnail) {
-        if (data.thumbnail instanceof File) {
-          // Convert file to base64
-          requestData.thumbnail = await fileToBase64(data.thumbnail);
-        } else if (typeof data.thumbnail === "string") {
-          // If it's already a string (URL or base64), use it as is
-          requestData.thumbnail = data.thumbnail;
-        }
+        requestData.thumbnail = data.thumbnail;
       }
 
       if (isEditMode && currentId) {
@@ -281,6 +313,10 @@ export default function YoutubeManager() {
   const handleEdit = (item: YoutubeItem) => {
     setIsEditMode(true);
     setCurrentId(item._id);
+
+    if (item.thumbnail) {
+      setImagePreview(item.thumbnail);
+    }
 
     reset({
       description: item.description,
@@ -318,6 +354,7 @@ export default function YoutubeManager() {
   const handleCreateNew = () => {
     setIsEditMode(false);
     setCurrentId(null);
+    setImagePreview(null);
     reset({ description: "", videoUrl: "", thumbnail: null });
     setIsOpen(true);
   };
@@ -392,7 +429,7 @@ export default function YoutubeManager() {
                   <p className="text-sm font-semibold text-red-500">
                     {errors.videoUrl.message}
                   </p>
-                )}
+                )}  
               </div>
 
               <div className="space-y-2">
@@ -406,7 +443,9 @@ export default function YoutubeManager() {
                 />
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                    isDragging
+                    isUploading
+                      ? "border-gray-300 bg-gray-50"
+                      : isDragging
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-300 hover:border-gray-400"
                   }`}
@@ -414,20 +453,35 @@ export default function YoutubeManager() {
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   onClick={openFileDialog}
+                  style={isUploading ? { pointerEvents: "none" } : {}}
                 >
-                  {thumbnailFile ? (
+                  {isUploading ? (
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
+                      <p className="text-sm text-gray-600">Uploading...</p>
+                    </div>
+                  ) : thumbnailFile ? (
                     <div className="relative">
-                      <Image
-                        src={
-                          typeof thumbnailFile === "string"
-                            ? thumbnailFile
-                            : URL.createObjectURL(thumbnailFile)
-                        }
-                        alt="Preview"
-                        className="mx-auto max-h-48 rounded-md object-cover"
-                        width={400}
-                        height={300}
-                      />
+                      <div className="relative">
+                        <Image
+                          src={imagePreview || thumbnailFile}
+                          alt="Preview"
+                          className="mx-auto max-h-48 rounded-md object-cover"
+                          width={400}
+                          height={300}
+                        />
+                        <button
+                          type="button"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeThumbnail();
+                          }}
+                          disabled={isUploading}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                       <button
                         type="button"
                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"

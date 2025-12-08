@@ -1323,7 +1323,7 @@ export default function TelegramManagement() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-4 laptop:grid-cols-3 tab:grid-cols-2 mobile:grid-cols-1 gap-4">
           {channels?.map((channel) => (
             <Card
               key={channel._id}
