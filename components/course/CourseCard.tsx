@@ -64,8 +64,8 @@ export const CourseCard = ({
         )}
       </div>
       <CardContent className="p-4 space-y-2">
-        <div className="flex justify-between items-start">
-          <div>
+        <div className="flex justify-between items-start gap-2">
+          <div className="flex-1 min-w-0">
             <h3 className="font-medium text-lg line-clamp-2">
               <Link
                 href={

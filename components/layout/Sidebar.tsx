@@ -249,7 +249,7 @@ export default function Sidebar({
         </div>
       </div>
 
-      <ScrollArea className={`flex-1 ${isCollapsed ? "p-2" : "p-4"}`}>
+      <ScrollArea className={`flex-1 ${isCollapsed ? "p-2" : "px-4 py-2"}`}>
         <nav className="space-y-2">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
@@ -262,29 +262,27 @@ export default function Sidebar({
                 <Button
                   variant={isActive ? "default" : "ghost"}
                   className={cn(
-                    `w-full justify-start  group ${
-                      isCollapsed
-                        ? "!px-0 flex items-center justify-center"
-                        : ""
+                    `w-full justify-start  group ${isCollapsed
+                      ? "!px-0 flex items-center justify-center"
+                      : ""
                     } ${isActive && !isCollapsed ? "px-0" : "px-4"}`,
                     isCollapsed ? "h-10" : "h-12",
-                    "relative" 
+                    "relative"
                   )}
                 >
                   <div className={cn("h-6 w-6 relative", !isCollapsed && "mr-3")}>
                     <Icon />
-                  {item.title === "Withdrawals" &&
-                    unreadCount > 0 &&
-                    (
-                    <span className="absolute -top-2 -right-2 ml-2 bg-red-500 text-white text-xs  rounded-full h-5 w-5 flex items-center justify-center">
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
+                    {item.title === "Withdrawals" &&
+                      unreadCount > 0 &&
+                      (
+                        <span className="absolute -top-2 -right-2 ml-2 bg-red-500 text-white text-xs  rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
                   </div>
                   <span
-                    className={`text-base font-medium ${
-                      !isActive ? "text-gray-900" : "text-white"
-                    }`}
+                    className={`text-base font-medium ${!isActive ? "text-gray-900" : "text-white"
+                      }`}
                   >
                     {!isCollapsed && (
                       <div className="flex items-center">
