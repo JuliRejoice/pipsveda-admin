@@ -278,21 +278,45 @@ export default function YoutubeManager() {
     setIsLoading(true);
 
     try {
-      const requestData: any = {
-        description: data.description,
-        videoUrl: data.videoUrl,
-      };
-
-      // Handle thumbnail - it's already a URL from the uploadImage API
-      if (data.thumbnail) {
-        requestData.thumbnail = data.thumbnail;
-      }
+      let requestData: Partial<FormValues> = {};
 
       if (isEditMode && currentId) {
-        await updateYoutube(currentId, requestData);
-        toast.success("YouTube item updated successfully");
+        // In edit mode, only include changed fields
+        const originalItem = items.find((item) => item._id === currentId);
+        if (!originalItem) {
+          throw new Error("Original item not found");
+        }
+
+        // Compare each field and only include if changed
+        if (data.description !== originalItem.description) {
+          requestData.description = data.description;
+        }
+
+        if (data.videoUrl !== originalItem.videoUrl) {
+          requestData.videoUrl = data.videoUrl;
+        }
+            
+        if (data.thumbnail && data.thumbnail !== originalItem.thumbnail) {
+          requestData.thumbnail = data.thumbnail;
+        }
+
+        // Only proceed with update if there are changes
+        if (Object.keys(requestData).length > 0) {
+          await updateYoutube(currentId, requestData);
+          toast.success("YouTube item updated successfully");
+        } else {
+          toast.info("No changes detected");
+          setIsOpen(false);
+          return;
+        }
       } else {
-        const response = await createYoutube(requestData);
+        // For new items, include all fields
+        requestData = {
+          description: data.description,
+          videoUrl: data.videoUrl,
+          thumbnail: data.thumbnail,
+        };
+        await createYoutube(requestData);
         toast.success("YouTube item created successfully");
       }
 
@@ -429,7 +453,7 @@ export default function YoutubeManager() {
                   <p className="text-sm font-semibold text-red-500">
                     {errors.videoUrl.message}
                   </p>
-                )}  
+                )}
               </div>
 
               <div className="space-y-2">

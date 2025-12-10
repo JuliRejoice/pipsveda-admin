@@ -486,7 +486,7 @@ export default function CenterPage() {
                             : undefined
                         }
                         containerClassName="w-full"
-                        inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border focus:outline-none focus:ring-none ${
+                        inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border font-medium text-base font-lexend  ml-2 focus:outline-none focus:ring-none ${
                           fieldState.error
                             ? "border-destructive"
                             : "border-input"
@@ -543,7 +543,7 @@ export default function CenterPage() {
                                 : undefined
                             }
                             containerClassName="w-full"
-                            inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
+                            inputClassName={`w-full h-[45px] px-4 py-2 font-medium text-base font-lexend  ml-2 rounded-md border ${
                               fieldState.error
                                 ? "border-destructive"
                                 : "border-input"
@@ -611,7 +611,7 @@ export default function CenterPage() {
                                 : undefined
                             }
                             containerClassName="w-full"
-                            inputClassName={`w-full h-[45px] px-4 py-2 rounded-md border ${
+                            inputClassName={`w-full h-[45px] font-medium text-base font-lexend  ml-2 px-4  rounded-md border ${
                               fieldState.error
                                 ? "border-destructive"
                                 : "border-input"

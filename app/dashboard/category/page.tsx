@@ -237,44 +237,43 @@ export default function Category() {
     fetchCategories();
   }, []);
 
-  const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append("name", data.name);
+const onSubmit = async (data: FormValues) => {
+  setIsLoading(true);
 
-    // Only append image if it's a File (new upload)
-    if (data.image instanceof File) {
-      formData.append("image", data.image);
-    } else if (
-      isEditMode &&
-      currentCategoryId &&
-      typeof data.image === "string"
-    ) {
-      // For updates, if image is a string (existing image URL), don't append it
-      // This prevents overwriting the existing image if no new one is selected
-    }
-
-    try {
-      if (isEditMode && currentCategoryId) {
-        // Update existing category
+  try {
+    if (isEditMode && currentCategoryId) {
+      // For updates, check if the image has changed
+      if (data.image instanceof File) {
+        // If image is a File (new upload), use FormData
+        const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("image", data.image);
         await updateCourseCategory(currentCategoryId, formData);
-        toast.success("Category updated successfully");
       } else {
-        // Create new category
-        await createCourseCategory(formData);
-        toast.success("Category created successfully");
+        // If image hasn't changed, send only the name in a JSON payload
+        await updateCourseCategory(currentCategoryId, { name: data.name });
       }
-
-      // Refresh the categories list
-      await fetchCategories();
-      // Close the dialog and reset the form
-      setIsOpen(false);
-      reset();
-    } catch (error) {
-    } finally {
-      setIsLoading(false);
+      toast.success("Category updated successfully");
+    } else {
+      // For new categories, always use FormData
+      const formData = new FormData();
+      formData.append("name", data.name);
+      if (data.image) {
+        formData.append("image", data.image);
+      }
+      await createCourseCategory(formData);
+      toast.success("Category created successfully");
     }
-  };
+
+    await fetchCategories();
+    setIsOpen(false);
+    reset();
+  } catch (error) {
+    console.error("Error saving category:", error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Set up form for editing
   const handleEdit = (category: CategoryItem) => {
@@ -387,7 +386,7 @@ export default function Category() {
 
               <div className="space-y-2">
                 <Label>Category Image *</Label>
-                <input
+                <Input
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}

@@ -53,6 +53,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import InstructorImg from "@/public/images/instructor.js";
+import FiveVedaLogo from "@/public/icons/FiveVedaLogo.png";
 
 const sidebarItems = [
   {
@@ -225,8 +226,8 @@ export default function Sidebar({
         >
           <div
             className={cn(
-              "relative transition-all duration-400 ease-in-out",
-              isCollapsed ? "h-[72px] w-16" : "h-[75px] w-[75px]"
+              "relative transition-all duration-400 ease-in-out ",
+              isCollapsed ? "my-4 w-16" : "w-[75px] my-4"
             )}
           >
             {/* <Image 
@@ -237,15 +238,40 @@ export default function Sidebar({
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority
             /> */}
-            {isCollapsed ? (
+            {/* {isCollapsed ? (
               <Pipslogo width="60px" height="70px" />
             ) : (
               <Pipslogo width="w-500px" height="h-400px" />
+            )} */}
+            {isCollapsed ? (
+              <div className="w-full flex justify-center">
+                <div className="relative w-10 h-10">
+                  <Image
+                    src={FiveVedaLogo}
+                    alt="Five Veda Logo"
+                    fill
+                    className="object-contain p-1"
+                    priority
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center w-full px-2">
+                <div className="relative w-10 h-10 flex-shrink-0">
+                  <Image
+                    src={FiveVedaLogo}
+                    alt="Five Veda Logo"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                <h2 className="ml-3 text-xl font-bold whitespace-nowrap bg-gradient-to-b from-[#774183]  to-[#6B4FD8] bg-clip-text text-transparent">
+                  Five Veda
+                </h2>
+              </div>
             )}
           </div>
-          {!isCollapsed && (
-            <h2 className="text-xl font-bold text-[#6B4FD8]">Five Veda</h2>
-          )}
         </div>
       </div>
 
@@ -258,7 +284,7 @@ export default function Sidebar({
               (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
             return (
-              <Link key={item.href} href={item.href} >
+              <Link key={item.href} href={item.href}>
                 <Button
                   variant={isActive ? "default" : "ghost"}
                   className={cn(
@@ -268,18 +294,18 @@ export default function Sidebar({
                         : ""
                     } ${isActive && !isCollapsed ? "px-0" : "px-4"}`,
                     isCollapsed ? "h-10" : "h-12",
-                    "relative" 
+                    "relative"
                   )}
                 >
-                  <div className={cn("h-6 w-6 relative", !isCollapsed && "mr-3")}>
+                  <div
+                    className={cn("h-6 w-6 relative", !isCollapsed && "mr-3")}
+                  >
                     <Icon />
-                  {item.title === "Withdrawals" &&
-                    unreadCount > 0 &&
-                    (
-                    <span className="absolute -top-2 -right-2 ml-2 bg-red-500 text-white text-xs  rounded-full h-5 w-5 flex items-center justify-center">
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
+                    {item.title === "Withdrawals" && unreadCount > 0 && (
+                      <span className="absolute -top-2 -right-2 ml-2 bg-red-500 text-white text-xs  rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
                   </div>
                   <span
                     className={`text-base font-medium ${
@@ -287,14 +313,11 @@ export default function Sidebar({
                     }`}
                   >
                     {!isCollapsed && (
-                      <div className="flex items-center">
-                        {item.title}
-                      </div>
+                      <div className="flex items-center">{item.title}</div>
                     )}
                     {isCollapsed &&
                       item.title === "Withdrawals" &&
-                      unreadCount > 0 &&
-                      (
+                      unreadCount > 0 && (
                         <span className="absolute -top-1 -right-0 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
                           {unreadCount > 9 ? "9+" : unreadCount}
                         </span>

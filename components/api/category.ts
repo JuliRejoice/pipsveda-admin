@@ -57,22 +57,34 @@ export const createCourseCategory = async (categoryData: any) => {
   }
 };
 
-export const updateCourseCategory = async (id: string, formData: FormData) => {
+export const updateCourseCategory = async (
+  id: string,
+  data: FormData | { name: string }
+) => {
   const token = getAuthToken();
+  const isFormData = data instanceof FormData;
+
   try {
-    const response = await axios.put(
-      `${API_BASE_URL}/courseCategory/editCourseCategory?id=${id}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "x-auth-token": token,
-        },
-        timeout: 30000, 
-      }
-    );
+    const headers: any = {
+      "x-auth-token": token,
+    };
+
+    // Only set Content-Type for non-FormData
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    const response = await axios({
+      method: "put",
+      url: `${API_BASE_URL}/courseCategory/editCourseCategory?id=${id}`,
+      data: isFormData ? data : JSON.stringify(data),
+      headers,
+      timeout: 10000,
+    });
+
     return response.data;
   } catch (error) {
+    console.error("Error updating category:", error);
     throw error;
   }
 };

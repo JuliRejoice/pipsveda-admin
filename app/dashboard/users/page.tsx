@@ -296,7 +296,10 @@ export default function Users() {
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
-      gender: customer.gender as "male" | "female" | "other",
+      gender: (customer.gender || "").toLowerCase() as
+        | "male"
+        | "female"
+        | "other",
       birthday:
         customer.birthday && !isNaN(new Date(customer.birthday).getTime())
           ? new Date(customer.birthday)
@@ -940,6 +943,7 @@ export default function Users() {
                         <FormLabel>Gender</FormLabel>
                         <Select
                           onValueChange={field.onChange}
+                          value={field.value}
                           defaultValue={field.value}
                         >
                           <FormControl>

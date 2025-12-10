@@ -75,7 +75,7 @@ const formSchema = z.object({
     .refine(
       (file) => {
         if (!file || typeof file === "string") return true; // Skip validation for existing images
-        return file.size <= 1 * 1024 * 1024; 
+        return file.size <= 1 * 1024 * 1024;
       },
       { message: "Image size must be less than 1MB" }
     )
@@ -177,7 +177,7 @@ export default function InstructorPage() {
       return;
     }
 
-    const MAX_FILE_SIZE = 1 * 1024 * 1024; 
+    const MAX_FILE_SIZE = 1 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       toast.error("Image size must be less than 1MB");
       return;
@@ -200,7 +200,7 @@ export default function InstructorPage() {
       return;
     }
 
-    const MAX_FILE_SIZE = 1 * 1024 * 1024; 
+    const MAX_FILE_SIZE = 1 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       toast.error("Image size must be less than 1MB");
       return;
@@ -246,31 +246,82 @@ export default function InstructorPage() {
     fetchInstructors();
   }, [currentPage, itemsPerPage, debouncedSearchTerm]);
 
+  // In app/dashboard/instructor/page.tsx
   const onSubmit = async (data: FormValues) => {
     try {
       setIsLoading(true);
 
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("email", data.email);
-      formData.append("bio", data.bio);
-
-      if (data.image && data.image instanceof File) {
-        formData.append("image", data.image);
-      } else if (isEditMode && typeof data.image === "string") {
-        formData.append("imageUrl", data.image);
-      }
-
       if (isEditMode && currentInstructorId) {
-        const response = await updateInstructor(currentInstructorId, formData);
+        // For updates, only include changed fields
+        const currentInstructor = instructors.find(
+          (i) => i._id === currentInstructorId
+        );
+        if (!currentInstructor) {
+          throw new Error("Instructor not found");
+        }
+
+        const updatedFields: Record<string, any> = {};
+        if (data.name !== currentInstructor.name) {
+          updatedFields.name = data.name;
+        }
+        if (data.email !== currentInstructor.email) {
+          updatedFields.email = data.email;
+        }
+        if (data.bio !== currentInstructor.bio) {
+          updatedFields.bio = data.bio;
+        }
+
+        let response;
+        if (data.image instanceof File) {
+          // If there's a new image, use FormData
+          const formData = new FormData();
+          Object.entries(updatedFields).forEach(([key, value]) => {
+            formData.append(key, value);
+          });
+          formData.append("image", data.image);
+          response = await updateInstructor(currentInstructorId, formData);
+        } else if (data.image !== currentInstructor.image) {
+          // If image was removed
+          updatedFields.image = "";
+          const formData = new FormData();
+          Object.entries(updatedFields).forEach(([key, value]) => {
+            if (value !== undefined) {
+              formData.append(key, value);
+            }
+          });
+          response = await updateInstructor(currentInstructorId, formData);
+        } else if (Object.keys(updatedFields).length > 0) {
+          // Convert updatedFields to FormData
+          const formData = new FormData();
+          Object.entries(updatedFields).forEach(([key, value]) => {
+            if (value !== undefined) {
+              formData.append(key, value);
+            }
+          });
+          response = await updateInstructor(currentInstructorId, formData);
+        } else {
+          // No changes
+          toast.info("No changes detected");
+          return;
+        }
+
         if (response.success) {
           toast.success("Instructor updated successfully!");
           setIsOpen(false);
           fetchInstructors();
         } else {
-          toast.error(response.message || "Failed to update instructor");
+          throw new Error(response.message || "Failed to update instructor");
         }
       } else {
+        // Create new instructor (existing code)
+        const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("email", data.email);
+        formData.append("bio", data.bio);
+        if (data.image instanceof File) {
+          formData.append("image", data.image);
+        }
+
         const response = await createInstructor(formData);
         if (response.success) {
           toast.success("Instructor created successfully!");
@@ -278,10 +329,11 @@ export default function InstructorPage() {
           reset();
           fetchInstructors();
         } else {
-          toast.error(response.message || "Failed to create instructor");
+          throw new Error(response.message || "Failed to create instructor");
         }
       }
     } catch (error) {
+      console.error("Error saving instructor:", error);
       toast.error(
         (error as Error).message ||
           "An error occurred while processing your request"

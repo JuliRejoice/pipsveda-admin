@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Lexend } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import FiveVedaLogo from "@/public/icons/FiveVedaLogo.png";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   title: "Five Veda",
   description: "Admin dashboard for course and algobot management",
   icons: {
-    icon: "/icons/faviconNew.svg", // Make sure this exists in your /public/images folder
+    icon: FiveVedaLogo.src,
   },
 };
 

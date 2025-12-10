@@ -607,6 +607,26 @@ export default function AlgoBots() {
     setBotPlanId(bot._id);
     setIsEditMode(true);
 
+    // Set the category ID immediately if available
+    if (bot.categoryId) {
+      setValue("categoryId", bot.categoryId);
+    }
+
+    // Also set up a check in case categories are still loading
+    if (categories.length === 0) {
+      const checkCategories = setInterval(() => {
+        if (categories.length > 0) {
+          clearInterval(checkCategories);
+          if (bot.categoryId) {
+            setValue("categoryId", bot.categoryId);
+          }
+        }
+      }, 100);
+
+      // Cleanup interval on component unmount
+      return () => clearInterval(checkCategories);
+    }
+
     // Set tutorial video links or default
     const rawLinks = (bot as any).link || [];
     const botLinks =
@@ -1369,19 +1389,21 @@ export default function AlgoBots() {
                       <Label htmlFor="categoryId">Category *</Label>
 
                       <Select
-                        {...register("categoryId")}
+                        value={watch("categoryId")}
+                        onValueChange={(value) => setValue("categoryId", value)}
                         disabled={isFetchingCategories}
                       >
                         <SelectTrigger className="font-normal">
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder="Select a category">
+                            {categories.find(
+                              (cat) => cat._id === watch("categoryId")
+                            )?.title || "Select a category"}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map((categoryId) => (
-                            <SelectItem
-                              key={categoryId._id}
-                              value={categoryId._id}
-                            >
-                              {categoryId.title}
+                          {categories.map((category) => (
+                            <SelectItem key={category._id} value={category._id}>
+                              {category.title}
                             </SelectItem>
                           ))}
                         </SelectContent>

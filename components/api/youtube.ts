@@ -55,7 +55,7 @@ export const createYoutube = async (categoryData: any) => {
   }
 };
 
-export const updateYoutube = async (id: string, formData: FormData) => {
+export const updateYoutube = async (id: string, formData: any) => {
   const token = getAuthToken();
   try {
     const response = await axios.put(

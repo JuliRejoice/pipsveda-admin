@@ -808,8 +808,7 @@ export default function Courses() {
           setIsSubmitting(false);
           return;
         }
-      }
-      else if (!editCourse?._id && editCourse?.courseIntroVideo) {
+      } else if (!editCourse?._id && editCourse?.courseIntroVideo) {
         if (editCourse.courseIntroVideo !== "undefined") {
           apiFormData.append("courseIntroVideo", editCourse.courseIntroVideo);
         }
@@ -1213,7 +1212,7 @@ export default function Courses() {
                   >
                     <input type="hidden" name="courseType" value="recorded" />
                     <div>
-                      <label className="block font-medium mb-1">
+                      <label className="block font-normal mb-1">
                         Course Thumbnail Image *
                       </label>
                       <ImageUpload
@@ -1225,12 +1224,13 @@ export default function Courses() {
                       />
                     </div>
                     <div>
-                      <label className="block font-medium mb-1">
+                      <label className="block font-normal mb-1">
                         Course Name *
                       </label>
                       <Input
                         placeholder="Course Name"
                         name="name"
+                        className="font-normal"
                         defaultValue={editCourse?.CourseName || ""}
                         onBlur={handleTrimInput}
                         onKeyDown={(e) => {
@@ -1247,12 +1247,13 @@ export default function Courses() {
                       )}
                     </div>
                     <div>
-                      <label className="block font-medium mb-1">
+                      <label className="block font-normal mb-1">
                         Course Description *
                       </label>
                       <Input
                         placeholder="Course Description"
                         name="description"
+                        className="font-normal"
                         defaultValue={editCourse?.description || ""}
                         onBlur={handleTrimInput}
                         onKeyDown={(e) => {
@@ -1272,7 +1273,7 @@ export default function Courses() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Instructor Name *
                         </label>
                         {/* <Input
@@ -1314,7 +1315,7 @@ export default function Courses() {
                         )}
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Language *
                         </label>
                         <Select
@@ -1337,7 +1338,7 @@ export default function Courses() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Price *
                         </label>
                         <Input
@@ -1365,7 +1366,7 @@ export default function Courses() {
                         )}
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Hours *
                         </label>
                         <Input
@@ -1391,7 +1392,7 @@ export default function Courses() {
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="block font-medium mb-1">
+                      <label className="block font-normal mb-1">
                         Course Level *
                       </label>
                       <Select
@@ -1399,10 +1400,10 @@ export default function Courses() {
                         defaultValue={editCourse?.courseLevel || undefined}
                         // required
                       >
-                        <SelectTrigger className="h-[55px] w-full ">
+                        <SelectTrigger className="h-[55px] w-full font-normal">
                           <SelectValue placeholder="Select course level" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="font-light">
                           <SelectItem value="beginner">
                             Beginner Level
                           </SelectItem>
@@ -1420,7 +1421,7 @@ export default function Courses() {
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="block font-medium mb-1">
+                      <label className="block font-normal mb-1">
                         Intro Video *
                       </label>
 
@@ -1456,7 +1457,7 @@ export default function Courses() {
 
                           <Label
                             htmlFor="courseIntroVideo"
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-normal rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                           >
                             {videoFile || editCourse?.courseIntroVideo
                               ? "Change Video"
@@ -1472,7 +1473,7 @@ export default function Courses() {
                     </div>
 
                     <div>
-                      <label className="block font-medium mb-1">
+                      <label className="block font-normal mb-1">
                         Course Category *
                       </label>
                       <Select
@@ -1493,8 +1494,8 @@ export default function Courses() {
                       </Select>
                     </div>
                     {/* <div>
-                  <label className="block font-medium mb-1">Define Course</label>
-                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || ""}>
+                  <label className="block font-normal mb-1">Define Course</label>
+                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-4 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-normal placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.isDefineCourse || ""}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
@@ -1569,7 +1570,7 @@ export default function Courses() {
                     >
                       <input type="hidden" name="courseType" value="live" />
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Thumbnail Image *
                         </label>
                         <ImageUpload
@@ -1581,12 +1582,13 @@ export default function Courses() {
                         />
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Name *
                         </label>
                         <Input
                           placeholder="Course Name"
                           name="name"
+                          className="font-normal"
                           defaultValue={editCourse?.CourseName || ""}
                           onBlur={handleTrimInput}
                           onKeyDown={(e) => {
@@ -1603,12 +1605,13 @@ export default function Courses() {
                         )}
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Description *
                         </label>
                         <Input
                           placeholder="Course Description"
                           name="description"
+                          className="font-normal"
                           defaultValue={editCourse?.description || ""}
                           onBlur={handleTrimInput}
                           onKeyDown={(e) => {
@@ -1628,7 +1631,7 @@ export default function Courses() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block font-medium mb-1">
+                          <label className="block font-normal mb-1">
                             Instructor Name *
                           </label>
                           <Select
@@ -1659,7 +1662,7 @@ export default function Courses() {
                           )}
                         </div>
                         <div>
-                          <label className="block font-medium mb-1">
+                          <label className="block font-normal mb-1">
                             Language
                           </label>
                           <Select
@@ -1682,7 +1685,7 @@ export default function Courses() {
                       {/* Add Price Field */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block font-medium mb-1">
+                          <label className="block font-normal mb-1">
                             Course Price *
                           </label>
                           <Input
@@ -1712,8 +1715,8 @@ export default function Courses() {
                           )}
                         </div>
                         <div>
-                          <label className="block font-medium mb-1">
-                            Hours
+                          <label className="block font-normal mb-1">
+                            Hours *
                           </label>
                           <Input
                             placeholder="Hours"
@@ -1738,14 +1741,14 @@ export default function Courses() {
                         </div>
                       </div>
                       <div className="flex flex-col">
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Level *
                         </label>
                         <Select
                           name="courseLevel"
                           defaultValue={editCourse?.courseLevel || undefined}
                         >
-                          <SelectTrigger className="h-[55px] w-full">
+                          <SelectTrigger className="h-[55px] w-full font-normal">
                             <SelectValue placeholder="Select course level" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1766,7 +1769,7 @@ export default function Courses() {
                       </div>
 
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Intro Video *
                         </label>
 
@@ -1800,7 +1803,7 @@ export default function Courses() {
                             />
                             <Label
                               htmlFor="courseIntroVideo"
-                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-normal rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                             >
                               {videoFile || editCourse?.courseIntroVideo
                                 ? "Change Video"
@@ -1815,7 +1818,7 @@ export default function Courses() {
                         </div>
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Category *
                         </label>
                         <Select
@@ -1839,8 +1842,8 @@ export default function Courses() {
                         </Select>
                       </div>
                       {/* <div>
-                  <label className="block font-medium mb-1">Define Course</label>
-                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                  <label className="block font-normal mb-1">Define Course</label>
+                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-normal placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
@@ -1979,14 +1982,14 @@ export default function Courses() {
                   <Stepper steps={steps} activeStep={activeStep} />
                 )}
                 {!isPhysicalBatchVisible && !isSyllabusVisible && (
-                  <TabsContent value="physical" className="">
+                  <TabsContent value="physical" className="w-full">
                     <form
                       className="space-y-4 h-[54vh] overflow-y-auto px-1 scroll-thin"
                       onSubmit={handleCourseSubmit}
                     >
                       <input type="hidden" name="courseType" value="physical" />
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Thumbnail Image *
                         </label>
                         <ImageUpload
@@ -1998,12 +2001,13 @@ export default function Courses() {
                         />
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Name *
                         </label>
                         <Input
                           placeholder="Course Name"
                           name="name"
+                          className="font-normal"
                           defaultValue={editCourse?.CourseName || ""}
                           onBlur={handleTrimInput}
                           onKeyDown={(e) => {
@@ -2020,12 +2024,13 @@ export default function Courses() {
                         )}
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Description *
                         </label>
                         <Input
                           placeholder="Course Description"
                           name="description"
+                          className="font-normal"
                           defaultValue={editCourse?.description || ""}
                           onBlur={handleTrimInput}
                           onKeyDown={(e) => {
@@ -2045,7 +2050,7 @@ export default function Courses() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block font-medium mb-1">
+                          <label className="block font-normal mb-1">
                             Instructor Name *
                           </label>
                           <Select
@@ -2076,7 +2081,7 @@ export default function Courses() {
                           )}
                         </div>
                         <div>
-                          <label className="block font-medium mb-1">
+                          <label className="block font-normal mb-1">
                             Language *
                           </label>
                           <Select
@@ -2098,7 +2103,7 @@ export default function Courses() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block font-medium mb-1">
+                          <label className="block font-normal mb-1">
                             Course Price *
                           </label>
                           <Input
@@ -2128,7 +2133,7 @@ export default function Courses() {
                           )}
                         </div>
                         <div>
-                          <label className="block font-medium mb-1">
+                          <label className="block font-normal mb-1">
                             Hours *
                           </label>
                           <Input
@@ -2155,12 +2160,12 @@ export default function Courses() {
                       </div>
 
                       {/* <div>
-                  <label className="block font-medium mb-1">Date and Time</label>
+                  <label className="block font-normal mb-1">Date and Time</label>
                   <Input placeholder="e.g. 2024-02-15 9:00 AM" name="dateTime" />
                 </div> */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="block font-medium">Email *</label>
+                          <label className="block font-normal">Email *</label>
                           <Input
                             type="email"
                             placeholder="Email"
@@ -2184,7 +2189,7 @@ export default function Courses() {
                           )}
                         </div>
                         <div className="space-y-1">
-                          <label className="block font-medium">
+                          <label className="block font-normal">
                             Phone No. *
                           </label>
                           <div className="flex gap-2">
@@ -2298,7 +2303,7 @@ export default function Courses() {
                           )}
                         </div>
                         {/* <div className="space-y-1">
-                                        <label className="block font-medium text-sm">Address</label>
+                                        <label className="block font-normal text-sm">Address</label>
                                         <Input 
                                             placeholder="Full address" 
                                             name="address" 
@@ -2311,14 +2316,14 @@ export default function Courses() {
                                     </div> */}
                       </div>
                       <div className="flex flex-col">
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Level *
                         </label>
                         <Select
                           name="courseLevel"
                           defaultValue={editCourse?.courseLevel || undefined}
                         >
-                          <SelectTrigger className="h-[55px] w-full">
+                          <SelectTrigger className="h-[55px] w-full font-normal">
                             <SelectValue placeholder="Select course level" />
                           </SelectTrigger>
                           <SelectContent>
@@ -2338,7 +2343,7 @@ export default function Courses() {
                         )}
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Intro Video *
                         </label>
 
@@ -2372,7 +2377,7 @@ export default function Courses() {
                             />
                             <Label
                               htmlFor="courseIntroVideo"
-                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-normal rounded-md shadow-sm text-white gradient-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
                             >
                               {videoFile || editCourse?.courseIntroVideo
                                 ? "Change Video"
@@ -2387,7 +2392,7 @@ export default function Courses() {
                         </div>
                       </div>
                       <div>
-                        <label className="block font-medium mb-1">
+                        <label className="block font-normal mb-1">
                           Course Category *
                         </label>
                         <Select
@@ -2411,8 +2416,8 @@ export default function Courses() {
                         </Select>
                       </div>
                       {/* <div>
-                  <label className="block font-medium mb-1">Define Course</label>
-                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
+                  <label className="block font-normal mb-1">Define Course</label>
+                  <select name="defineCourse" className="flex h-[55px] w-full rounded-md border border-input bg-background px-3 py-2 text-base font-semibold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-normal placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" defaultValue={editCourse?.language || "english"}>
                     <option value="">Choose Option</option>
                     <option value="popular">Popular</option>
                     <option value="trending">Trending</option>
@@ -2465,7 +2470,7 @@ export default function Courses() {
                   >
                     <div className="space-y-4 w-full">
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-medium">Batches</h3>
+                        <h3 className="text-lg font-normal">Batches</h3>
                         <Button
                           type="button"
                           variant="default"
