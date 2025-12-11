@@ -33,7 +33,7 @@ type UtilitySettings = {
   location: string;
   twitter: string;
   chatNumber: string;
-  days: string;
+  days: number;
   telegramLink: string;
   whatsAppLink: string;
 };
@@ -48,7 +48,7 @@ export default function ContactLinks() {
     location: "",
     twitter: "",
     chatNumber: "",
-    days: "",
+    days: 0,
     telegramLink: "",
     whatsAppLink: "",
   });
@@ -216,7 +216,7 @@ export default function ContactLinks() {
                   </TableCell>
                   <TableCell className="max-w-[400px] truncate">
                     {item.field === "phoneNo" || item.field === "chatNumber"
-                      ? formatPhoneNumber(item.value)
+                      ? formatPhoneNumber(String(item.value))
                       : item.value}
                   </TableCell>
                   <TableCell>
