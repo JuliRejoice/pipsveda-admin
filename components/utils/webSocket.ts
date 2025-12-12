@@ -1,7 +1,10 @@
 import socketIOClient from "socket.io-client";
 import { getCookie } from "../../cookie";
 
-const localdata = localStorage.getItem('token');
+const localdata = typeof window !== "undefined"
+  ? localStorage.getItem("token")
+  : null;
+
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
 let socket: any = null;
