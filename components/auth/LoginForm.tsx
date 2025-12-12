@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { Loader2 } from 'lucide-react';
-import { SignIn } from '@/components/api/login';
-import Pipslogo from '@/public/images/pipslogo';
+import { Loader2 } from "lucide-react";
+import { SignIn } from "@/components/api/login";
+import Image from "next/image";
 
 interface FormErrors {
   email?: string;
@@ -26,8 +26,8 @@ interface FormErrors {
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -35,16 +35,16 @@ export default function LoginForm() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [touched, setTouched] = useState({
     email: false,
-    password: false
+    password: false,
   });
   const router = useRouter();
 
   // Auth check on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
       if (token) {
-        router.push('/dashboard');
+        router.push("/dashboard");
       } else {
         setCheckingAuth(false);
       }
@@ -54,26 +54,26 @@ export default function LoginForm() {
   // Validation function
   const validateField = (name: string, value: string) => {
     const newErrors = { ...errors };
-    
+
     switch (name) {
-      case 'email':
+      case "email":
         if (!value) {
-          newErrors.email = 'Email is required';
+          newErrors.email = "Email is required";
         } else if (/\s/.test(value)) {
-          newErrors.email = 'Email cannot contain spaces';
+          newErrors.email = "Email cannot contain spaces";
         } else if (value !== value.toLowerCase()) {
-          newErrors.email = 'Email must be in lowercase';
+          newErrors.email = "Email must be in lowercase";
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          newErrors.email = 'Please enter a valid email address';
+          newErrors.email = "Please enter a valid email address";
         } else {
           delete newErrors.email;
         }
         break;
-      case 'password':
+      case "password":
         if (!value) {
-          newErrors.password = 'Password is required';
+          newErrors.password = "Password is required";
         } else if (value.length < 6) {
-          newErrors.password = 'Password must be at least 6 characters';
+          newErrors.password = "Password must be at least 6 characters";
         } else {
           delete newErrors.password;
         }
@@ -81,16 +81,16 @@ export default function LoginForm() {
       default:
         break;
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     // Validate field if it's been touched
@@ -101,69 +101,71 @@ export default function LoginForm() {
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setTouched(prev => ({
+    setTouched((prev) => ({
       ...prev,
-      [name]: true
+      [name]: true,
     }));
     validateField(name, value);
   };
 
-  const validateForm = () => {    
+  const validateForm = () => {
     // Reset all errors
     const newErrors: FormErrors = {};
     let isValid = true;
-    
+
     // Validate email
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
       isValid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
-    
+
     // Validate password
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
       isValid = false;
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
       isValid = false;
     }
-    
+
     setErrors(newErrors);
     setTouched({ email: true, password: true });
-    
+
     return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
-    setErrors(prev => ({ ...prev, form: '' }));
+    setErrors((prev) => ({ ...prev, form: "" }));
 
     const loginData = {
       email: formData.email,
       password: formData.password,
-      name: 'Admin',
+      name: "Admin",
     };
 
     try {
       const response = await SignIn(loginData);
       if (response.data) {
-        localStorage.setItem('token', response.data.payload.token);
+        localStorage.setItem("token", response.data.payload.token);
         localStorage.setItem("user", JSON.stringify(response.data.payload));
-        router.push('/dashboard');
+        router.push("/dashboard");
       }
     } catch (err: any) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        form: err?.response?.data?.message || 'Login failed. Please check your credentials and try again.'
+        form:
+          err?.response?.data?.message ||
+          "Login failed. Please check your credentials and try again.",
       }));
     } finally {
       setIsLoading(false);
@@ -181,11 +183,17 @@ export default function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <div className="flex justify-center">
-          <Pipslogo width="110px" height="90px" />
+        <div className="flex justify-center mb-2">
+          <Image
+            src="/icons/FiveVedaLogo.png"
+            alt="FiveVeda Logo"
+            width={80}
+            height={90}
+            priority
+          />
         </div>
         <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
-        <CardDescription className='text-base font-semibold'>
+        <CardDescription className="text-base font-semibold">
           Enter your credentials to access the dashboard
         </CardDescription>
       </CardHeader>
@@ -204,7 +212,9 @@ export default function LoginForm() {
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`pl-10 ${touched.email && errors.email ? 'border-red-500' : ''}`}
+                className={`pl-10 ${
+                  touched.email && errors.email ? "border-red-500" : ""
+                }`}
                 disabled={isLoading}
                 required
               />
@@ -234,7 +244,9 @@ export default function LoginForm() {
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`pl-10 pr-10 ${touched.password && errors.password ? 'border-red-500' : ''}`}
+                className={`pl-10 pr-10 ${
+                  touched.password && errors.password ? "border-red-500" : ""
+                }`}
                 disabled={isLoading}
                 required
               />
@@ -242,7 +254,7 @@ export default function LoginForm() {
                 type="button"
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
                 onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1} 
+                tabIndex={-1}
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -273,18 +285,14 @@ export default function LoginForm() {
             </Alert>
           )}
 
-          <Button 
-            type="submit" 
-            className="w-full mt-6" 
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full mt-6" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in...
               </>
             ) : (
-              'Sign In'
+              "Sign In"
             )}
           </Button>
         </form>

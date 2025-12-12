@@ -69,9 +69,9 @@ export const CourseCard = ({
             <h3 className="font-medium text-lg line-clamp-2">
               <Link
                 href={
-                  activeTab === "live"
+                  activeTab === "recorded" && !course.courseVideo
                     ? `/dashboard/courses/${course._id}`
-                    : `/dashboard/courses/${course._id}`
+                    : `/dashboard/courses/${course._id}/batches?type=${activeTab}`
                 }
                 className="hover:underline cursor-pointer truncate block max-w-[250px]"
               >
