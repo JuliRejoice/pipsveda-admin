@@ -1429,14 +1429,6 @@ export default function TelegramManagement() {
                         </SelectTrigger>
                         <SelectContent>
                           {[...(channel?.telegramPlan || [])]
-                            .filter((plan: any) => {
-                              // Only show plans that are not already selected in other dropdowns
-                              return !Object.values(selectedPlans).some(
-                                (selectedPlan) =>
-                                  selectedPlan?.planType === plan.planType &&
-                                  selectedPlan?._id !== plan._id
-                              );
-                            })
                             .sort((a, b) => {
                               // Extract the numeric part for proper numeric sorting
                               const numA = parseInt(
