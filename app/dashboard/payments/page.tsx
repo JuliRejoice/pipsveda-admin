@@ -27,6 +27,7 @@ import { DataTablePagination } from "@/components/ui/DataTablePagination";
 import { toast } from "sonner";
 
 interface Payment {
+  invoiceNo: any;
   _id: string;
   userId: string;
   userName: string;
@@ -186,6 +187,7 @@ export default function Payments() {
         transactionId: payment.orderId,
         purchaseDate: purchaseDate,
         expiryDate: expiryDate,
+        invoiceNo: payment.invoiceNo,
         items: [
           {
             planName:
