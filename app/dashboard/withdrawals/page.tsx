@@ -207,47 +207,74 @@ export default function WithdrawalsPage() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // Function to filter withdrawals based on status
-  const getFilteredWithdrawals = () => {
-    if (statusFilter === "all" || !statusFilter) {
-      return withdrawals;
+  const getFilteredWithdrawals = (allWithdrawals: WithdrawalItem[]) => {
+    let filtered = [...allWithdrawals];
+
+    if (statusFilter && statusFilter !== "all") {
+      filtered = filtered.filter((w) => w.status === statusFilter);
     }
-    return withdrawals.filter((w) => w.status === statusFilter);
+
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
+      filtered = filtered.filter(
+        (w) =>
+          w.name?.toLowerCase().includes(searchLower) ||
+          w.email?.toLowerCase().includes(searchLower) ||
+          w.phone?.toLowerCase().includes(searchLower) ||
+          w.transactionId?.toLowerCase().includes(searchLower) ||
+          w.amount?.toLowerCase().includes(searchLower) ||
+          w.walletId?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return filtered;
   };
 
-  // Fetch function (calls your API)
   const fetchWithdrawals = async () => {
     try {
       setIsFetching(true);
 
-      const query = {
-        page: currentPage,
-        limit: itemsPerPage,
-        search: debouncedSearch || undefined,
-        status:
-          statusFilter === "all" || !statusFilter ? undefined : statusFilter,
-      };
-
-      const res = await getWithdrawals(query);
-
-      const list: WithdrawalItem[] = res.payload?.data || [];
-      const count: number = res.payload?.count || 0;
-
-      setWithdrawals(list);
-      setTotalItems(count);
-      setTotalPages(Math.max(1, Math.ceil(count / itemsPerPage)));
+      const res = await getWithdrawals({
+        limit: 10000,
+      });
+      const allWithdrawals: WithdrawalItem[] = res.payload?.data || [];
+      setWithdrawals(allWithdrawals);
     } catch (err) {
       console.error("fetchWithdrawals error", err);
       toast.error("Failed to load withdrawals");
     } finally {
       setIsFetching(false);
+      getPaginatedWithdrawals();
     }
   };
+
+  const getPaginatedWithdrawals = () => {
+    const filtered = getFilteredWithdrawals(withdrawals);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filtered
+      .slice(startIndex, startIndex + itemsPerPage)
+      .map((withdrawal, index) => {
+        const serialNumber = startIndex + index + 1;
+        return {
+          ...withdrawal,
+          idx: serialNumber - 1,
+          serialNumber,
+        };
+      });
+  };
+
+  useEffect(() => {
+    const filtered = getFilteredWithdrawals(withdrawals);
+    const total = filtered.length;
+    setTotalItems(total);
+    setTotalPages(Math.max(1, Math.ceil(total / itemsPerPage)));
+    setCurrentPage(1);
+  }, [withdrawals, statusFilter, debouncedSearch, itemsPerPage]);
 
   useEffect(() => {
     fetchWithdrawals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage, debouncedSearch, statusFilter]);
+  }, []);
 
   // Commission modal behaviour
   const openCommissionForAll = () => {
@@ -668,23 +695,40 @@ export default function WithdrawalsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {getFilteredWithdrawals().length > 0 ? (
-                    getFilteredWithdrawals().map((w, idx) => (
-                      <TableRow key={w._id} className={getRowClassName(w)}>
+                  {getPaginatedWithdrawals().length === 0 ? (
+                    <TableRow>
+                      <TableCell className="text-center">NAAN</TableCell>
+                      <TableCell
+                        colSpan={10}
+                        className="text-center py-8 text-gray-500"
+                      >
+                        No withdrawal data available
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    getPaginatedWithdrawals().map((withdrawal: any) => (
+                      <TableRow
+                        key={withdrawal._id}
+                        className={getRowClassName(withdrawal)}
+                      >
                         <TableCell className="font-medium">
-                          {(currentPage - 1) * itemsPerPage + idx + 1}
+                          {withdrawal.serialNumber}
                         </TableCell>
-                        <TableCell>{w.name}</TableCell>
-                        <TableCell className="lowercase">{w.email}</TableCell>
-                        <TableCell>
-                          {w.phone.startsWith("+") ? w.phone : "+" + w.phone}
+                        <TableCell>{withdrawal.name}</TableCell>
+                        <TableCell className="lowercase">
+                          {withdrawal.email}
                         </TableCell>
-                        <TableCell>${w.amount}</TableCell>
                         <TableCell>
-                          {w.transactionId ? (
+                          {withdrawal.phone.startsWith("+")
+                            ? withdrawal.phone
+                            : "+" + withdrawal.phone}
+                        </TableCell>
+                        <TableCell>${withdrawal.amount}</TableCell>
+                        <TableCell>
+                          {withdrawal.transactionId ? (
                             <div className="flex items-center space-x-2">
                               <span className="font-mono text-sm break-all">
-                                {w.transactionId}
+                                {withdrawal.transactionId}
                               </span>
                               {/* <button
                               onClick={() => {
@@ -703,10 +747,10 @@ export default function WithdrawalsPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {w.withdrawalType ? (
+                          {withdrawal.withdrawalType ? (
                             <div className="flex items-center space-x-2">
                               <span className="font-mono text-sm break-all">
-                                {w.withdrawalType}
+                                {withdrawal.withdrawalType}
                               </span>
                             </div>
                           ) : (
@@ -716,25 +760,27 @@ export default function WithdrawalsPage() {
                         <TableCell>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              w.status === "approved"
+                              withdrawal.status === "approved"
                                 ? "bg-green-100 text-green-800"
-                                : w.status === "rejected"
+                                : withdrawal.status === "rejected"
                                 ? "bg-red-100 text-red-800"
                                 : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {w.status}
+                            {withdrawal.status}
                           </span>
                         </TableCell>
                         <TableCell>
-                          {w.updatedAt
-                            ? new Date(w.updatedAt).toLocaleDateString()
+                          {withdrawal.updatedAt
+                            ? new Date(
+                                withdrawal.updatedAt
+                              ).toLocaleDateString()
                             : "N/A"}
                         </TableCell>
                         <TableCell>
                           <Button
                             onClick={() => {
-                              setSelectedWithdrawal(w);
+                              setSelectedWithdrawal(withdrawal);
                               setIsViewOpen(true);
                             }}
                             variant="outline"
@@ -744,7 +790,7 @@ export default function WithdrawalsPage() {
                           </Button>
                         </TableCell>
                         <TableCell>
-                          {w.status !== "pending" ? (
+                          {withdrawal.status !== "pending" ? (
                             <Button variant="outline" size="sm" disabled>
                               <Lock className="h-4 w-4" />
                             </Button>
@@ -754,7 +800,7 @@ export default function WithdrawalsPage() {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleEditClick(w);
+                                handleEditClick(withdrawal);
                               }}
                               disabled={isLoadingAction}
                             >
@@ -764,15 +810,6 @@ export default function WithdrawalsPage() {
                         </TableCell>
                       </TableRow>
                     ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="text-center py-8 text-muted-foreground"
-                      >
-                        No data found
-                      </TableCell>
-                    </TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -783,7 +820,10 @@ export default function WithdrawalsPage() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={setItemsPerPage}
+              onItemsPerPageChange={(value) => {
+                setItemsPerPage(value);
+                setCurrentPage(1); // Reset to first page when changing items per page
+              }}
               totalItems={totalItems}
             />
           </div>
