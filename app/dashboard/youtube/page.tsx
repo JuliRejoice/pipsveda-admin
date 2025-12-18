@@ -49,7 +49,10 @@ const ytUrlRegex =
   /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[A-Za-z0-9_-]{11}([&?].*)?$/;
 
 const formSchema = z.object({
-  description: z.string().max(120, "Title must be at most 120 characters"),
+  description: z
+    .string()
+    .min(1, "Description is required")
+    .max(120, "Description must be at most 120 characters"),
   videoUrl: z
     .string()
     .url("Must be a valid URL")
@@ -295,7 +298,7 @@ export default function YoutubeManager() {
         if (data.videoUrl !== originalItem.videoUrl) {
           requestData.videoUrl = data.videoUrl;
         }
-            
+
         if (data.thumbnail && data.thumbnail !== originalItem.thumbnail) {
           requestData.thumbnail = data.thumbnail;
         }
