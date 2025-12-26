@@ -26,7 +26,7 @@ export const getTotalRevenueData = async () => {
 
 export const getUserSignupReport = async () => {
     try {
-        const response = await axios.get(`https://259s7s89-6002.inc1.devtunnels.ms/api/v1/user/userSignupReport`, {
+        const response = await axios.get(`${BaseUrl}/user/userSignupReport`, {
             headers: {
                 'x-auth-token': getAuthToken(),
             },
@@ -40,7 +40,7 @@ export const getUserSignupReport = async () => {
 
 export const getDashboardReportData = async ()=>{
     try {
-        const response = await axios.get(`https://259s7s89-6002.inc1.devtunnels.ms/api/v1/user/dashboardReport`, {
+        const response = await axios.get(`${BaseUrl}/user/dashboardReport`, {
             headers: {
                 'x-auth-token': getAuthToken(),
             },
@@ -54,7 +54,7 @@ export const getDashboardReportData = async ()=>{
 
 export const getRevenueBreakdownData = async (startDate:string,endDate:string)=>{
     try {
-        const response = await axios.get(`https://259s7s89-6002.inc1.devtunnels.ms/api/v1/user/revenueBreakdown?startDate=${startDate}&endDate=${endDate}`, {
+        const response = await axios.get(`${BaseUrl}/user/revenueBreakdown?startDate=${startDate}&endDate=${endDate}`, {
             headers: {
                 'x-auth-token': getAuthToken(),
             },
